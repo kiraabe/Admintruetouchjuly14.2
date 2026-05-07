@@ -3,17 +3,44 @@ const express = require('express')
 const cors = require('cors')
 const helmet = require('helmet')
 const jwt = require('jsonwebtoken')
+const http = require('http')
 
 const app = express()
 const PORT = process.env.PORT || 5000
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
 
+// Simple proxy function for frontend
+function proxyToVite(req, res) {
+  const options = {
+    hostname: 'localhost',
+    port: 5173,
+    path: req.url,
+    method: req.method,
+    headers: {
+      ...req.headers,
+      host: 'localhost:5173',
+    }
+  }
+
+  const proxy = http.request(options, (proxyRes) => {
+    res.writeHead(proxyRes.statusCode, proxyRes.headers)
+    proxyRes.pipe(res)
+  })
+
+  proxy.on('error', (err) => {
+    console.error('Proxy error:', err)
+    res.status(503).json({ error: 'Frontend unavailable' })
+  })
+
+  req.pipe(proxy)
+}
+
 // Middleware
 app.use(helmet())
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173'],
+    origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173', 'http://localhost:5000'],
     credentials: true,
   }),
 )
@@ -84,6 +111,11 @@ app.post('/api/sign-in', async (req, res) => {
     console.error('Sign in error:', errorMsg, error)
     res.status(500).json({ message: `Internal server error: ${errorMsg}` })
   }
+})
+
+// Proxy all other requests to Vite dev server (frontend)
+app.use((req, res) => {
+  proxyToVite(req, res)
 })
 
 // Error handling
