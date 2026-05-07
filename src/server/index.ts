@@ -24,6 +24,7 @@ app.get('/health', (req, res) => {
 })
 
 // Auth routes
+app.post('/api/sign-in', signIn)
 app.post('/api/auth/sign-in', signIn)
 
 // Error handling
