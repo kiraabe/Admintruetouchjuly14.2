@@ -2,8 +2,8 @@ import 'dotenv/config'
 import express, { type Request, type Response } from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
-import { comparePasswords, generateToken } from './utils/auth'
-import pool from '../db/connection'
+import { comparePasswords, generateToken } from './utils/auth.js'
+import pool from '../db/connection.js'
 
 const app = express()
 const PORT = process.env.PORT || 5000
