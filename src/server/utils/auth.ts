@@ -1,5 +1,5 @@
-import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import * as bcrypt from 'bcryptjs'
+import * as jwt from 'jsonwebtoken'
 
 const JWT_SECRET: string = process.env.JWT_SECRET || 'your-secret-key'
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'

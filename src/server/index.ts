@@ -2,7 +2,6 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
-import authRoutes from './routes/auth/index.ts'
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -18,12 +17,20 @@ app.use(
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-// Routes
-app.use('/api', authRoutes)
-
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
+})
+
+// Routes - lazy load auth routes
+app.use('/api', async (req, res, next) => {
+  try {
+    const { default: authRoutes } = await import('./routes/auth/index')
+    authRoutes(req, res, next)
+  } catch (err) {
+    console.error('Route error:', err)
+    res.status(500).json({ error: 'Internal server error' })
+  }
 })
 
 app.listen(PORT, () => {
