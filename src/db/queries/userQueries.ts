@@ -1,6 +1,7 @@
 import pool from '../connection'
 
 export interface User {
+  id: number
   user_id: string
   email: string
   password_hash: string
@@ -12,7 +13,11 @@ export interface User {
 
 export async function getUserByEmail(email: string): Promise<User | null> {
   try {
-    const query = 'SELECT * FROM users WHERE email = $1'
+    const query = `
+      SELECT id, user_id, email, password_hash, user_name, is_active, avatar, authority
+      FROM users
+      WHERE email = $1
+    `
     const result = await pool.query(query, [email])
 
     if (result.rows.length === 0) {

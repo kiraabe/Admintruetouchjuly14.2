@@ -2,6 +2,7 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
+import { signIn } from './routes/auth/signIn'
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -23,30 +24,7 @@ app.get('/health', (req, res) => {
 })
 
 // Auth routes
-app.post('/api/sign-in', (req, res) => {
-  try {
-    const { email, password } = req.body
-
-    if (!email || !password) {
-      return res.status(400).json({ message: 'Email and password are required' })
-    }
-
-    // Mock successful login for development
-    res.json({
-      token: 'mock-jwt-token-' + Date.now(),
-      user: {
-        userId: 'user-123',
-        userName: email.split('@')[0],
-        authority: ['admin'],
-        avatar: '',
-        email: email,
-      },
-    })
-  } catch (err) {
-    console.error('Sign in error:', err)
-    res.status(500).json({ message: 'Internal server error' })
-  }
-})
+app.post('/api/sign-in', signIn)
 
 // Error handling
 app.use((err: any, req: express.Request, res: express.Response) => {
