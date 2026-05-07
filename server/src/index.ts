@@ -5,7 +5,7 @@ import helmet from 'helmet'
 import authRoutes from './routes/auth/index.ts'
 
 const app = express()
-const PORT = process.env.PORT || 3000
+const PORT = process.env.PORT || 5173
 
 // Middleware
 app.use(helmet())
