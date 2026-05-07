@@ -1,5 +1,5 @@
 import {
-    HomeIcon,
+    SquaresPlusIcon,
     UsersIcon,
     UserGroupIcon,
     BriefcaseIcon,
@@ -11,7 +11,7 @@ import type { JSX } from 'react'
 export type NavigationIcons = Record<string, JSX.Element>
 
 const navigationIcon: NavigationIcons = {
-    home: <HomeIcon className="w-6 h-6" />,
+    home: <SquaresPlusIcon className="w-6 h-6" />,
     singleMenu: <UsersIcon className="w-6 h-6" />,
     collapseMenu: <UserGroupIcon className="w-6 h-6" />,
     groupSingleMenu: <BriefcaseIcon className="w-6 h-6" />,
