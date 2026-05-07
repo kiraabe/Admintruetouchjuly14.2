@@ -4,6 +4,7 @@ export interface User {
   id: number
   user_id: string
   email: string
+  password_hash: string
   user_name: string | null
   avatar: string | null
   authority: string

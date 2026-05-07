@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import type { Request, Response } from 'express'
 import { getUserByEmail, createUser } from '../../db/queries/userQueries.ts'
 import { hashPassword, generateToken } from '../../utils/auth.ts'
 

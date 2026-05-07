@@ -1,7 +1,7 @@
 import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+const JWT_SECRET: string = process.env.JWT_SECRET || 'your-secret-key'
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
 
 export async function hashPassword(password: string): Promise<string> {
@@ -14,7 +14,7 @@ export async function comparePasswords(password: string, hash: string): Promise<
 }
 
 export function generateToken(userId: string, email: string): string {
-  return jwt.sign(
+  return (jwt.sign as any)(
     { userId, email },
     JWT_SECRET,
     { expiresIn: JWT_EXPIRES_IN },
@@ -23,7 +23,7 @@ export function generateToken(userId: string, email: string): string {
 
 export function verifyToken(token: string): any {
   try {
-    return jwt.verify(token, JWT_SECRET)
+    return (jwt.verify as any)(token, JWT_SECRET)
   } catch {
     return null
   }
