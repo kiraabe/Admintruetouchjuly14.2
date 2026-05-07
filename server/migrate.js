@@ -41,6 +41,24 @@ async function runMigrations() {
 
     console.log('✓ Reset tokens table created')
 
+    // Seed default test user
+    try {
+      const crypto = await import('crypto')
+      const bcrypt = await import('bcryptjs')
+      const salt = await bcrypt.default.genSalt(10)
+      const passwordHash = await bcrypt.default.hash('123Qwe', salt)
+
+      await pool.query(
+        `INSERT INTO users (email, password_hash, user_name, authority)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (email) DO NOTHING`,
+        ['admin-01@ecme.com', passwordHash, 'Admin User', 'admin'],
+      )
+      console.log('✓ Default test user created')
+    } catch (err) {
+      console.log('✓ Test user already exists or skipped')
+    }
+
     console.log('Migrations completed successfully')
     await pool.end()
     process.exit(0)

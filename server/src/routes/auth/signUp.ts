@@ -7,16 +7,16 @@ export async function signUp(req: Request, res: Response) {
     const { email, password, userName } = req.body
 
     if (!email || !password || !userName) {
-      return res.status(400).json({ error: 'Email, password, and username are required' })
+      return res.status(400).json({ message: 'Email, password, and username are required' })
     }
 
     if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters' })
+      return res.status(400).json({ message: 'Password must be at least 6 characters' })
     }
 
     const existingUser = await getUserByEmail(email)
     if (existingUser) {
-      return res.status(409).json({ error: 'Email already in use' })
+      return res.status(409).json({ message: 'Email already in use' })
     }
 
     const passwordHash = await hashPassword(password)
@@ -28,14 +28,14 @@ export async function signUp(req: Request, res: Response) {
       token,
       user: {
         userId: user.user_id,
-        userName: user.user_name,
+        userName: user.user_name || userName,
         authority: [user.authority],
-        avatar: user.avatar,
+        avatar: user.avatar || '',
         email: user.email,
       },
     })
   } catch (error) {
     console.error('Sign up error:', error)
-    res.status(500).json({ error: 'Internal server error' })
+    res.status(500).json({ message: 'Internal server error' })
   }
 }
