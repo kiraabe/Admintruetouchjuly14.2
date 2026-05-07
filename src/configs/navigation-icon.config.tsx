@@ -18,6 +18,7 @@ const navigationIcon: NavigationIcons = {
     groupSingleMenu: <BuildingOfficeIcon className="w-6 h-6" />,
     groupCollapseMenu: <DocumentCheckIcon className="w-6 h-6" />,
     groupMenu: <Cog6ToothIcon className="w-6 h-6" />,
+    briefcase: <BriefcaseIcon className="w-6 h-6" />,
 }
 
 export default navigationIcon
