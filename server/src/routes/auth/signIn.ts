@@ -37,7 +37,8 @@ export async function signIn(req: Request, res: Response) {
       },
     })
   } catch (error) {
-    console.error('Sign in error:', error)
-    res.status(500).json({ message: 'Internal server error' })
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error('Sign in error:', errorMsg, error)
+    res.status(500).json({ message: `Internal server error: ${errorMsg}` })
   }
 }
