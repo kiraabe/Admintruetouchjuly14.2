@@ -6,6 +6,7 @@ import { useAuth } from '@/auth'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { notify } from '@/utils/notification'
 import type { CommonProps } from '@/@types/common'
 
 interface SignUpFormProps extends CommonProps {
@@ -52,10 +53,19 @@ const SignUpForm = (props: SignUpFormProps) => {
 
         if (!disableSubmit) {
             setSubmitting(true)
-            const result = await signUp({ userName, password, email })
 
-            if (result?.status === 'failed') {
-                setMessage?.(result.message)
+            try {
+                const result = await signUp({ userName, password, email })
+
+                if (result?.status === 'failed') {
+                    setMessage?.(result.message)
+                    notify.error('Sign Up Failed', result.message)
+                } else {
+                    notify.success('Account Created', 'Welcome to Ecme!')
+                }
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'An error occurred'
+                notify.error('Error', errorMessage)
             }
 
             setSubmitting(false)

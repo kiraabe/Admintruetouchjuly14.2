@@ -8,6 +8,7 @@ import { useAuth } from '@/auth'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
+import { notify } from '@/utils/notification'
 import type { CommonProps } from '@/@types/common'
 import type { ReactNode } from 'react'
 
@@ -56,10 +57,18 @@ const SignInForm = (props: SignInFormProps) => {
         if (!disableSubmit) {
             setSubmitting(true)
 
-            const result = await signIn({ email, password })
+            try {
+                const result = await signIn({ email, password })
 
-            if (result?.status === 'failed') {
-                setMessage?.(result.message)
+                if (result?.status === 'failed') {
+                    setMessage?.(result.message)
+                    notify.error('Sign In Failed', result.message)
+                } else {
+                    notify.success('Signed In', 'Welcome back!')
+                }
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : 'An error occurred'
+                notify.error('Error', errorMessage)
             }
         }
 
