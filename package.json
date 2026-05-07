@@ -43,6 +43,7 @@
     "js-cookie": "^3.0.5",
     "lodash": "^4.17.21",
     "marked": "^16.2.0",
+    "pg": "^8.20.0",
     "react": "19.2.3",
     "react-apexcharts": "^1.7.0",
     "react-csv": "^2.2.2",
