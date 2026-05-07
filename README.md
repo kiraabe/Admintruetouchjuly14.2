@@ -13,6 +13,7 @@ Key Features:
 - **RTL Support**: Full Right-to-Left support for languages like Arabic or Hebrew.
 - **Tailwind Component-Based Architecture**: Reusable components to streamline your development process.
 - **API Ready**: Simple integration with any RESTful API.
+- **Integrated Backend**: Express.js backend included in the same codebase.
 
 ---
 ### Demo
@@ -22,29 +23,125 @@ Check out the [Live Demo](https://ecme-react.themenate.net/) to explore the temp
 ### Guide
 Please visit our [Online documentation](https://ecme-react.themenate.net/guide/documentation/introduction) for detailed guides, setup instructions, and customization options.
 
-## Development
+## Quick Start
 
-This project uses a monorepo architecture with both frontend and backend running from a single command.
+This project is a fully unified monorepo with both frontend (React + Vite) and backend (Express) in a single codebase.
 
-### Running the Project
+### Installation
 
-To start both the frontend (Vite on port 5173) and backend (Express on port 5000) together:
+```bash
+npm install
+```
+
+### Development
+
+Start both frontend and backend with a single command:
 
 ```bash
 npm run dev
 ```
 
-This uses `concurrently` to run both services simultaneously.
+This starts:
+- **Frontend**: http://localhost:5173 (React dev server with Vite)
+- **Backend**: http://localhost:5000 (Express API server)
 
-### Individual Commands
+### Individual Development Commands
 
-- `npm run dev:frontend` - Start Vite dev server only
-- `npm run dev:backend` - Start backend server only
-- `npm run build` - Build frontend
-- `npm run build:backend` - Build backend
-- `npm run lint` - Lint frontend code
-- `npm run format` - Format code
+```bash
+npm run dev:frontend    # Frontend only
+npm run dev:backend     # Backend only
+npm run build           # Build frontend
+npm run build:backend   # Build backend
+npm run lint            # Lint code
+npm run format          # Format and lint
+```
 
-### Backend Configuration
+## Project Structure
 
-The backend is located in the `/server` directory. Environment variables are configured in `server/.env`. The backend API runs on `http://localhost:5000` and the frontend is configured to proxy API requests to this address.
+```
+src/
+├── components/     # React components
+├── views/         # React pages
+├── layouts/       # React layouts
+├── server/        # Express backend
+│   ├── routes/    # API routes
+│   ├── db/        # Database config
+│   ├── middleware/# Express middleware
+│   └── index.ts   # Backend entry point
+└── App.tsx        # Frontend entry point
+```
+
+## Configuration
+
+### Environment Variables
+
+Create a `.env` file in the project root (copy from `.env.example`):
+
+```env
+PORT=5000
+NODE_ENV=development
+DATABASE_URL=postgresql://user:password@host/database
+JWT_SECRET=your-secret-key
+CORS_ORIGIN=http://localhost:5173
+```
+
+### Frontend API Calls
+
+The frontend automatically proxies API requests to the backend:
+
+```typescript
+// Automatically routes to http://localhost:5000/api/auth/signin
+fetch('/api/auth/signin', { method: 'POST', body: ... })
+```
+
+## Technology Stack
+
+**Frontend:**
+- React 19.2.3
+- Vite 7.1.3
+- TypeScript
+- Tailwind CSS
+
+**Backend:**
+- Express 4.18.2
+- PostgreSQL
+- JWT Authentication
+- TypeScript
+
+## Backend Development
+
+The backend is located in `src/server/`:
+
+- **Routes**: Define API endpoints in `src/server/routes/`
+- **Database**: Configure connections in `src/server/db/`
+- **Middleware**: Add custom middleware in `src/server/middleware/`
+- **Entry Point**: `src/server/index.ts`
+
+### Adding an API Endpoint
+
+1. Create a route file in `src/server/routes/`
+2. Import it in `src/server/index.ts`
+3. Call from frontend using `/api/...`
+
+See `MONOREPO_SETUP.md` for detailed backend documentation.
+
+## Troubleshooting
+
+### Port Already in Use
+- Frontend: Edit `vite.config.ts` to change port
+- Backend: Set `PORT` environment variable
+
+### Backend Not Starting
+1. Check `.env` database configuration
+2. Run `npm install` to ensure dependencies are installed
+3. Check console logs for specific errors
+
+### API Calls Failing
+1. Ensure both services are running
+2. Verify API endpoint exists
+3. Check browser console for CORS errors
+
+## Learn More
+
+- [Full Monorepo Setup Guide](./MONOREPO_SETUP.md)
+- [Online Documentation](https://ecme-react.themenate.net/guide/documentation/introduction)

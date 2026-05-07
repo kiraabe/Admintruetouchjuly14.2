@@ -4,7 +4,7 @@
     "module": "ES2020",
     "lib": ["ES2020"],
     "outDir": "./dist",
-    "rootDir": "./src",
+    "rootDir": "./src/server",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -16,8 +16,8 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": false
   },
-  "include": ["src/**/*"],
+  "include": ["src/server/**/*"],
   "exclude": ["node_modules", "dist"]
 }
