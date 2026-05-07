@@ -2,8 +2,8 @@ import 'dotenv/config'
 import express, { type Request, type Response } from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
-import { comparePasswords, generateToken } from '../db/queries/userQueries.ts'
-import pool from '../db/connection.ts'
+import { comparePasswords, generateToken } from './utils/auth'
+import pool from '../db/connection'
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -78,7 +78,12 @@ app.use((err: any, req: express.Request, res: express.Response) => {
   res.status(500).json({ error: err.message || 'Internal server error' })
 })
 
-app.listen(PORT, () => {
-  console.log(`Server is running on http://localhost:${PORT}`)
-  console.log(`Health check: http://localhost:${PORT}/health`)
-})
+try {
+  app.listen(PORT, () => {
+    console.log(`Server is running on http://localhost:${PORT}`)
+    console.log(`Health check: http://localhost:${PORT}/health`)
+  })
+} catch (error) {
+  console.error('Failed to start server:', error)
+  process.exit(1)
+}

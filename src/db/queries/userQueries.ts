@@ -1,4 +1,4 @@
-import pool from '../connection.ts'
+import pool from '../connection'
 
 export interface User {
   id: number
