@@ -18,9 +18,12 @@ AxiosBase.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      Cookies.remove('token')
-      localStorage.removeItem('token')
-      window.location.href = '/sign-in'
+      const isSignInEndpoint = error.config?.url?.includes('/sign-in')
+      if (!isSignInEndpoint) {
+        Cookies.remove('token')
+        localStorage.removeItem('token')
+        window.location.href = '/sign-in'
+      }
     }
     return Promise.reject(error)
   },
