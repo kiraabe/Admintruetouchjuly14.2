@@ -11,7 +11,6 @@ import type { CommonProps } from '@/@types/common'
 
 interface SignUpFormProps extends CommonProps {
     disableSubmit?: boolean
-    setMessage?: (message: string) => void
 }
 
 type SignUpFormSchema = {
@@ -34,7 +33,7 @@ const validationSchema = z
     })
 
 const SignUpForm = (props: SignUpFormProps) => {
-    const { disableSubmit = false, className, setMessage } = props
+    const { disableSubmit = false, className } = props
 
     const [isSubmitting, setSubmitting] = useState<boolean>(false)
 
@@ -58,7 +57,6 @@ const SignUpForm = (props: SignUpFormProps) => {
                 const result = await signUp({ userName, password, email })
 
                 if (result?.status === 'failed') {
-                    setMessage?.(result.message)
                     notify.error('Sign Up Failed', result.message)
                 } else {
                     notify.success('Account Created', 'Welcome to Ecme!')

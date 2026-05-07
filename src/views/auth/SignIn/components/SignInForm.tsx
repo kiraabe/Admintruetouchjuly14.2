@@ -15,7 +15,6 @@ import type { ReactNode } from 'react'
 interface SignInFormProps extends CommonProps {
     disableSubmit?: boolean
     passwordHint?: string | ReactNode
-    setMessage?: (message: string) => void
 }
 
 type SignInFormSchema = {
@@ -35,7 +34,7 @@ const validationSchema = z.object({
 const SignInForm = (props: SignInFormProps) => {
     const [isSubmitting, setSubmitting] = useState<boolean>(false)
 
-    const { disableSubmit = false, className, setMessage, passwordHint } = props
+    const { disableSubmit = false, className, passwordHint } = props
 
     const {
         handleSubmit,
@@ -61,7 +60,6 @@ const SignInForm = (props: SignInFormProps) => {
                 const result = await signIn({ email, password })
 
                 if (result?.status === 'failed') {
-                    setMessage?.(result.message)
                     notify.error('Sign In Failed', result.message)
                 } else {
                     notify.success('Signed In', 'Welcome back!')

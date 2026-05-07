@@ -1,8 +1,6 @@
 import Logo from '@/components/template/Logo'
-import Alert from '@/components/ui/Alert'
 import SignInForm from './components/SignInForm'
 import ActionLink from '@/components/shared/ActionLink'
-import useTimeOutMessage from '@/utils/hooks/useTimeOutMessage'
 import { useThemeStore } from '@/store/themeStore'
 
 type SignInProps = {
@@ -16,8 +14,6 @@ export const SignInBase = ({
     forgetPasswordUrl = '/forgot-password',
     disableSubmit,
 }: SignInProps) => {
-    const [message, setMessage] = useTimeOutMessage()
-
     const mode = useThemeStore((state) => state.mode)
 
     return (
@@ -36,14 +32,8 @@ export const SignInBase = ({
                     Please enter your credentials to sign in!
                 </p>
             </div>
-            {message && (
-                <Alert showIcon className="mb-4" type="danger">
-                    <span className="break-all">{message}</span>
-                </Alert>
-            )}
             <SignInForm
                 disableSubmit={disableSubmit}
-                setMessage={setMessage}
                 passwordHint={
                     <div className="mb-7 mt-2">
                         <ActionLink
