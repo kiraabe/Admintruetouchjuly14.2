@@ -4,8 +4,7 @@ import Button from '@/components/ui/Button'
 import Tag from '@/components/ui/Tag'
 import Segment from '@/components/ui/Segment'
 import Avatar from '@/components/ui/Avatar'
-import Table from '@/components/ui/Table'
-import ApexChart from '@/components/shared/ApexChart'
+import Chart from '@/components/shared/Chart'
 
 interface KPI {
   title: string
@@ -164,19 +163,18 @@ const Dashboard = () => {
     },
   ]
 
-  const adsPerformanceData = {
-    series: [
-      {
-        name: 'CampaignxxROIx',
-        data: [440, 505, 414, 671, 227, 413, 201, 352, 752, 320, 257, 160],
-      },
-      {
-        name: 'EmailxxROIx',
-        data: [230, 100, 170, 190, 120, 170, 180, 270, 200, 300, 310, 280],
-      },
-    ],
-    categories: ['01 Jan', '02 Jan', '03 Jan', '04 Jan', '05 Jan', '06 Jan', '07 Jan', '08 Jan', '09 Jan', '10 Jan', '11 Jan', '12 Jan'],
-  }
+  const chartSeries = [
+    {
+      name: 'Campaign ROI',
+      data: [440, 505, 414, 671, 227, 413, 201, 352, 752, 320, 257, 160],
+    },
+    {
+      name: 'Email ROI',
+      data: [230, 100, 170, 190, 120, 170, 180, 270, 200, 300, 310, 280],
+    },
+  ]
+
+  const chartXAxis = ['01 Jan', '02 Jan', '03 Jan', '04 Jan', '05 Jan', '06 Jan', '07 Jan', '08 Jan', '09 Jan', '10 Jan', '11 Jan', '12 Jan']
 
   const performanceScores = [
     { label: 'Lead Volume', score: '78%', status: 'success' },
@@ -282,7 +280,7 @@ const Dashboard = () => {
               </Segment>
             </div>
             <div style={{ minHeight: '465px' }}>
-              <ApexChart type="line" height={450} series={adsPerformanceData.series} categories={adsPerformanceData.categories} />
+              <Chart type="line" height={450} series={chartSeries} xAxis={chartXAxis} />
             </div>
           </Card>
         </div>
