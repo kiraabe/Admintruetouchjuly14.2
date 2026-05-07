@@ -1,5 +1,12 @@
 import 'dotenv/config'
-import pool from './config.ts'
+import pg from 'pg'
+
+const { Pool } = pg
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL || `postgresql://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_NAME}`,
+  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+})
 
 async function runMigrations() {
   try {
@@ -35,9 +42,11 @@ async function runMigrations() {
     console.log('✓ Reset tokens table created')
 
     console.log('Migrations completed successfully')
+    await pool.end()
     process.exit(0)
   } catch (error) {
     console.error('Migration failed:', error)
+    await pool.end()
     process.exit(1)
   }
 }
