@@ -4,7 +4,7 @@ import {
     UserGroupIcon,
     BriefcaseIcon,
     DocumentCheckIcon,
-    ShieldCheckIcon,
+    Cog6ToothIcon,
 } from '@heroicons/react/24/outline'
 import type { JSX } from 'react'
 
@@ -16,7 +16,7 @@ const navigationIcon: NavigationIcons = {
     collapseMenu: <UserGroupIcon className="w-6 h-6" />,
     groupSingleMenu: <BriefcaseIcon className="w-6 h-6" />,
     groupCollapseMenu: <DocumentCheckIcon className="w-6 h-6" />,
-    groupMenu: <ShieldCheckIcon className="w-6 h-6" />,
+    groupMenu: <Cog6ToothIcon className="w-6 h-6" />,
 }
 
 export default navigationIcon
