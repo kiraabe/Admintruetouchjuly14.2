@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "vite",
-    "dev:backend": "node --loader ts-node/esm --no-warnings=ExperimentalWarning src/server/index.ts",
+    "dev:backend": "node src/server/simple.cjs",
     "build": "vite build",
     "build:backend": "tsc --project tsconfig.server.json",
     "preview": "vite preview",

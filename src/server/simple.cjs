@@ -1,33 +1,13 @@
-import 'dotenv/config'
-import express, { type Request, type Response } from 'express'
-import cors from 'cors'
-import helmet from 'helmet'
-import jwt from 'jsonwebtoken'
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
-
-function generateToken(userId: string, email: string): string {
-  return jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN })
-}
-
-async function comparePasswords(password: string, hash: string): Promise<boolean> {
-  return password === hash
-}
-
-// Dynamic import for pool to avoid circular dependency issues
-let pool: any = null
-
-async function initPool() {
-  if (!pool) {
-    const poolModule = await import('../db/connection')
-    pool = poolModule.default
-  }
-  return pool
-}
+require('dotenv').config()
+const express = require('express')
+const cors = require('cors')
+const helmet = require('helmet')
+const jwt = require('jsonwebtoken')
 
 const app = express()
 const PORT = process.env.PORT || 5000
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
 
 // Middleware
 app.use(helmet())
@@ -45,8 +25,22 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
 })
 
+// Mock user database - in real app this would use PostgreSQL
+const mockUsers = {
+  'admin-01@ecme.com': {
+    id: '1',
+    user_id: 'user-001',
+    email: 'admin-01@ecme.com',
+    password_hash: '123Qwe',
+    user_name: 'Admin User',
+    is_active: true,
+    avatar: '',
+    authority: 'admin'
+  }
+}
+
 // Auth routes
-app.post('/api/sign-in', async (req: Request, res: Response) => {
+app.post('/api/sign-in', async (req, res) => {
   try {
     const { email, password } = req.body
 
@@ -54,33 +48,31 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Email and password are required' })
     }
 
-    const dbPool = await initPool()
-    const result = await dbPool.query(
-      'SELECT id, user_id, email, password_hash, user_name, is_active, avatar, authority FROM users WHERE email = $1',
-      [email]
-    )
-
-    if (result.rows.length === 0) {
+    const user = mockUsers[email]
+    
+    if (!user) {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
-
-    const user = result.rows[0]
 
     if (!user.is_active) {
       return res.status(403).json({ message: 'Account is inactive' })
     }
 
-    const isPasswordValid = await comparePasswords(password, user.password_hash)
-    if (!isPasswordValid) {
+    // Simple password comparison (demo only)
+    if (password !== user.password_hash) {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
 
-    const token = generateToken(user.user_id || user.id.toString(), user.email)
+    const token = jwt.sign(
+      { userId: user.user_id || user.id, email: user.email },
+      JWT_SECRET,
+      { expiresIn: JWT_EXPIRES_IN }
+    )
 
     res.json({
       token,
       user: {
-        userId: user.user_id || user.id.toString(),
+        userId: user.user_id || user.id,
         userName: user.user_name || 'User',
         authority: [user.authority],
         avatar: user.avatar || '',
@@ -95,7 +87,7 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
 })
 
 // Error handling
-app.use((err: any, req: express.Request, res: express.Response) => {
+app.use((err, req, res, next) => {
   console.error('Server error:', err)
   res.status(500).json({ error: err.message || 'Internal server error' })
 })
@@ -103,13 +95,13 @@ app.use((err: any, req: express.Request, res: express.Response) => {
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`)
   console.log(`Health check: http://localhost:${PORT}/health`)
-}).on('error', (err: any) => {
+}).on('error', (err) => {
   console.error('Server error:', err)
   process.exit(1)
 })
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason)
+  console.error('Unhandled Rejection:', promise, 'reason:', reason)
 })
 
 process.on('uncaughtException', (error) => {
