@@ -6,6 +6,7 @@ import UserProfileDropdown from '@/components//template/UserProfileDropdown'
 import LanguageSelector from '@/components/template/LanguageSelector'
 import Notification from '@/components/template/Notification'
 import Search from '@/components/template/Search'
+import ThemeToggle from '@/components/template/ThemeToggle'
 import LayoutBase from '@/components//template/LayoutBase'
 import useResponsive from '@/utils/hooks/useResponsive'
 import { LAYOUT_COLLAPSIBLE_SIDE } from '@/constants/theme.constant'
@@ -35,6 +36,7 @@ const CollapsibleSide = ({ children }: CommonProps) => {
                                 <Search />
                                 <LanguageSelector />
                                 <Notification />
+                                <ThemeToggle hoverable={false} />
                                 <UserProfileDropdown hoverable={false} />
                             </>
                         }

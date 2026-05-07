@@ -3,6 +3,7 @@ import UserProfileDropdown from '@/components//template/UserProfileDropdown'
 import HeaderLogo from '@/components/template/HeaderLogo'
 import MobileNav from '@/components/template/MobileNav'
 import HorizontalNav from '@/components/template/HorizontalNav'
+import ThemeToggle from '@/components/template/ThemeToggle'
 import LayoutBase from '@/components//template/LayoutBase'
 import classNames from '@/utils/classNames'
 import useScrollTop from '@/utils/hooks/useScrollTop'
@@ -111,6 +112,7 @@ const ContentOverlay = ({ children }: CommonProps) => {
                         headerMiddle={<>{larger.lg && <HorizontalNav />}</>}
                         headerEnd={
                             <>
+                                <ThemeToggle hoverable={false} />
                                 <UserProfileDropdown hoverable={false} />
                             </>
                         }
