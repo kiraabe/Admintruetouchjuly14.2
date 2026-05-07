@@ -5,6 +5,7 @@ import { useSessionUser } from '@/store/authStore'
 import { Link } from 'react-router'
 import { PiUserDuotone, PiSignOutDuotone } from 'react-icons/pi'
 import { useAuth } from '@/auth'
+import { UserIcon, Cog6ToothIcon, ArrowTrendingUpIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline'
 import type { JSX } from 'react'
 
 type DropdownList = {
@@ -13,7 +14,23 @@ type DropdownList = {
     icon: JSX.Element
 }
 
-const dropdownItemList: DropdownList[] = []
+const dropdownItemList: DropdownList[] = [
+    {
+        label: 'Profile',
+        path: '/concepts/account/settings',
+        icon: <UserIcon className="w-5 h-5" />,
+    },
+    {
+        label: 'Account Setting',
+        path: '/concepts/account/settings',
+        icon: <Cog6ToothIcon className="w-5 h-5" />,
+    },
+    {
+        label: 'Activity Log',
+        path: '/concepts/account/activity-log',
+        icon: <ArrowTrendingUpIcon className="w-5 h-5" />,
+    },
+]
 
 const _UserDropdown = () => {
     const { avatar, userName, email } = useSessionUser((state) => state.user)
@@ -73,7 +90,7 @@ const _UserDropdown = () => {
                 onClick={handleSignOut}
             >
                 <span className="text-xl">
-                    <PiSignOutDuotone />
+                    <ArrowRightOnRectangleIcon className="w-5 h-5" />
                 </span>
                 <span>Sign Out</span>
             </Dropdown.Item>
