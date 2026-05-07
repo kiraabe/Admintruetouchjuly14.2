@@ -8,10 +8,10 @@ import type { NavigationTree } from '@/@types/navigation'
 
 const navigationConfig: NavigationTree[] = [
     {
-        key: 'mainMenu',
+        key: 'dashboardGroup',
         path: '',
-        title: 'Main Menu',
-        translateKey: 'nav.mainMenu',
+        title: 'Dashboard',
+        translateKey: 'nav.dashboard',
         icon: '',
         type: NAV_ITEM_TYPE_TITLE,
         authority: [],
@@ -26,6 +26,17 @@ const navigationConfig: NavigationTree[] = [
                 authority: [],
                 subMenu: [],
             },
+        ],
+    },
+    {
+        key: 'usersGroup',
+        path: '',
+        title: 'Users',
+        translateKey: 'nav.users',
+        icon: '',
+        type: NAV_ITEM_TYPE_TITLE,
+        authority: [],
+        subMenu: [
             {
                 key: 'users',
                 path: '/users',
@@ -36,6 +47,17 @@ const navigationConfig: NavigationTree[] = [
                 authority: [],
                 subMenu: [],
             },
+        ],
+    },
+    {
+        key: 'candidatesGroup',
+        path: '',
+        title: 'Candidates',
+        translateKey: 'nav.candidates',
+        icon: '',
+        type: NAV_ITEM_TYPE_TITLE,
+        authority: [],
+        subMenu: [
             {
                 key: 'candidates',
                 path: '/candidates',
@@ -46,6 +68,17 @@ const navigationConfig: NavigationTree[] = [
                 authority: [],
                 subMenu: [],
             },
+        ],
+    },
+    {
+        key: 'partnershipGroup',
+        path: '',
+        title: 'Partnership',
+        translateKey: 'nav.partnership',
+        icon: '',
+        type: NAV_ITEM_TYPE_TITLE,
+        authority: [],
+        subMenu: [
             {
                 key: 'partnership',
                 path: '/partnership',
@@ -56,6 +89,17 @@ const navigationConfig: NavigationTree[] = [
                 authority: [],
                 subMenu: [],
             },
+        ],
+    },
+    {
+        key: 'employeeRequestGroup',
+        path: '',
+        title: 'Employee Request',
+        translateKey: 'nav.employeeRequest',
+        icon: '',
+        type: NAV_ITEM_TYPE_TITLE,
+        authority: [],
+        subMenu: [
             {
                 key: 'employeeRequest',
                 path: '/employee-request',
@@ -66,6 +110,17 @@ const navigationConfig: NavigationTree[] = [
                 authority: [],
                 subMenu: [],
             },
+        ],
+    },
+    {
+        key: 'licenseInfoGroup',
+        path: '',
+        title: 'License Info',
+        translateKey: 'nav.licenseInfo',
+        icon: '',
+        type: NAV_ITEM_TYPE_TITLE,
+        authority: [],
+        subMenu: [
             {
                 key: 'licenseInfo',
                 path: '/license-info',
@@ -76,6 +131,17 @@ const navigationConfig: NavigationTree[] = [
                 authority: [],
                 subMenu: [],
             },
+        ],
+    },
+    {
+        key: 'settingGroup',
+        path: '',
+        title: 'Setting',
+        translateKey: 'nav.setting',
+        icon: '',
+        type: NAV_ITEM_TYPE_TITLE,
+        authority: [],
+        subMenu: [
             {
                 key: 'setting',
                 path: '/setting',
