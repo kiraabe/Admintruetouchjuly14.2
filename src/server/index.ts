@@ -2,7 +2,7 @@ import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
-import { signIn } from './routes/auth/signIn'
+import { signIn } from './routes/auth/signIn.ts'
 
 const app = express()
 const PORT = process.env.PORT || 5000
