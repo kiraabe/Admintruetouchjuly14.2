@@ -156,6 +156,30 @@ async function startServer() {
 
     // Run migrations
     console.log('Initializing database...')
+
+    // Create users table
+    await dbPool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        user_id UUID DEFAULT gen_random_uuid() UNIQUE,
+        email VARCHAR(255) UNIQUE NOT NULL,
+        password_hash VARCHAR(255) NOT NULL,
+        user_name VARCHAR(255),
+        authority VARCHAR(50) DEFAULT 'user',
+        is_active BOOLEAN DEFAULT true,
+        avatar VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    // Seed test user
+    await dbPool.query(`
+      INSERT INTO users (email, password_hash, user_name, authority, is_active)
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (email) DO NOTHING
+    `, ['admin-01@ecme.com', '123Qwe', 'Admin', 'admin', true])
+
     await dbPool.query(`
       CREATE TABLE IF NOT EXISTS candidates (
         id SERIAL PRIMARY KEY,
