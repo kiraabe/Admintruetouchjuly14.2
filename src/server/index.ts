@@ -229,12 +229,23 @@ async function startServer() {
     `)
     console.log('✓ Database initialized')
 
-    app.listen(PORT, () => {
+    const server = app.listen(PORT, () => {
       console.log(`✓ Server is running on http://localhost:${PORT}`)
       console.log(`✓ Health check: http://localhost:${PORT}/health`)
-    }).on('error', (err: any) => {
-      console.error('Server error:', err)
-      process.exit(1)
+    })
+
+    server.on('error', (err: any) => {
+      if (err.code === 'EADDRINUSE') {
+        const newPort = parseInt(PORT as string) + 1
+        console.log(`Port ${PORT} is in use, trying ${newPort}...`)
+        server.listen(newPort, () => {
+          console.log(`✓ Server is running on http://localhost:${newPort}`)
+          console.log(`✓ Health check: http://localhost:${newPort}/health`)
+        })
+      } else {
+        console.error('Server error:', err)
+        process.exit(1)
+      }
     })
   } catch (error) {
     console.error('Failed to start server:', error)
