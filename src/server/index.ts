@@ -91,6 +91,17 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
 })
 
+// Debug endpoint to list all users (remove in production)
+app.get('/api/debug/users', async (req, res) => {
+  try {
+    const dbPool = await initPool()
+    const result = await dbPool.query('SELECT id, user_id, email, user_name, authority, is_active FROM users')
+    res.json({ users: result.rows })
+  } catch (error) {
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to fetch users' })
+  }
+})
+
 // API Routes
 app.use('/api/candidates', candidatesRouter)
 
