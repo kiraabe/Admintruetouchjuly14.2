@@ -32,16 +32,29 @@ interface Candidate {
 }
 
 const JOB_CATEGORIES = [
-  'Housekeepers, cleaners, nannies, and caregivers',
-  'Drivers, warehouse staff, and retail store employees',
-  'Waiters/waitresses, laundry services, 5-star hotel security, and kitchen helpers',
-  'Construction workers, laborers, electricians',
+  'Housekeepers',
+  'Cleaners',
+  'Nannies and caregivers',
+  'Drivers',
+  'Warehouse staff',
+  'Retail store employees',
+  'Waiters/waitresses',
+  'Laundry services',
+  '5-star hotel security',
+  'Kitchen helpers',
+  'Construction workers',
+  'Laborers',
+  'Electricians',
 ]
 
 const EDUCATION_LEVELS = ['Primary', 'Secondary', 'Diploma', 'Bachelor', 'Master', 'PhD']
 const SKILL_LEVELS = ['Entry', 'Intermediate', 'Advanced', 'Expert']
 const GENDERS = ['Male', 'Female', 'Other']
 const MARITAL_STATUS = ['Single', 'Married', 'Divorced', 'Widowed']
+const RELIGIONS = ['Christianity', 'Islam', 'Hinduism', 'Buddhism', 'Judaism', 'Sikhism', 'Atheism', 'Agnosticism', 'Other']
+const LANGUAGES = ['English', 'Spanish', 'French', 'German', 'Mandarin', 'Arabic', 'Portuguese', 'Russian', 'Japanese', 'Hindi']
+const COUNTRIES = ['India', 'Philippines', 'Indonesia', 'Vietnam', 'Thailand', 'Malaysia', 'Singapore', 'Sri Lanka', 'Bangladesh', 'Myanmar']
+const MEDICAL_STATUS = ['Fit', 'Fit with restrictions', 'Unfit', 'Under review', 'Not assessed']
 
 const Candidates = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([])
@@ -53,6 +66,12 @@ const Candidates = () => {
   const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null)
   const [loading, setLoading] = useState(false)
   const [filters, setFilters] = useState<Partial<Candidate>>({})
+  const [languageSearch, setLanguageSearch] = useState('')
+  const [locationSearch, setLocationSearch] = useState('')
+  const [filteredLanguages, setFilteredLanguages] = useState<string[]>(LANGUAGES)
+  const [filteredLocations, setFilteredLocations] = useState<string[]>([])
+  const [showLanguageDropdown, setShowLanguageDropdown] = useState(false)
+  const [showLocationDropdown, setShowLocationDropdown] = useState(false)
 
   const [formData, setFormData] = useState({
     name: '',
@@ -574,10 +593,18 @@ const Candidates = () => {
 
             <div>
               <label className="form-label">Religion</label>
-              <Input
+              <select
                 value={formData.religion}
                 onChange={(e) => setFormData({ ...formData, religion: e.target.value })}
-              />
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              >
+                <option value="">Select religion</option>
+                {RELIGIONS.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
@@ -652,29 +679,126 @@ const Candidates = () => {
               </select>
             </div>
 
-            <div className="col-span-2">
+            <div className="col-span-2 relative">
               <label className="form-label">Language Skills</label>
               <Input
-                value={formData.language_skills}
-                onChange={(e) => setFormData({ ...formData, language_skills: e.target.value })}
-                placeholder="e.g., English, Spanish, French"
+                value={languageSearch}
+                onChange={(e) => {
+                  setLanguageSearch(e.target.value)
+                  setShowLanguageDropdown(true)
+                  setFilteredLanguages(
+                    LANGUAGES.filter((l) =>
+                      l.toLowerCase().includes(e.target.value.toLowerCase())
+                    )
+                  )
+                }}
+                onFocus={() => setShowLanguageDropdown(true)}
+                placeholder="Search and select languages..."
               />
+              {showLanguageDropdown && filteredLanguages.length > 0 && (
+                <div className="absolute top-full left-0 right-0 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg mt-1 max-h-48 overflow-y-auto z-10">
+                  {filteredLanguages.map((lang) => (
+                    <div
+                      key={lang}
+                      onClick={() => {
+                        const current = formData.language_skills ? formData.language_skills.split(',').map(l => l.trim()) : []
+                        if (!current.includes(lang)) {
+                          setFormData({
+                            ...formData,
+                            language_skills: current.length > 0 ? current.join(', ') + ', ' + lang : lang,
+                          })
+                        }
+                        setLanguageSearch('')
+                        setShowLanguageDropdown(false)
+                      }}
+                      className="px-3 py-2 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600"
+                    >
+                      {lang}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {formData.language_skills && (
+                <div className="mt-2 flex flex-wrap gap-2">
+                  {formData.language_skills.split(',').map((lang) => (
+                    <span
+                      key={lang.trim()}
+                      className="bg-primary text-white px-3 py-1 rounded-full text-sm flex items-center gap-2"
+                    >
+                      {lang.trim()}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = formData.language_skills
+                            .split(',')
+                            .map(l => l.trim())
+                            .filter(l => l !== lang.trim())
+                            .join(', ')
+                          setFormData({ ...formData, language_skills: updated })
+                        }}
+                        className="font-bold hover:text-gray-200"
+                      >
+                        ×
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
 
             <div>
               <label className="form-label">Country</label>
-              <Input
+              <select
                 value={formData.country}
-                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-              />
+                onChange={(e) => {
+                  setFormData({ ...formData, country: e.target.value, city: '' })
+                  // Update location suggestions based on country
+                  const countryCities: Record<string, string[]> = {
+                    'India': ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Pune'],
+                    'Philippines': ['Manila', 'Cebu', 'Davao', 'Quezon City', 'Makati'],
+                    'Indonesia': ['Jakarta', 'Surabaya', 'Bandung', 'Medan', 'Semarang'],
+                    'Vietnam': ['Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Hai Phong', 'Can Tho'],
+                    'Thailand': ['Bangkok', 'Chiang Mai', 'Phuket', 'Pattaya', 'Chon Buri'],
+                    'Malaysia': ['Kuala Lumpur', 'Penang', 'Johor Bahru', 'Ipoh', 'Klang'],
+                    'Singapore': ['Singapore'],
+                    'Sri Lanka': ['Colombo', 'Kandy', 'Galle', 'Jaffna', 'Matara'],
+                    'Bangladesh': ['Dhaka', 'Chittagong', 'Khulna', 'Rajshahi', 'Sylhet'],
+                    'Myanmar': ['Yangon', 'Mandalay', 'Naypyidaw', 'Bagan', 'Tachileik'],
+                  }
+                  setFilteredLocations(countryCities[e.target.value] || [])
+                }}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              >
+                <option value="">Select country</option>
+                {COUNTRIES.map((c) => (
+                  <option key={c} value={c}>
+                    {c}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>
               <label className="form-label">City</label>
-              <Input
-                value={formData.city}
-                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-              />
+              {formData.country ? (
+                <select
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                >
+                  <option value="">Select city</option>
+                  {filteredLocations.map((city) => (
+                    <option key={city} value={city}>
+                      {city}
+                    </option>
+                  ))}
+                </select>
+              ) : (
+                <Input
+                  placeholder="Select country first"
+                  disabled
+                />
+              )}
             </div>
 
             <div className="col-span-2">
