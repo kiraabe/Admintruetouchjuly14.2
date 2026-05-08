@@ -4,6 +4,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Dialog from '@/components/ui/Dialog'
 import Checkbox from '@/components/ui/Checkbox'
+import { notify } from '@/utils/notification'
 
 interface Candidate {
   id: number
@@ -229,11 +230,15 @@ const Candidates = () => {
     const file = e.target.files?.[0]
     if (file) {
       if (file.size > 5 * 1024 * 1024) {
-        setError('Profile picture must be less than 5MB')
+        const errorMsg = 'Profile picture must be less than 5MB'
+        setError(errorMsg)
+        notify.error('Invalid File', errorMsg)
         return
       }
       if (!file.type.startsWith('image/')) {
-        setError('Please select a valid image file')
+        const errorMsg = 'Please select a valid image file'
+        setError(errorMsg)
+        notify.error('Invalid File', errorMsg)
         return
       }
       setProfilePicture(file)
@@ -249,12 +254,16 @@ const Candidates = () => {
     const file = e.target.files?.[0]
     if (file) {
       if (file.size > 10 * 1024 * 1024) {
-        setError('Resume must be less than 10MB')
+        const errorMsg = 'Resume must be less than 10MB'
+        setError(errorMsg)
+        notify.error('Invalid File', errorMsg)
         return
       }
       const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']
       if (!validTypes.includes(file.type)) {
-        setError('Please select a valid file (PDF, DOC, DOCX, or TXT)')
+        const errorMsg = 'Please select a valid file (PDF, DOC, DOCX, or TXT)'
+        setError(errorMsg)
+        notify.error('Invalid File', errorMsg)
         return
       }
       setResume(file)
@@ -341,6 +350,7 @@ const Candidates = () => {
     setFieldErrors(newErrors)
 
     if (Object.values(newErrors).some((err) => err)) {
+      notify.error('Validation Error', 'Please fix the errors above')
       return
     }
 
@@ -371,8 +381,11 @@ const Candidates = () => {
         if (response.ok) {
           await fetchCandidates()
           setShowModal(false)
+          notify.success('Success', 'Candidate updated successfully')
         } else {
-          setError(data.error || 'Failed to update candidate')
+          const errorMsg = data.error || 'Failed to update candidate'
+          setError(errorMsg)
+          notify.error('Update Failed', errorMsg)
         }
       } else {
         const response = await fetch('/api/candidates', {
@@ -384,6 +397,7 @@ const Candidates = () => {
         if (response.ok) {
           await fetchCandidates()
           setShowModal(false)
+          notify.success('Success', 'Candidate created successfully')
           setFormData({
             name: '',
             passport_number: '',
@@ -408,12 +422,16 @@ const Candidates = () => {
           setProfilePicture(null)
           setProfilePicturePreview('')
         } else {
-          setError(data.error || 'Failed to create candidate')
+          const errorMsg = data.error || 'Failed to create candidate'
+          setError(errorMsg)
+          notify.error('Create Failed', errorMsg)
         }
       }
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
       console.error('Error saving candidate:', error)
-      setError('An unexpected error occurred')
+      setError(errorMsg)
+      notify.error('Error', errorMsg)
     }
   }
 
