@@ -105,12 +105,19 @@ const EditCandidate = () => {
       if (data.success && data.data) {
         const cand = data.data
         setCandidate(cand)
+
+        let formattedDateOfBirth = ''
+        if (cand.date_of_birth) {
+          const dateObj = new Date(cand.date_of_birth)
+          formattedDateOfBirth = dateObj.toISOString().split('T')[0]
+        }
+
         setFormData({
           name: cand.name || '',
           passport_number: cand.passport_number || '',
           phone_number: cand.phone_number || '',
           gender: cand.gender || '',
-          date_of_birth: cand.date_of_birth || '',
+          date_of_birth: formattedDateOfBirth,
           nationality: cand.nationality || '',
           religion: cand.religion || '',
           marital_status: cand.marital_status || '',
@@ -124,6 +131,24 @@ const EditCandidate = () => {
           current_location: cand.current_location || '',
           medical_status: cand.medical_status || '',
         })
+
+        if (cand.country) {
+          const countryCities: Record<string, string[]> = {
+            'India': ['Mumbai', 'Delhi', 'Bangalore', 'Hyderabad', 'Chennai', 'Pune'],
+            'Philippines': ['Manila', 'Cebu', 'Davao', 'Quezon City', 'Makati'],
+            'Indonesia': ['Jakarta', 'Surabaya', 'Bandung', 'Medan', 'Semarang'],
+            'Vietnam': ['Ho Chi Minh City', 'Hanoi', 'Da Nang', 'Hai Phong', 'Can Tho'],
+            'Thailand': ['Bangkok', 'Chiang Mai', 'Phuket', 'Pattaya', 'Chon Buri'],
+            'Malaysia': ['Kuala Lumpur', 'Penang', 'Johor Bahru', 'Ipoh', 'Klang'],
+            'Singapore': ['Singapore'],
+            'Sri Lanka': ['Colombo', 'Kandy', 'Galle', 'Jaffna', 'Matara'],
+            'Bangladesh': ['Dhaka', 'Chittagong', 'Khulna', 'Rajshahi', 'Sylhet'],
+            'Myanmar': ['Yangon', 'Mandalay', 'Naypyidaw', 'Bagan', 'Tachileik'],
+            'Ethiopia': ['Addis Ababa', 'Dire Dawa', 'Adama (Nazret)', 'Hawassa', 'Mekelle'],
+          }
+          setFilteredLocations(countryCities[cand.country] || [])
+        }
+
         if (cand.profile_picture) {
           setProfilePicturePreview(cand.profile_picture)
         }
