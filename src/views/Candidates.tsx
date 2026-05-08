@@ -72,6 +72,7 @@ const Candidates = () => {
   const [filteredLocations, setFilteredLocations] = useState<string[]>([])
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false)
   const [showLocationDropdown, setShowLocationDropdown] = useState(false)
+  const [error, setError] = useState('')
 
   const [formData, setFormData] = useState({
     name: '',
@@ -193,6 +194,12 @@ const Candidates = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
+
+    if (!formData.name || formData.name.trim().length === 0) {
+      setError('Candidate name is required')
+      return
+    }
 
     if (formData.date_of_birth) {
       const birthDate = new Date(formData.date_of_birth)
@@ -203,7 +210,7 @@ const Candidates = () => {
         age--
       }
       if (age < 18) {
-        alert('Date of Birth must be equal and greater than 18')
+        setError('Date of Birth must be 18 years or older')
         return
       }
     }
@@ -221,9 +228,12 @@ const Candidates = () => {
           body: JSON.stringify(payload),
         })
 
+        const data = await response.json()
         if (response.ok) {
           await fetchCandidates()
           setShowModal(false)
+        } else {
+          setError(data.error || 'Failed to update candidate')
         }
       } else {
         const response = await fetch('/api/candidates', {
@@ -232,13 +242,37 @@ const Candidates = () => {
           body: JSON.stringify(payload),
         })
 
+        const data = await response.json()
         if (response.ok) {
           await fetchCandidates()
           setShowModal(false)
+          setFormData({
+            name: '',
+            passport_number: '',
+            phone_number: '',
+            gender: '',
+            age: '',
+            date_of_birth: '',
+            nationality: '',
+            religion: '',
+            marital_status: '',
+            occupation: '',
+            job_category: '',
+            skill_level: '',
+            education_level: '',
+            language_skills: '',
+            country: '',
+            city: '',
+            current_location: '',
+            medical_status: '',
+          })
+        } else {
+          setError(data.error || 'Failed to create candidate')
         }
       }
     } catch (error) {
       console.error('Error saving candidate:', error)
+      setError('An unexpected error occurred')
     }
   }
 
@@ -531,10 +565,15 @@ const Candidates = () => {
       </div>
 
       {/* Add/Edit Modal */}
-      <Dialog isOpen={showModal} onClose={() => setShowModal(false)} width={800}>
+      <Dialog isOpen={showModal} onClose={() => { setShowModal(false); setError('') }} width={800}>
         <div className="mb-4">
           <h2 className="text-lg font-bold">{editingCandidate ? 'Edit Candidate' : 'Add New Candidate'}</h2>
         </div>
+        {error && (
+          <div className="mb-4 p-3 bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-200 rounded-lg text-sm">
+            {error}
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">

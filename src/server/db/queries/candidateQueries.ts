@@ -72,10 +72,26 @@ export async function filterCandidates(filters: Partial<Candidate>): Promise<Can
 }
 
 export async function createCandidate(data: Omit<Candidate, 'id' | 'candidate_id' | 'created_at' | 'updated_at'>): Promise<Candidate> {
-  const keys = Object.keys(data).filter(k => data[k as keyof typeof data] !== undefined)
-  const values = keys.map(k => data[k as keyof typeof data])
-  const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ')
-  const keysStr = keys.join(', ')
+  // Validate required fields
+  if (!data.name || typeof data.name !== 'string' || data.name.trim().length === 0) {
+    throw new Error('Candidate name is required')
+  }
+
+  // Prepare fields to insert (excluding undefined values)
+  const fields: string[] = []
+  const values: any[] = []
+  let paramCount = 1
+
+  Object.entries(data).forEach(([key, value]) => {
+    if (value !== undefined) {
+      fields.push(key)
+      values.push(value)
+      paramCount++
+    }
+  })
+
+  const keysStr = fields.join(', ')
+  const placeholders = fields.map((_, i) => `$${i + 1}`).join(', ')
 
   const result = await pool.query(
     `INSERT INTO candidates (${keysStr}) VALUES (${placeholders}) RETURNING *`,

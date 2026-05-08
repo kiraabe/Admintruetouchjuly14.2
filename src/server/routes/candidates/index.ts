@@ -53,17 +53,23 @@ router.post('/', async (req, res) => {
     res.status(201).json({ success: true, data: candidate })
   } catch (error) {
     console.error('Error creating candidate:', error)
-    res.status(500).json({ success: false, error: 'Failed to create candidate' })
+    const message = error instanceof Error ? error.message : 'Failed to create candidate'
+    const statusCode = message.includes('required') ? 400 : 500
+    res.status(statusCode).json({ success: false, error: message })
   }
 })
 
 router.put('/:candidateId', async (req, res) => {
   try {
     const candidate = await updateCandidate(req.params.candidateId, req.body)
+    if (!candidate) {
+      return res.status(404).json({ success: false, error: 'Candidate not found' })
+    }
     res.json({ success: true, data: candidate })
   } catch (error) {
     console.error('Error updating candidate:', error)
-    res.status(500).json({ success: false, error: 'Failed to update candidate' })
+    const message = error instanceof Error ? error.message : 'Failed to update candidate'
+    res.status(500).json({ success: false, error: message })
   }
 })
 
