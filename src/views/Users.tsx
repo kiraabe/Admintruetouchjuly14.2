@@ -1,128 +1,163 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Tag from '@/components/ui/Tag'
 import Pagination from '@/components/ui/Pagination'
 import Checkbox from '@/components/ui/Checkbox'
+import { notify } from '@/utils/notification'
 
 interface User {
   id: number
-  name: string
+  user_id: string
   email: string
-  location: string
-  status: 'active' | 'blocked'
-  spent: string
+  user_name: string
+  authority: string
+  is_active: boolean
   avatar: string
+  created_at: string
 }
 
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
-  const [selectedUsers, setSelectedUsers] = useState<number[]>([])
+  const [selectedUsers, setSelectedUsers] = useState<string[]>([])
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [showResetPasswordModal, setShowResetPasswordModal] = useState(false)
+  const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null)
+  const [newPassword, setNewPassword] = useState('')
 
-  const users: User[] = [
-    {
-      id: 1,
-      name: 'Angelina Gotelli',
-      email: 'carolyn_h@hotmail.com',
-      location: 'New York, US',
-      status: 'active',
-      spent: '$4367.15',
-      avatar: '/img/avatars/thumb-1.jpg',
-    },
-    {
-      id: 2,
-      name: 'Jeremiah Minsk',
-      email: 'terrance_moreno@infotech.io',
-      location: 'Tokyo, JP',
-      status: 'active',
-      spent: '$7823.42',
-      avatar: '/img/avatars/thumb-2.jpg',
-    },
-    {
-      id: 3,
-      name: 'Max Alexander',
-      email: 'ronnie_vergas@infotech.io',
-      location: 'Mumbai, IN',
-      status: 'blocked',
-      spent: '$2478.33',
-      avatar: '/img/avatars/thumb-3.jpg',
-    },
-    {
-      id: 4,
-      name: 'Shannon Baker',
-      email: 'cookie_lukie@hotmail.com',
-      location: 'New York, US',
-      status: 'active',
-      spent: '$234.56',
-      avatar: '/img/avatars/thumb-4.jpg',
-    },
-    {
-      id: 5,
-      name: 'Eugene Stewart',
-      email: 'joyce991@infotech.io',
-      location: 'Ottawa, CA',
-      status: 'active',
-      spent: '$1201.45',
-      avatar: '/img/avatars/thumb-5.jpg',
-    },
-    {
-      id: 6,
-      name: 'Arlene Pierce',
-      email: 'samanthaphil@infotech.io',
-      location: 'London, UK',
-      status: 'active',
-      spent: '$8923.11',
-      avatar: '/img/avatars/thumb-6.jpg',
-    },
-    {
-      id: 7,
-      name: 'Roberta Horton',
-      email: 'taratarara@imaze.edu.du',
-      location: 'Brasília, BR',
-      status: 'active',
-      spent: '$465.78',
-      avatar: '/img/avatars/thumb-7.jpg',
-    },
-    {
-      id: 8,
-      name: 'Jessica Wells',
-      email: 'iamfred@imaze.infotech.io',
-      location: 'London, UK',
-      status: 'blocked',
-      spent: '$890.43',
-      avatar: '/img/avatars/thumb-8.jpg',
-    },
-    {
-      id: 9,
-      name: 'Camila Simmmons',
-      email: 'carolyn_h@gmail.com',
-      location: 'Ankara, TR',
-      status: 'blocked',
-      spent: '$3456.22',
-      avatar: '/img/avatars/thumb-9.jpg',
-    },
-    {
-      id: 10,
-      name: 'Earl Miles',
-      email: 'brittany1134@gmail.com',
-      location: 'Texas, US',
-      status: 'active',
-      spent: '$7890.12',
-      avatar: '/img/avatars/thumb-10.jpg',
-    },
-  ]
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/users')
+      if (!response.ok) {
+        throw new Error('Failed to fetch users')
+      }
+      const data = await response.json()
+      setUsers(data.data || [])
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Failed to fetch users'
+      console.error('Error fetching users:', error)
+      notify.error('Error', errorMsg)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleEditUser = async () => {
+    if (!editingUser) return
+    try {
+      const response = await fetch(`/api/users/${editingUser.user_id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: editingUser.email,
+          user_name: editingUser.user_name,
+          authority: editingUser.authority,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update user')
+      }
+
+      notify.success('Success', 'User updated successfully')
+      setShowEditModal(false)
+      fetchUsers()
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Failed to update user'
+      console.error('Error updating user:', error)
+      notify.error('Error', errorMsg)
+    }
+  }
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordUser || !newPassword) {
+      notify.error('Error', 'Password is required')
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/users/${resetPasswordUser.user_id}/reset-password`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: newPassword }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to reset password')
+      }
+
+      notify.success('Success', 'Password reset successfully')
+      setShowResetPasswordModal(false)
+      setNewPassword('')
+      fetchUsers()
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Failed to reset password'
+      console.error('Error resetting password:', error)
+      notify.error('Error', errorMsg)
+    }
+  }
+
+  const handleDeactivateUser = async (user: User) => {
+    if (!window.confirm(`Are you sure you want to deactivate ${user.user_name}?`)) return
+
+    try {
+      const response = await fetch(`/api/users/${user.user_id}/deactivate`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to deactivate user')
+      }
+
+      notify.success('Success', 'User deactivated successfully')
+      fetchUsers()
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Failed to deactivate user'
+      console.error('Error deactivating user:', error)
+      notify.error('Error', errorMsg)
+    }
+  }
+
+  const handleActivateUser = async (user: User) => {
+    try {
+      const response = await fetch(`/api/users/${user.user_id}/activate`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to activate user')
+      }
+
+      notify.success('Success', 'User activated successfully')
+      fetchUsers()
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Failed to activate user'
+      console.error('Error activating user:', error)
+      notify.error('Error', errorMsg)
+    }
+  }
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedUsers(users.map((u) => u.id))
+      setSelectedUsers(users.map((u) => u.user_id))
     } else {
       setSelectedUsers([])
     }
   }
 
-  const handleSelectUser = (id: number, checked: boolean) => {
+  const handleSelectUser = (id: string, checked: boolean) => {
     if (checked) {
       setSelectedUsers([...selectedUsers, id])
     } else {
@@ -147,15 +182,25 @@ const Users = () => {
     window.URL.revokeObjectURL(url)
   }
 
-  const getStatusColor = (status: string) => {
-    return status === 'active' ? 'bg-emerald-200' : 'bg-red-200'
+  const getStatusColor = (isActive: boolean) => {
+    return isActive ? 'bg-emerald-200' : 'bg-red-200'
   }
 
   const filteredUsers = users.filter(
     (user) =>
-      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()),
   )
+
+  if (loading) {
+    return (
+      <Card>
+        <div className="flex items-center justify-center h-64">
+          <p className="text-gray-600 dark:text-gray-400">Loading users...</p>
+        </div>
+      </Card>
+    )
+  }
 
   return (
     <Card>
@@ -282,13 +327,10 @@ const Users = () => {
                   Email
                 </th>
                 <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
-                  Location
+                  Role
                 </th>
                 <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
                   Status
-                </th>
-                <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
-                  Spent
                 </th>
                 <th className="text-left py-3 px-4">Actions</th>
               </tr>
@@ -296,38 +338,40 @@ const Users = () => {
             <tbody>
               {filteredUsers.map((user) => (
                 <tr
-                  key={user.id}
+                  key={user.user_id}
                   className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
                 >
                   <td className="py-3 px-4 w-12">
                     <Checkbox
-                      checked={selectedUsers.includes(user.id)}
-                      onChange={(checked) => handleSelectUser(user.id, checked as boolean)}
+                      checked={selectedUsers.includes(user.user_id)}
+                      onChange={(checked) => handleSelectUser(user.user_id, checked as boolean)}
                     />
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
-                      <img
-                        src={user.avatar}
-                        alt={user.name}
-                        className="w-10 h-10 rounded-full"
-                      />
-                      <a href="#" className="hover:text-primary font-semibold text-gray-900 dark:text-gray-100">
-                        {user.name}
-                      </a>
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-sm">
+                        {user.user_name.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="font-semibold text-gray-900 dark:text-gray-100">{user.user_name}</span>
                     </div>
                   </td>
                   <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{user.email}</td>
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{user.location}</td>
+                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400 capitalize">{user.authority}</td>
                   <td className="py-3 px-4">
-                    <Tag className={`${getStatusColor(user.status)} text-gray-900 dark:text-gray-900`}>
-                      {user.status.charAt(0).toUpperCase() + user.status.slice(1)}
+                    <Tag className={`${getStatusColor(user.is_active)} text-gray-900 dark:text-gray-900`}>
+                      {user.is_active ? 'Active' : 'Inactive'}
                     </Tag>
                   </td>
-                  <td className="py-3 px-4 font-semibold">{user.spent}</td>
                   <td className="py-3 px-4">
-                    <div className="flex items-center gap-3">
-                      <button className="text-xl cursor-pointer hover:text-primary" title="Edit">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => {
+                          setEditingUser(user)
+                          setShowEditModal(true)
+                        }}
+                        className="text-xl cursor-pointer hover:text-primary"
+                        title="Edit"
+                      >
                         <svg
                           stroke="currentColor"
                           fill="none"
@@ -343,7 +387,39 @@ const Users = () => {
                           <path d="M13.5 6.5l4 4"></path>
                         </svg>
                       </button>
-                      <button className="text-xl cursor-pointer hover:text-primary" title="View">
+                      <button
+                        onClick={() => {
+                          setResetPasswordUser(user)
+                          setShowResetPasswordModal(true)
+                        }}
+                        className="text-xl cursor-pointer hover:text-primary"
+                        title="Reset Password"
+                      >
+                        <svg
+                          stroke="currentColor"
+                          fill="none"
+                          strokeWidth="2"
+                          viewBox="0 0 24 24"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          height="1em"
+                          width="1em"
+                          xmlns="http://www.w3.org/2000/svg"
+                        >
+                          <path d="M5 13a3 3 0 0 0 3 3h7a3 3 0 0 0 3 -3M9 18v3h6v-3M7 10l.75 -1.5M17 10l-.75 -1.5M12 7v1m0 -8a2 2 0 0 1 2 2v2a2 2 0 1 1 -4 0v-2a2 2 0 0 1 2 -2Z"></path>
+                        </svg>
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (user.is_active) {
+                            handleDeactivateUser(user)
+                          } else {
+                            handleActivateUser(user)
+                          }
+                        }}
+                        className="text-xl cursor-pointer hover:text-primary"
+                        title={user.is_active ? 'Deactivate' : 'Activate'}
+                      >
                         <svg
                           stroke="currentColor"
                           fill="none"
@@ -375,6 +451,91 @@ const Users = () => {
           <Pagination />
         </div>
       </div>
+
+      {/* Edit User Modal */}
+      {showEditModal && editingUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md">
+            <div className="p-6">
+              <h3 className="text-lg font-bold mb-4">Edit User</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Name</label>
+                  <Input
+                    value={editingUser.user_name}
+                    onChange={(e) => setEditingUser({ ...editingUser, user_name: e.target.value })}
+                    placeholder="User name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Email</label>
+                  <Input
+                    value={editingUser.email}
+                    onChange={(e) => setEditingUser({ ...editingUser, email: e.target.value })}
+                    placeholder="Email"
+                    type="email"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Role</label>
+                  <select
+                    value={editingUser.authority}
+                    onChange={(e) => setEditingUser({ ...editingUser, authority: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-10"
+                  >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <Button
+                  onClick={() => setShowEditModal(false)}
+                  variant="default"
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleEditUser}>Save Changes</Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Reset Password Modal */}
+      {showResetPasswordModal && resetPasswordUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md">
+            <div className="p-6">
+              <h3 className="text-lg font-bold mb-4">Reset Password</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+                Set a new password for {resetPasswordUser.user_name}
+              </p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-2">New Password</label>
+                <Input
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                />
+              </div>
+              <div className="flex gap-3">
+                <Button
+                  onClick={() => {
+                    setShowResetPasswordModal(false)
+                    setNewPassword('')
+                  }}
+                  variant="default"
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleResetPassword}>Reset Password</Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
     </Card>
   )
 }

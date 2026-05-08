@@ -8,6 +8,7 @@ import path from 'path'
 import fs from 'fs'
 import bcrypt from 'bcryptjs'
 import candidatesRouter from './routes/candidates/index.ts'
+import usersRouter from './routes/users/index.ts'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
@@ -110,6 +111,7 @@ app.get('/api/debug/users', async (req, res) => {
 
 // API Routes
 app.use('/api/candidates', candidatesRouter)
+app.use('/api/users', usersRouter)
 
 // Auth routes
 app.post('/api/sign-in', async (req: Request, res: Response) => {
