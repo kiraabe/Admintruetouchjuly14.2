@@ -1,5 +1,4 @@
 import { useMemo } from 'react'
-import Table from '@/components/ui/Table'
 import Tag from '@/components/ui/Tag'
 
 interface ActivityLog {
@@ -64,64 +63,75 @@ const ActivityLogs = () => {
         [],
     )
 
-    const columns = [
-        {
-            Header: 'Action',
-            Cell: ({ row }: any) => (
-                <span className="font-medium">{row.original.action}</span>
-            ),
-        },
-        {
-            Header: 'Description',
-            Cell: ({ row }: any) => (
-                <span className="text-sm text-gray-600 dark:text-gray-400">
-                    {row.original.description}
-                </span>
-            ),
-        },
-        {
-            Header: 'Date & Time',
-            Cell: ({ row }: any) => (
-                <span className="text-sm">{row.original.timestamp}</span>
-            ),
-        },
-        {
-            Header: 'IP Address',
-            Cell: ({ row }: any) => (
-                <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                    {row.original.ip}
-                </code>
-            ),
-        },
-        {
-            Header: 'Device',
-            Cell: ({ row }: any) => (
-                <span className="text-sm">{row.original.device}</span>
-            ),
-        },
-        {
-            Header: 'Status',
-            Cell: ({ row }: any) => (
-                <Tag
-                    variant={
-                        row.original.status === 'success' ? 'solid' : 'plain'
-                    }
-                    color={
-                        row.original.status === 'success' ? 'success' : 'danger'
-                    }
-                >
-                    {row.original.status}
-                </Tag>
-            ),
-        },
-    ]
-
     return (
         <div className="space-y-4">
             <p className="text-sm text-gray-600 dark:text-gray-400">
                 View all activities related to your account
             </p>
-            <Table columns={columns} data={activityData} />
+            <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                    <thead>
+                        <tr className="border-b border-gray-200 dark:border-gray-700">
+                            <th className="text-left py-3 px-4 font-semibold">
+                                Action
+                            </th>
+                            <th className="text-left py-3 px-4 font-semibold">
+                                Description
+                            </th>
+                            <th className="text-left py-3 px-4 font-semibold">
+                                Date & Time
+                            </th>
+                            <th className="text-left py-3 px-4 font-semibold">
+                                IP Address
+                            </th>
+                            <th className="text-left py-3 px-4 font-semibold">
+                                Device
+                            </th>
+                            <th className="text-left py-3 px-4 font-semibold">
+                                Status
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {activityData.map((log) => (
+                            <tr
+                                key={log.id}
+                                className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                            >
+                                <td className="py-3 px-4 font-medium">
+                                    {log.action}
+                                </td>
+                                <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                                    {log.description}
+                                </td>
+                                <td className="py-3 px-4">{log.timestamp}</td>
+                                <td className="py-3 px-4">
+                                    <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                                        {log.ip}
+                                    </code>
+                                </td>
+                                <td className="py-3 px-4">{log.device}</td>
+                                <td className="py-3 px-4">
+                                    <Tag
+                                        variant={
+                                            log.status === 'success'
+                                                ? 'solid'
+                                                : 'plain'
+                                        }
+                                        color={
+                                            log.status === 'success'
+                                                ? 'success'
+                                                : 'danger'
+                                        }
+                                    >
+                                        {log.status}
+                                    </Tag>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     )
 }

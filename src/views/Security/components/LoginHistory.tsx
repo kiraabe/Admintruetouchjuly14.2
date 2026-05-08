@@ -1,6 +1,4 @@
 import { useMemo } from 'react'
-import Table from '@/components/ui/Table'
-import Badge from '@/components/ui/Badge'
 
 interface LoginRecord {
     id: string
@@ -64,63 +62,70 @@ const LoginHistory = () => {
         [],
     )
 
-    const columns = [
-        {
-            Header: 'Date & Time',
-            Cell: ({ row }: any) => (
-                <span className="font-medium text-sm">{row.original.timestamp}</span>
-            ),
-        },
-        {
-            Header: 'Location',
-            Cell: ({ row }: any) => (
-                <span className="text-sm">{row.original.location}</span>
-            ),
-        },
-        {
-            Header: 'Device',
-            Cell: ({ row }: any) => (
-                <span className="text-sm">{row.original.device}</span>
-            ),
-        },
-        {
-            Header: 'Browser',
-            Cell: ({ row }: any) => (
-                <span className="text-sm">{row.original.browser}</span>
-            ),
-        },
-        {
-            Header: 'IP Address',
-            Cell: ({ row }: any) => (
-                <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
-                    {row.original.ip}
-                </code>
-            ),
-        },
-        {
-            Header: 'Status',
-            Cell: ({ row }: any) => (
-                <Badge
-                    content={
-                        row.original.status === 'success'
-                            ? 'Successful'
-                            : 'Failed'
-                    }
-                    badgeContent={row.original.status === 'success' ? '✓' : '✕'}
-                    color={
-                        row.original.status === 'success' ? 'success' : 'danger'
-                    }
-                />
-            ),
-        },
-    ]
-
     return (
         <div className="space-y-4">
             <p className="text-sm text-gray-600 dark:text-gray-400">
                 Review all login attempts to your account
             </p>
-            <Table columns={columns} data={loginData} />
+            <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                    <thead>
+                        <tr className="border-b border-gray-200 dark:border-gray-700">
+                            <th className="text-left py-3 px-4 font-semibold">
+                                Date & Time
+                            </th>
+                            <th className="text-left py-3 px-4 font-semibold">
+                                Location
+                            </th>
+                            <th className="text-left py-3 px-4 font-semibold">
+                                Device
+                            </th>
+                            <th className="text-left py-3 px-4 font-semibold">
+                                Browser
+                            </th>
+                            <th className="text-left py-3 px-4 font-semibold">
+                                IP Address
+                            </th>
+                            <th className="text-left py-3 px-4 font-semibold">
+                                Status
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {loginData.map((login) => (
+                            <tr
+                                key={login.id}
+                                className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50"
+                            >
+                                <td className="py-3 px-4 font-medium">
+                                    {login.timestamp}
+                                </td>
+                                <td className="py-3 px-4">{login.location}</td>
+                                <td className="py-3 px-4">{login.device}</td>
+                                <td className="py-3 px-4">{login.browser}</td>
+                                <td className="py-3 px-4">
+                                    <code className="text-xs bg-gray-100 dark:bg-gray-800 px-2 py-1 rounded">
+                                        {login.ip}
+                                    </code>
+                                </td>
+                                <td className="py-3 px-4">
+                                    <span
+                                        className={`inline-block px-2 py-1 rounded text-xs font-medium ${
+                                            login.status === 'success'
+                                                ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200'
+                                                : 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200'
+                                        }`}
+                                    >
+                                        {login.status === 'success'
+                                            ? 'Successful'
+                                            : 'Failed'}
+                                    </span>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         </div>
     )
 }

@@ -2,7 +2,7 @@ import { useState } from 'react'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Alert from '@/components/ui/Alert'
-import Toggle from '@/components/ui/Toggle'
+import Switcher from '@/components/ui/Switcher'
 
 const TwoFactorAuth = () => {
     const [twoFAEnabled, setTwoFAEnabled] = useState(false)
@@ -67,7 +67,7 @@ const TwoFactorAuth = () => {
                                 : 'Add an extra layer of security to your account'}
                         </p>
                     </div>
-                    <Toggle
+                    <Switcher
                         checked={twoFAEnabled}
                         onChange={() => {
                             if (twoFAEnabled) {
