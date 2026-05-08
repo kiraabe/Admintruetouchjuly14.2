@@ -328,7 +328,6 @@ const Candidates = () => {
     newErrors.name = validateName(formData.name)
 
     if (!editingCandidate) {
-      newErrors.password = validatePassword(formData.password)
       newErrors.phone_number = validatePhone(formData.phone_number)
       const profileError = validateProfilePicture()
       if (profileError) newErrors.profile_picture = profileError
@@ -757,20 +756,6 @@ const Candidates = () => {
 
             {!editingCandidate && (
               <>
-                <div>
-                  <label className="form-label">Password *</label>
-                  <Input
-                    type="password"
-                    value={formData.password}
-                    onChange={(e) => handleFieldChange('password', e.target.value)}
-                    placeholder="6-9 characters, letters & numbers only"
-                    className={fieldErrors.password ? 'border-red-500' : ''}
-                  />
-                  {fieldErrors.password && (
-                    <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.password}</p>
-                  )}
-                </div>
-
                 <div>
                   <label className="form-label">Upload Profile Picture *</label>
                   <div className="flex flex-col gap-2">
