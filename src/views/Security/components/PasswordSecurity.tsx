@@ -234,5 +234,3 @@ const PasswordSecurity = () => {
 }
 
 export default PasswordSecurity
-
-export default PasswordSecurity
