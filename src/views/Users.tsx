@@ -38,15 +38,23 @@ const Users = () => {
     try {
       setLoading(true)
       const response = await fetch('/api/users')
-      if (!response.ok) {
-        throw new Error('Failed to fetch users')
-      }
       const data = await response.json()
-      setUsers(data.data || [])
+
+      if (!response.ok) {
+        const errorMsg = data.error || data.message || 'Failed to fetch users'
+        throw new Error(errorMsg)
+      }
+
+      if (data.success && Array.isArray(data.data)) {
+        setUsers(data.data)
+      } else {
+        setUsers([])
+      }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to fetch users'
-      console.error('Error fetching users:', error)
+      console.error('Error fetching users:', errorMsg, error)
       notify.error('Error', errorMsg)
+      setUsers([])
     } finally {
       setLoading(false)
     }
