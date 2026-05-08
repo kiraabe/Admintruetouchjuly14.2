@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
+import bcrypt from 'bcryptjs'
 import candidatesRouter from './routes/candidates/index.ts'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
@@ -16,7 +17,12 @@ function generateToken(userId: string, email: string): string {
 }
 
 async function comparePasswords(password: string, hash: string): Promise<boolean> {
-  return password === hash
+  // If hash doesn't look like bcrypt, do plain comparison (for backward compatibility)
+  if (!hash.startsWith('$2')) {
+    return password === hash
+  }
+  // Use bcrypt for proper password comparison
+  return await bcrypt.compare(password, hash)
 }
 
 // Dynamic import for pool to avoid circular dependency issues
@@ -185,11 +191,12 @@ async function startServer() {
     `)
 
     // Seed test user
+    const hashedPassword = await bcrypt.hash('123Qwe', 10)
     await dbPool.query(`
       INSERT INTO users (email, password_hash, user_name, authority, is_active)
       VALUES ($1, $2, $3, $4, $5)
       ON CONFLICT (email) DO NOTHING
-    `, ['admin-01@ecme.com', '123Qwe', 'Admin', 'admin', true])
+    `, ['admin-01@ecme.com', hashedPassword, 'Admin', 'admin', true])
 
     await dbPool.query(`
       CREATE TABLE IF NOT EXISTS candidates (
