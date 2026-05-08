@@ -1,139 +1,250 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
-import Tag from '@/components/ui/Tag'
-import Pagination from '@/components/ui/Pagination'
+import Dialog from '@/components/ui/Dialog'
 import Checkbox from '@/components/ui/Checkbox'
 
 interface Candidate {
   id: number
+  candidate_id: string
   name: string
-  email: string
-  position: string
-  status: 'applied' | 'interviewing' | 'rejected' | 'offered'
-  appliedDate: string
-  avatar: string
+  passport_number: string | null
+  phone_number: string | null
+  gender: string | null
+  age: number | null
+  date_of_birth: string | null
+  nationality: string | null
+  religion: string | null
+  marital_status: string | null
+  occupation: string | null
+  job_category: string | null
+  skill_level: string | null
+  education_level: string | null
+  language_skills: string | null
+  country: string | null
+  city: string | null
+  current_location: string | null
+  resume_url: string | null
+  medical_status: string | null
+  created_at: Date
+  updated_at: Date
 }
 
+const JOB_CATEGORIES = [
+  'Housekeepers, cleaners, nannies, and caregivers',
+  'Drivers, warehouse staff, and retail store employees',
+  'Waiters/waitresses, laundry services, 5-star hotel security, and kitchen helpers',
+  'Construction workers, laborers, electricians',
+]
+
+const EDUCATION_LEVELS = ['Primary', 'Secondary', 'Diploma', 'Bachelor', 'Master', 'PhD']
+const SKILL_LEVELS = ['Entry', 'Intermediate', 'Advanced', 'Expert']
+const GENDERS = ['Male', 'Female', 'Other']
+const MARITAL_STATUS = ['Single', 'Married', 'Divorced', 'Widowed']
+
 const Candidates = () => {
+  const [candidates, setCandidates] = useState<Candidate[]>([])
+  const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>([])
+  const [selectedCandidates, setSelectedCandidates] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [selectedCandidates, setSelectedCandidates] = useState<number[]>([])
+  const [showModal, setShowModal] = useState(false)
+  const [showFilterModal, setShowFilterModal] = useState(false)
+  const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null)
+  const [loading, setLoading] = useState(false)
+  const [filters, setFilters] = useState<Partial<Candidate>>({})
 
-  const candidates: Candidate[] = [
-    {
-      id: 1,
-      name: 'Angelina Gotelli',
-      email: 'angelina_g@hotmail.com',
-      position: 'Senior Developer',
-      status: 'interviewing',
-      appliedDate: '2024-05-01',
-      avatar: '/img/avatars/thumb-1.jpg',
-    },
-    {
-      id: 2,
-      name: 'Jeremiah Minsk',
-      email: 'jeremiah_m@infotech.io',
-      position: 'Product Manager',
-      status: 'offered',
-      appliedDate: '2024-04-28',
-      avatar: '/img/avatars/thumb-2.jpg',
-    },
-    {
-      id: 3,
-      name: 'Max Alexander',
-      email: 'max_a@infotech.io',
-      position: 'UX Designer',
-      status: 'rejected',
-      appliedDate: '2024-04-25',
-      avatar: '/img/avatars/thumb-3.jpg',
-    },
-    {
-      id: 4,
-      name: 'Shannon Baker',
-      email: 'shannon_b@hotmail.com',
-      position: 'Marketing Lead',
-      status: 'applied',
-      appliedDate: '2024-05-03',
-      avatar: '/img/avatars/thumb-4.jpg',
-    },
-    {
-      id: 5,
-      name: 'Eugene Stewart',
-      email: 'eugene_s@infotech.io',
-      position: 'DevOps Engineer',
-      status: 'interviewing',
-      appliedDate: '2024-04-30',
-      avatar: '/img/avatars/thumb-5.jpg',
-    },
-    {
-      id: 6,
-      name: 'Arlene Pierce',
-      email: 'arlene_p@infotech.io',
-      position: 'Data Analyst',
-      status: 'applied',
-      appliedDate: '2024-05-02',
-      avatar: '/img/avatars/thumb-6.jpg',
-    },
-    {
-      id: 7,
-      name: 'Roberta Horton',
-      email: 'roberta_h@imaze.edu.du',
-      position: 'Business Analyst',
-      status: 'interviewing',
-      appliedDate: '2024-04-29',
-      avatar: '/img/avatars/thumb-7.jpg',
-    },
-    {
-      id: 8,
-      name: 'Jessica Wells',
-      email: 'jessica_w@imaze.infotech.io',
-      position: 'QA Engineer',
-      status: 'rejected',
-      appliedDate: '2024-04-26',
-      avatar: '/img/avatars/thumb-8.jpg',
-    },
-    {
-      id: 9,
-      name: 'Camila Simmmons',
-      email: 'camila_s@gmail.com',
-      position: 'Frontend Developer',
-      status: 'offered',
-      appliedDate: '2024-04-27',
-      avatar: '/img/avatars/thumb-9.jpg',
-    },
-    {
-      id: 10,
-      name: 'Earl Miles',
-      email: 'earl_m@gmail.com',
-      position: 'Backend Developer',
-      status: 'applied',
-      appliedDate: '2024-05-04',
-      avatar: '/img/avatars/thumb-10.jpg',
-    },
-  ]
+  const [formData, setFormData] = useState({
+    name: '',
+    passport_number: '',
+    phone_number: '',
+    gender: '',
+    age: '',
+    date_of_birth: '',
+    nationality: '',
+    religion: '',
+    marital_status: '',
+    occupation: '',
+    job_category: '',
+    skill_level: '',
+    education_level: '',
+    language_skills: '',
+    country: '',
+    city: '',
+    current_location: '',
+    medical_status: '',
+  })
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedCandidates(candidates.map((c) => c.id))
-    } else {
-      setSelectedCandidates([])
+  useEffect(() => {
+    fetchCandidates()
+  }, [])
+
+  useEffect(() => {
+    let filtered = candidates
+
+    if (searchTerm) {
+      filtered = filtered.filter(
+        (c) =>
+          c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          c.phone_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          c.nationality?.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    }
+
+    if (Object.keys(filters).length > 0) {
+      filtered = filtered.filter((c) => {
+        return Object.entries(filters).every(([key, value]) => {
+          if (!value) return true
+          const candidateValue = c[key as keyof Candidate]
+          if (typeof candidateValue === 'string') {
+            return candidateValue.toLowerCase().includes(String(value).toLowerCase())
+          }
+          return candidateValue === value
+        })
+      })
+    }
+
+    setFilteredCandidates(filtered)
+  }, [candidates, searchTerm, filters])
+
+  const fetchCandidates = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/candidates')
+      const data = await response.json()
+      if (data.success) {
+        setCandidates(data.data)
+      }
+    } catch (error) {
+      console.error('Error fetching candidates:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleSelectCandidate = (id: number, checked: boolean) => {
-    if (checked) {
-      setSelectedCandidates([...selectedCandidates, id])
-    } else {
-      setSelectedCandidates(selectedCandidates.filter((cid) => cid !== id))
+  const handleAddNew = () => {
+    setEditingCandidate(null)
+    setFormData({
+      name: '',
+      passport_number: '',
+      phone_number: '',
+      gender: '',
+      age: '',
+      date_of_birth: '',
+      nationality: '',
+      religion: '',
+      marital_status: '',
+      occupation: '',
+      job_category: '',
+      skill_level: '',
+      education_level: '',
+      language_skills: '',
+      country: '',
+      city: '',
+      current_location: '',
+      medical_status: '',
+    })
+    setShowModal(true)
+  }
+
+  const handleEdit = (candidate: Candidate) => {
+    setEditingCandidate(candidate)
+    setFormData({
+      name: candidate.name,
+      passport_number: candidate.passport_number || '',
+      phone_number: candidate.phone_number || '',
+      gender: candidate.gender || '',
+      age: candidate.age?.toString() || '',
+      date_of_birth: candidate.date_of_birth || '',
+      nationality: candidate.nationality || '',
+      religion: candidate.religion || '',
+      marital_status: candidate.marital_status || '',
+      occupation: candidate.occupation || '',
+      job_category: candidate.job_category || '',
+      skill_level: candidate.skill_level || '',
+      education_level: candidate.education_level || '',
+      language_skills: candidate.language_skills || '',
+      country: candidate.country || '',
+      city: candidate.city || '',
+      current_location: candidate.current_location || '',
+      medical_status: candidate.medical_status || '',
+    })
+    setShowModal(true)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    try {
+      const payload = {
+        ...formData,
+        age: formData.age ? parseInt(formData.age) : null,
+      }
+
+      if (editingCandidate) {
+        const response = await fetch(`/api/candidates/${editingCandidate.candidate_id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+
+        if (response.ok) {
+          await fetchCandidates()
+          setShowModal(false)
+        }
+      } else {
+        const response = await fetch('/api/candidates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        })
+
+        if (response.ok) {
+          await fetchCandidates()
+          setShowModal(false)
+        }
+      }
+    } catch (error) {
+      console.error('Error saving candidate:', error)
+    }
+  }
+
+  const handleDelete = async (candidateId: string) => {
+    if (!window.confirm('Are you sure you want to delete this candidate?')) return
+
+    try {
+      await fetch(`/api/candidates/${candidateId}`, { method: 'DELETE' })
+      await fetchCandidates()
+    } catch (error) {
+      console.error('Error deleting candidate:', error)
     }
   }
 
   const handleDownload = () => {
+    const headers = [
+      'Name',
+      'Phone',
+      'Passport',
+      'Gender',
+      'Age',
+      'Nationality',
+      'Job Category',
+      'Skill Level',
+      'Country',
+    ]
     const csv = [
-      ['Name', 'Email', 'Position', 'Status', 'Applied Date'],
-      ...candidates.map((c) => [c.name, c.email, c.position, c.status, c.appliedDate]),
+      headers,
+      ...filteredCandidates.map((c) => [
+        c.name,
+        c.phone_number || '',
+        c.passport_number || '',
+        c.gender || '',
+        c.age || '',
+        c.nationality || '',
+        c.job_category || '',
+        c.skill_level || '',
+        c.country || '',
+      ]),
     ]
       .map((row) => row.join(','))
       .join('\n')
@@ -142,30 +253,25 @@ const Candidates = () => {
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'candidateList.csv'
+    a.download = 'candidates.csv'
     a.click()
-    window.URL.revokeObjectURL(url)
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'offered':
-        return 'bg-emerald-200'
-      case 'interviewing':
-        return 'bg-sky-200'
-      case 'rejected':
-        return 'bg-red-200'
-      default:
-        return 'bg-gray-200'
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedCandidates(filteredCandidates.map((c) => c.candidate_id))
+    } else {
+      setSelectedCandidates([])
     }
   }
 
-  const filteredCandidates = candidates.filter(
-    (candidate) =>
-      candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      candidate.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      candidate.position.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  const handleSelectCandidate = (candidateId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedCandidates([...selectedCandidates, candidateId])
+    } else {
+      setSelectedCandidates(selectedCandidates.filter((id) => id !== candidateId))
+    }
+  }
 
   return (
     <Card>
@@ -199,7 +305,7 @@ const Candidates = () => {
                 <span>Download</span>
               </span>
             </button>
-            <Button variant="primary">
+            <Button onClick={handleAddNew}>
               <span className="flex gap-1 items-center justify-center">
                 <span className="text-lg">
                   <svg
@@ -227,7 +333,7 @@ const Candidates = () => {
 
         {/* Search and Filter */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-          <div className="input-wrapper relative">
+          <div className="input-wrapper relative flex-1">
             <Input
               placeholder="Quick search..."
               value={searchTerm}
@@ -252,7 +358,10 @@ const Candidates = () => {
               </svg>
             </div>
           </div>
-          <button className="button bg-white border border-gray-300 dark:bg-gray-700 dark:border-gray-700 ring-primary dark:ring-white hover:border-primary dark:hover:border-white hover:ring-1 hover:text-primary dark:hover:text-white dark:hover:bg-transparent text-gray-600 dark:text-gray-100 h-12 rounded-xl px-5 py-2 button-press-feedback">
+          <button
+            onClick={() => setShowFilterModal(true)}
+            className="button bg-white border border-gray-300 dark:bg-gray-700 dark:border-gray-700 ring-primary dark:ring-white hover:border-primary dark:hover:border-white hover:ring-1 hover:text-primary dark:hover:text-white dark:hover:bg-transparent text-gray-600 dark:text-gray-100 h-12 rounded-xl px-5 py-2 button-press-feedback"
+          >
             <span className="flex gap-1 items-center justify-center">
               <span className="text-lg">
                 <svg
@@ -281,110 +390,397 @@ const Candidates = () => {
               <tr>
                 <th className="text-left py-3 px-4 w-12">
                   <Checkbox
-                    checked={selectedCandidates.length === candidates.length && candidates.length > 0}
+                    checked={
+                      selectedCandidates.length === filteredCandidates.length &&
+                      filteredCandidates.length > 0
+                    }
                     onChange={(checked) => handleSelectAll(checked as boolean)}
                   />
                 </th>
-                <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
-                  Name
-                </th>
-                <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
-                  Email
-                </th>
-                <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
-                  Position
-                </th>
-                <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
-                  Status
-                </th>
-                <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
-                  Applied Date
-                </th>
+                <th className="text-left py-3 px-4">Name</th>
+                <th className="text-left py-3 px-4">Phone</th>
+                <th className="text-left py-3 px-4">Job Category</th>
+                <th className="text-left py-3 px-4">Nationality</th>
+                <th className="text-left py-3 px-4">Skill Level</th>
                 <th className="text-left py-3 px-4">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredCandidates.map((candidate) => (
-                <tr
-                  key={candidate.id}
-                  className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
-                  <td className="py-3 px-4 w-12">
-                    <Checkbox
-                      checked={selectedCandidates.includes(candidate.id)}
-                      onChange={(checked) => handleSelectCandidate(candidate.id, checked as boolean)}
-                    />
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={candidate.avatar}
-                        alt={candidate.name}
-                        className="w-10 h-10 rounded-full"
-                      />
-                      <a href="#" className="hover:text-primary font-semibold text-gray-900 dark:text-gray-100">
-                        {candidate.name}
-                      </a>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.email}</td>
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.position}</td>
-                  <td className="py-3 px-4">
-                    <Tag className={`${getStatusColor(candidate.status)} text-gray-900 dark:text-gray-900`}>
-                      {candidate.status.charAt(0).toUpperCase() + candidate.status.slice(1)}
-                    </Tag>
-                  </td>
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.appliedDate}</td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-3">
-                      <button className="text-xl cursor-pointer hover:text-primary" title="Edit">
-                        <svg
-                          stroke="currentColor"
-                          fill="none"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          height="1em"
-                          width="1em"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4"></path>
-                          <path d="M13.5 6.5l4 4"></path>
-                        </svg>
-                      </button>
-                      <button className="text-xl cursor-pointer hover:text-primary" title="View">
-                        <svg
-                          stroke="currentColor"
-                          fill="none"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          height="1em"
-                          width="1em"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
-                          <path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"></path>
-                        </svg>
-                      </button>
-                    </div>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-4">
+                    Loading...
                   </td>
                 </tr>
-              ))}
+              ) : filteredCandidates.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="text-center py-4 text-gray-500">
+                    No candidates found
+                  </td>
+                </tr>
+              ) : (
+                filteredCandidates.map((candidate) => (
+                  <tr
+                    key={candidate.candidate_id}
+                    className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  >
+                    <td className="py-3 px-4 w-12">
+                      <Checkbox
+                        checked={selectedCandidates.includes(candidate.candidate_id)}
+                        onChange={(checked) => handleSelectCandidate(candidate.candidate_id, checked as boolean)}
+                      />
+                    </td>
+                    <td className="py-3 px-4 font-semibold">{candidate.name}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.phone_number || '-'}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                      {candidate.job_category || '-'}
+                    </td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.nationality || '-'}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.skill_level || '-'}</td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => handleEdit(candidate)}
+                          className="text-xl cursor-pointer hover:text-primary"
+                          title="Edit"
+                        >
+                          <svg
+                            stroke="currentColor"
+                            fill="none"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            height="1em"
+                            width="1em"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4"></path>
+                            <path d="M13.5 6.5l4 4"></path>
+                          </svg>
+                        </button>
+                        <button
+                          onClick={() => handleDelete(candidate.candidate_id)}
+                          className="text-xl cursor-pointer hover:text-red-500"
+                          title="Delete"
+                        >
+                          <svg
+                            stroke="currentColor"
+                            fill="none"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            height="1em"
+                            width="1em"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path d="M4 7l16 0"></path>
+                            <path d="M10 11l0 6"></path>
+                            <path d="M14 11l0 6"></path>
+                            <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                            <path d="M9 7v-1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v1"></path>
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
-        {/* Pagination */}
-        <div className="flex items-center justify-between mt-4">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Showing 1 to {filteredCandidates.length} of {candidates.length} results
-          </div>
-          <Pagination />
+        {/* Results count */}
+        <div className="text-sm text-gray-600 dark:text-gray-400">
+          Showing {filteredCandidates.length} of {candidates.length} results
         </div>
       </div>
+
+      {/* Add/Edit Modal */}
+      <Dialog isOpen={showModal} onClose={() => setShowModal(false)}>
+        <div className="mb-4">
+          <h2 className="text-lg font-bold">{editingCandidate ? 'Edit Candidate' : 'Add New Candidate'}</h2>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4 max-h-96 overflow-y-auto">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="col-span-2">
+              <label className="form-label">Candidate Name *</label>
+              <Input
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                required
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Passport Number</label>
+              <Input
+                value={formData.passport_number}
+                onChange={(e) => setFormData({ ...formData, passport_number: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Phone Number</label>
+              <Input
+                type="tel"
+                value={formData.phone_number}
+                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Gender</label>
+              <select
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              >
+                <option value="">Select gender</option>
+                {GENDERS.map((g) => (
+                  <option key={g} value={g}>
+                    {g}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="form-label">Age</label>
+              <Input
+                type="number"
+                value={formData.age}
+                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Date of Birth</label>
+              <Input
+                type="date"
+                value={formData.date_of_birth}
+                onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Nationality</label>
+              <Input
+                value={formData.nationality}
+                onChange={(e) => setFormData({ ...formData, nationality: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Religion</label>
+              <Input
+                value={formData.religion}
+                onChange={(e) => setFormData({ ...formData, religion: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Marital Status</label>
+              <select
+                value={formData.marital_status}
+                onChange={(e) => setFormData({ ...formData, marital_status: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              >
+                <option value="">Select status</option>
+                {MARITAL_STATUS.map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="form-label">Occupation</label>
+              <Input
+                value={formData.occupation}
+                onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
+              />
+            </div>
+
+            <div className="col-span-2">
+              <label className="form-label">Job Category</label>
+              <select
+                value={formData.job_category}
+                onChange={(e) => setFormData({ ...formData, job_category: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              >
+                <option value="">Select job category</option>
+                {JOB_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="form-label">Skill Level</label>
+              <select
+                value={formData.skill_level}
+                onChange={(e) => setFormData({ ...formData, skill_level: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              >
+                <option value="">Select skill level</option>
+                {SKILL_LEVELS.map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="form-label">Education Level</label>
+              <select
+                value={formData.education_level}
+                onChange={(e) => setFormData({ ...formData, education_level: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              >
+                <option value="">Select education level</option>
+                {EDUCATION_LEVELS.map((level) => (
+                  <option key={level} value={level}>
+                    {level}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="col-span-2">
+              <label className="form-label">Language Skills</label>
+              <Input
+                value={formData.language_skills}
+                onChange={(e) => setFormData({ ...formData, language_skills: e.target.value })}
+                placeholder="e.g., English, Spanish, French"
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Country</label>
+              <Input
+                value={formData.country}
+                onChange={(e) => setFormData({ ...formData, country: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="form-label">City</label>
+              <Input
+                value={formData.city}
+                onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+              />
+            </div>
+
+            <div className="col-span-2">
+              <label className="form-label">Current Location</label>
+              <Input
+                value={formData.current_location}
+                onChange={(e) => setFormData({ ...formData, current_location: e.target.value })}
+              />
+            </div>
+
+            <div className="col-span-2">
+              <label className="form-label">Medical Status</label>
+              <Input
+                value={formData.medical_status}
+                onChange={(e) => setFormData({ ...formData, medical_status: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 pt-4">
+            <Button type="submit">{editingCandidate ? 'Update' : 'Add'} Candidate</Button>
+            <Button onClick={() => setShowModal(false)}>Cancel</Button>
+          </div>
+        </form>
+      </Dialog>
+
+      {/* Filter Modal */}
+      <Dialog isOpen={showFilterModal} onClose={() => setShowFilterModal(false)}>
+        <div className="mb-4">
+          <h2 className="text-lg font-bold">Filter Candidates</h2>
+        </div>
+        <div className="space-y-4 max-h-96 overflow-y-auto">
+          <div>
+            <label className="form-label">Job Category</label>
+            <select
+              value={filters.job_category || ''}
+              onChange={(e) => setFilters({ ...filters, job_category: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            >
+              <option value="">All categories</option>
+              {JOB_CATEGORIES.map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="form-label">Skill Level</label>
+            <select
+              value={filters.skill_level || ''}
+              onChange={(e) => setFilters({ ...filters, skill_level: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            >
+              <option value="">All levels</option>
+              {SKILL_LEVELS.map((level) => (
+                <option key={level} value={level}>
+                  {level}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="form-label">Education Level</label>
+            <select
+              value={filters.education_level || ''}
+              onChange={(e) => setFilters({ ...filters, education_level: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            >
+              <option value="">All levels</option>
+              {EDUCATION_LEVELS.map((level) => (
+                <option key={level} value={level}>
+                  {level}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="form-label">Nationality</label>
+            <Input
+              placeholder="Filter by nationality"
+              value={filters.nationality || ''}
+              onChange={(e) => setFilters({ ...filters, nationality: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="form-label">Country</label>
+            <Input
+              placeholder="Filter by country"
+              value={filters.country || ''}
+              onChange={(e) => setFilters({ ...filters, country: e.target.value })}
+            />
+          </div>
+
+          <div className="flex gap-2 pt-4">
+            <Button onClick={() => setShowFilterModal(false)}>Close</Button>
+            <Button onClick={() => { setFilters({}); setShowFilterModal(false); }}>
+              Reset Filters
+            </Button>
+          </div>
+        </div>
+      </Dialog>
     </Card>
   )
 }

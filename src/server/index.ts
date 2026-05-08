@@ -3,6 +3,7 @@ import express, { type Request, type Response } from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import jwt from 'jsonwebtoken'
+import candidatesRouter from './routes/candidates'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
@@ -44,6 +45,9 @@ app.use(express.urlencoded({ extended: true }))
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
 })
+
+// API Routes
+app.use('/api/candidates', candidatesRouter)
 
 // Auth routes
 app.post('/api/sign-in', async (req: Request, res: Response) => {

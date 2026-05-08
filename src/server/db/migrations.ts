@@ -34,6 +34,36 @@ async function runMigrations() {
 
     console.log('✓ Reset tokens table created')
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS candidates (
+        id SERIAL PRIMARY KEY,
+        candidate_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+        name VARCHAR(255) NOT NULL,
+        passport_number VARCHAR(255),
+        phone_number VARCHAR(20),
+        gender VARCHAR(50),
+        age INT,
+        date_of_birth DATE,
+        nationality VARCHAR(255),
+        religion VARCHAR(255),
+        marital_status VARCHAR(50),
+        occupation VARCHAR(255),
+        job_category VARCHAR(255),
+        skill_level VARCHAR(100),
+        education_level VARCHAR(100),
+        language_skills TEXT,
+        country VARCHAR(255),
+        city VARCHAR(255),
+        current_location VARCHAR(255),
+        resume_url VARCHAR(255),
+        medical_status VARCHAR(255),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    console.log('✓ Candidates table created')
+
     console.log('Migrations completed successfully')
     process.exit(0)
   } catch (error) {
