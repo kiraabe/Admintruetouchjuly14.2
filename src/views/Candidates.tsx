@@ -498,11 +498,11 @@ const Candidates = () => {
       </div>
 
       {/* Add/Edit Modal */}
-      <Dialog isOpen={showModal} onClose={() => setShowModal(false)}>
+      <Dialog isOpen={showModal} onClose={() => setShowModal(false)} width={800}>
         <div className="mb-4">
           <h2 className="text-lg font-bold">{editingCandidate ? 'Edit Candidate' : 'Add New Candidate'}</h2>
         </div>
-        <form onSubmit={handleSubmit} className="space-y-4 max-h-96 overflow-y-auto">
+        <form onSubmit={handleSubmit} className="space-y-4 max-h-[calc(100vh-200px)] overflow-y-auto">
           <div className="grid grid-cols-2 gap-4">
             <div className="col-span-2">
               <label className="form-label">Candidate Name *</label>
