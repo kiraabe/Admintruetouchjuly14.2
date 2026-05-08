@@ -3,6 +3,9 @@ import express, { type Request, type Response } from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import jwt from 'jsonwebtoken'
+import multer from 'multer'
+import path from 'path'
+import fs from 'fs'
 import candidatesRouter from './routes/candidates'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
@@ -30,6 +33,35 @@ async function initPool() {
 const app = express()
 const PORT = process.env.PORT || 5000
 
+// Create uploads directory if it doesn't exist
+const uploadsDir = path.join(process.cwd(), 'uploads', 'profiles')
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true })
+}
+
+// Configure multer for profile picture uploads
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir)
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
+    cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname))
+  },
+})
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only image files are allowed'))
+    }
+  },
+})
+
 // Middleware
 app.use(helmet())
 app.use(
@@ -38,8 +70,11 @@ app.use(
     credentials: true,
   }),
 )
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.use(express.json({ limit: '5mb' }))
+app.use(express.urlencoded({ extended: true, limit: '5mb' }))
+
+// Serve uploaded files
+app.use('/uploads', express.static(uploadsDir))
 
 // Health check
 app.get('/health', (req, res) => {

@@ -41,6 +41,8 @@ async function runMigrations() {
         name VARCHAR(255) NOT NULL,
         passport_number VARCHAR(255),
         phone_number VARCHAR(20),
+        password_hash VARCHAR(255),
+        profile_picture VARCHAR(255),
         gender VARCHAR(50),
         age INT,
         date_of_birth DATE,

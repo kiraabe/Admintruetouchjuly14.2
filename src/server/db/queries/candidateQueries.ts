@@ -1,4 +1,5 @@
 import pool from '../config'
+import bcrypt from 'bcryptjs'
 
 export interface Candidate {
   id: number
@@ -6,6 +7,8 @@ export interface Candidate {
   name: string
   passport_number: string | null
   phone_number: string | null
+  password_hash: string | null
+  profile_picture: string | null
   gender: string | null
   age: number | null
   date_of_birth: string | null
@@ -77,12 +80,18 @@ export async function createCandidate(data: Omit<Candidate, 'id' | 'candidate_id
     throw new Error('Candidate name is required')
   }
 
+  // Prepare data with password hashing if provided
+  const processedData = { ...data }
+  if (data.password_hash) {
+    processedData.password_hash = await bcrypt.hash(data.password_hash, 10)
+  }
+
   // Prepare fields to insert (excluding undefined values)
   const fields: string[] = []
   const values: any[] = []
   let paramCount = 1
 
-  Object.entries(data).forEach(([key, value]) => {
+  Object.entries(processedData).forEach(([key, value]) => {
     if (value !== undefined) {
       fields.push(key)
       values.push(value)

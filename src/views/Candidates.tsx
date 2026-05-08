@@ -73,11 +73,16 @@ const Candidates = () => {
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false)
   const [showLocationDropdown, setShowLocationDropdown] = useState(false)
   const [error, setError] = useState('')
+  const [passwordError, setPasswordError] = useState('')
+  const [phoneVerified, setPhoneVerified] = useState(false)
+  const [profilePicture, setProfilePicture] = useState<File | null>(null)
+  const [profilePicturePreview, setProfilePicturePreview] = useState('')
 
   const [formData, setFormData] = useState({
     name: '',
     passport_number: '',
     phone_number: '',
+    password: '',
     gender: '',
     age: '',
     date_of_birth: '',
@@ -142,12 +147,58 @@ const Candidates = () => {
     }
   }
 
+  const validatePassword = (password: string): boolean => {
+    setPasswordError('')
+    if (!password) {
+      setPasswordError('Password is required')
+      return false
+    }
+    if (password.length < 6 || password.length > 9) {
+      setPasswordError('Password must be 6-9 characters')
+      return false
+    }
+    if (!/^[a-zA-Z0-9]+$/.test(password)) {
+      setPasswordError('Password must contain only letters and numbers (no special characters)')
+      return false
+    }
+    return true
+  }
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setFormData({ ...formData, password: value })
+    if (value) {
+      validatePassword(value)
+    }
+  }
+
+  const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setError('Profile picture must be less than 5MB')
+        return
+      }
+      if (!file.type.startsWith('image/')) {
+        setError('Please select a valid image file')
+        return
+      }
+      setProfilePicture(file)
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setProfilePicturePreview(reader.result as string)
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
   const handleAddNew = () => {
     setEditingCandidate(null)
     setFormData({
       name: '',
       passport_number: '',
       phone_number: '',
+      password: '',
       gender: '',
       age: '',
       date_of_birth: '',
@@ -164,6 +215,10 @@ const Candidates = () => {
       current_location: '',
       medical_status: '',
     })
+    setProfilePicture(null)
+    setProfilePicturePreview('')
+    setPhoneVerified(false)
+    setPasswordError('')
     setShowModal(true)
   }
 
@@ -195,10 +250,36 @@ const Candidates = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
+    setPasswordError('')
 
     if (!formData.name || formData.name.trim().length === 0) {
       setError('Candidate name is required')
       return
+    }
+
+    if (!editingCandidate) {
+      if (!formData.password) {
+        setPasswordError('Password is required')
+        return
+      }
+      if (!validatePassword(formData.password)) {
+        return
+      }
+
+      if (!formData.phone_number) {
+        setError('Phone number is required')
+        return
+      }
+
+      if (!phoneVerified) {
+        setError('Phone number must be verified')
+        return
+      }
+
+      if (!profilePicture && !profilePicturePreview) {
+        setError('Profile picture is required')
+        return
+      }
     }
 
     if (formData.date_of_birth) {
@@ -250,6 +331,7 @@ const Candidates = () => {
             name: '',
             passport_number: '',
             phone_number: '',
+            password: '',
             gender: '',
             age: '',
             date_of_birth: '',
@@ -266,6 +348,9 @@ const Candidates = () => {
             current_location: '',
             medical_status: '',
           })
+          setProfilePicture(null)
+          setProfilePicturePreview('')
+          setPhoneVerified(false)
         } else {
           setError(data.error || 'Failed to create candidate')
         }
@@ -594,13 +679,71 @@ const Candidates = () => {
             </div>
 
             <div>
-              <label className="form-label">Phone Number</label>
-              <Input
-                type="tel"
-                value={formData.phone_number}
-                onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-              />
+              <label className="form-label">Phone Number {!editingCandidate && '*'}</label>
+              <div className="flex gap-2">
+                <Input
+                  type="tel"
+                  value={formData.phone_number}
+                  onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                  disabled={phoneVerified}
+                  className={phoneVerified ? 'bg-green-50 dark:bg-green-900/20' : ''}
+                />
+                <Button
+                  type="button"
+                  onClick={() => {
+                    if (formData.phone_number) {
+                      setPhoneVerified(true)
+                    } else {
+                      setError('Please enter a phone number first')
+                    }
+                  }}
+                  className={phoneVerified ? 'bg-green-600 hover:bg-green-700' : ''}
+                >
+                  {phoneVerified ? '✓ Verified' : 'Verify'}
+                </Button>
+              </div>
             </div>
+
+            {!editingCandidate && (
+              <>
+                <div>
+                  <label className="form-label">Password *</label>
+                  <Input
+                    type="password"
+                    value={formData.password}
+                    onChange={handlePasswordChange}
+                    placeholder="6-9 characters, letters & numbers only"
+                  />
+                  {passwordError && (
+                    <p className="text-red-600 dark:text-red-400 text-xs mt-1">{passwordError}</p>
+                  )}
+                </div>
+
+                <div className="col-span-2">
+                  <label className="form-label">Profile Picture *</label>
+                  <div className="flex gap-4">
+                    <div className="flex-1">
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfilePictureChange}
+                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 cursor-pointer"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">Max 5MB, JPG/PNG/GIF</p>
+                    </div>
+                    {profilePicturePreview && (
+                      <div className="w-20 h-20 rounded-lg overflow-hidden border border-gray-300">
+                        <img
+                          src={profilePicturePreview}
+                          alt="Profile preview"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
 
             <div>
               <label className="form-label">Gender</label>
