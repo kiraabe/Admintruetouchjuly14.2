@@ -76,6 +76,8 @@ const Candidates = () => {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [profilePicture, setProfilePicture] = useState<File | null>(null)
   const [profilePicturePreview, setProfilePicturePreview] = useState('')
+  const [resume, setResume] = useState<File | null>(null)
+  const [resumeName, setResumeName] = useState('')
 
   const [formData, setFormData] = useState({
     name: '',
@@ -231,6 +233,23 @@ const Candidates = () => {
     }
   }
 
+  const handleResumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        setError('Resume must be less than 10MB')
+        return
+      }
+      const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']
+      if (!validTypes.includes(file.type)) {
+        setError('Please select a valid file (PDF, DOC, DOCX, or TXT)')
+        return
+      }
+      setResume(file)
+      setResumeName(file.name)
+    }
+  }
+
   const handleAddNew = () => {
     setEditingCandidate(null)
     setFormData({
@@ -256,6 +275,8 @@ const Candidates = () => {
     })
     setProfilePicture(null)
     setProfilePicturePreview('')
+    setResume(null)
+    setResumeName('')
     setFieldErrors({})
     setError('')
     setShowModal(true)
@@ -729,23 +750,21 @@ const Candidates = () => {
                   )}
                 </div>
 
-                <div className="col-span-2">
+                <div>
                   <label className="form-label">Upload Profile Picture *</label>
-                  <div className="flex gap-4">
-                    <div className="flex-1">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        onChange={handleProfilePictureChange}
-                        className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 cursor-pointer ${
-                          fieldErrors.profile_picture ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
-                        }`}
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Max 5MB, JPG/PNG/GIF</p>
-                      {fieldErrors.profile_picture && (
-                        <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.profile_picture}</p>
-                      )}
-                    </div>
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleProfilePictureChange}
+                      className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 cursor-pointer ${
+                        fieldErrors.profile_picture ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                    />
+                    <p className="text-xs text-gray-500">Max 5MB, JPG/PNG/GIF</p>
+                    {fieldErrors.profile_picture && (
+                      <p className="text-red-600 dark:text-red-400 text-xs">{fieldErrors.profile_picture}</p>
+                    )}
                     {profilePicturePreview && (
                       <div className="w-20 h-20 rounded-lg overflow-hidden border border-gray-300">
                         <img
@@ -754,6 +773,27 @@ const Candidates = () => {
                           className="w-full h-full object-cover"
                         />
                       </div>
+                    )}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="form-label">Upload Resume</label>
+                  <div className="flex flex-col gap-2">
+                    <input
+                      type="file"
+                      accept=".pdf,.doc,.docx,.txt"
+                      onChange={handleResumeChange}
+                      className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 cursor-pointer ${
+                        fieldErrors.resume ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                      }`}
+                    />
+                    <p className="text-xs text-gray-500">Max 10MB, PDF/DOC/DOCX/TXT</p>
+                    {fieldErrors.resume && (
+                      <p className="text-red-600 dark:text-red-400 text-xs">{fieldErrors.resume}</p>
+                    )}
+                    {resumeName && (
+                      <p className="text-xs text-green-600 dark:text-green-400 truncate">✓ {resumeName}</p>
                     )}
                   </div>
                 </div>
