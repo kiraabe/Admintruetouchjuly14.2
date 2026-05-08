@@ -687,7 +687,7 @@ const Candidates = () => {
               </select>
             </div>
 
-            <div className="relative">
+            <div className="col-span-2 relative">
               <label className="form-label">Language Skills</label>
               <Input
                 value={languageSearch}
