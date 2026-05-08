@@ -17,18 +17,13 @@ type DropdownList = {
 const dropdownItemList: DropdownList[] = [
     {
         label: 'Profile',
-        path: '/concepts/account/settings',
+        path: '/profile',
         icon: <UserIcon className="w-5 h-5" />,
     },
     {
         label: 'Account Setting',
-        path: '/concepts/account/settings',
+        path: '/profile',
         icon: <Cog6ToothIcon className="w-5 h-5" />,
-    },
-    {
-        label: 'Activity Log',
-        path: '/concepts/account/activity-log',
-        icon: <ArrowTrendingUpIcon className="w-5 h-5" />,
     },
 ]
 
