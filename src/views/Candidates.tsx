@@ -194,6 +194,20 @@ const Candidates = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (formData.date_of_birth) {
+      const birthDate = new Date(formData.date_of_birth)
+      const today = new Date()
+      let age = today.getFullYear() - birthDate.getFullYear()
+      const monthDiff = today.getMonth() - birthDate.getMonth()
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--
+      }
+      if (age < 18) {
+        alert('Date of Birth must be equal and greater than 18')
+        return
+      }
+    }
+
     try {
       const payload = {
         ...formData,
@@ -623,13 +637,6 @@ const Candidates = () => {
               </select>
             </div>
 
-            <div>
-              <label className="form-label">Occupation</label>
-              <Input
-                value={formData.occupation}
-                onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
-              />
-            </div>
 
             <div className="col-span-2">
               <label className="form-label">Job Category</label>
@@ -811,10 +818,18 @@ const Candidates = () => {
 
             <div className="col-span-2">
               <label className="form-label">Medical Status</label>
-              <Input
+              <select
                 value={formData.medical_status}
                 onChange={(e) => setFormData({ ...formData, medical_status: e.target.value })}
-              />
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              >
+                <option value="">Select medical status</option>
+                {MEDICAL_STATUS.map((status) => (
+                  <option key={status} value={status}>
+                    {status}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 
