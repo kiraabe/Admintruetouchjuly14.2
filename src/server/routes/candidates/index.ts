@@ -25,10 +25,11 @@ router.get('/', async (req, res) => {
       candidates = await getAllCandidates()
     }
 
-    res.json({ success: true, data: candidates })
+    res.json({ success: true, data: candidates || [] })
   } catch (error) {
-    console.error('Error fetching candidates:', error)
-    res.status(500).json({ success: false, error: 'Failed to fetch candidates' })
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error('Error fetching candidates:', errorMsg, error)
+    res.status(500).json({ success: false, error: 'Failed to fetch candidates', details: errorMsg })
   }
 })
 

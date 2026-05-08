@@ -137,12 +137,25 @@ const Candidates = () => {
     try {
       setLoading(true)
       const response = await fetch('/api/candidates')
-      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+      }
+      const text = await response.text()
+      if (!text) {
+        console.warn('Empty response from /api/candidates')
+        setCandidates([])
+        return
+      }
+      const data = JSON.parse(text)
       if (data.success) {
-        setCandidates(data.data)
+        setCandidates(data.data || [])
+      } else {
+        console.error('API returned success: false', data)
+        setCandidates([])
       }
     } catch (error) {
       console.error('Error fetching candidates:', error)
+      setCandidates([])
     } finally {
       setLoading(false)
     }
@@ -336,16 +349,26 @@ const Candidates = () => {
     }
 
     try {
-      const payload = {
-        ...formData,
-        age: formData.age ? parseInt(formData.age) : null,
+      const formDataToSend = new FormData()
+
+      Object.entries(formData).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          formDataToSend.append(key, String(value))
+        }
+      })
+
+      if (profilePicture) {
+        formDataToSend.append('profilePicture', profilePicture)
+      }
+
+      if (resume) {
+        formDataToSend.append('resume', resume)
       }
 
       if (editingCandidate) {
         const response = await fetch(`/api/candidates/${editingCandidate.candidate_id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: formDataToSend,
         })
 
         const data = await response.json()
@@ -358,8 +381,7 @@ const Candidates = () => {
       } else {
         const response = await fetch('/api/candidates', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body: formDataToSend,
         })
 
         const data = await response.json()

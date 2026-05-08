@@ -24,8 +24,13 @@ let pool: any = null
 
 async function initPool() {
   if (!pool) {
-    const poolModule = await import('../db/connection')
-    pool = poolModule.default
+    try {
+      const poolModule = await import('./db/config')
+      pool = poolModule.default
+    } catch (err) {
+      console.error('Failed to load db config:', err)
+      throw new Error('Database connection not available')
+    }
   }
   return pool
 }
