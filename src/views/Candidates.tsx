@@ -73,8 +73,7 @@ const Candidates = () => {
   const [showLanguageDropdown, setShowLanguageDropdown] = useState(false)
   const [showLocationDropdown, setShowLocationDropdown] = useState(false)
   const [error, setError] = useState('')
-  const [passwordError, setPasswordError] = useState('')
-  const [phoneVerified, setPhoneVerified] = useState(false)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [profilePicture, setProfilePicture] = useState<File | null>(null)
   const [profilePicturePreview, setProfilePicturePreview] = useState('')
 
@@ -147,29 +146,69 @@ const Candidates = () => {
     }
   }
 
-  const validatePassword = (password: string): boolean => {
-    setPasswordError('')
-    if (!password) {
-      setPasswordError('Password is required')
-      return false
-    }
-    if (password.length < 6 || password.length > 9) {
-      setPasswordError('Password must be 6-9 characters')
-      return false
-    }
-    if (!/^[a-zA-Z0-9]+$/.test(password)) {
-      setPasswordError('Password must contain only letters and numbers (no special characters)')
-      return false
-    }
-    return true
+  const validatePhone = (phone: string): string => {
+    if (!phone) return 'Phone number is required'
+    const phoneRegex = /^[\d\s\-\+\(\)]+$/
+    if (!phoneRegex.test(phone)) return 'Phone number contains invalid characters'
+    const digitsOnly = phone.replace(/\D/g, '')
+    if (digitsOnly.length < 7) return 'Phone number must be at least 7 digits'
+    if (digitsOnly.length > 15) return 'Phone number must not exceed 15 digits'
+    return ''
   }
 
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value
-    setFormData({ ...formData, password: value })
-    if (value) {
-      validatePassword(value)
+  const validatePassword = (password: string): string => {
+    if (!password) return 'Password is required'
+    if (password.length < 6 || password.length > 9) return 'Password must be 6-9 characters'
+    if (!/^[a-zA-Z0-9]+$/.test(password)) return 'Only letters and numbers allowed (no special characters)'
+    return ''
+  }
+
+  const validateName = (name: string): string => {
+    if (!name || name.trim().length === 0) return 'Candidate name is required'
+    return ''
+  }
+
+  const validateAge = (age: string): string => {
+    if (!age) return ''
+    const ageNum = parseInt(age)
+    if (isNaN(ageNum) || ageNum < 18 || ageNum > 120) return 'Age must be between 18 and 120'
+    return ''
+  }
+
+  const validateDateOfBirth = (dob: string): string => {
+    if (!dob) return ''
+    const birthDate = new Date(dob)
+    const today = new Date()
+    let age = today.getFullYear() - birthDate.getFullYear()
+    const monthDiff = today.getMonth() - birthDate.getMonth()
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--
     }
+    if (age < 18) return 'Must be 18 years or older'
+    return ''
+  }
+
+  const validateProfilePicture = (): string => {
+    if (!editingCandidate && !profilePicture && !profilePicturePreview) {
+      return 'Profile picture is required'
+    }
+    return ''
+  }
+
+  const handleFieldChange = (field: string, value: string) => {
+    setFormData({ ...formData, [field]: value })
+
+    let error = ''
+    if (field === 'name') error = validateName(value)
+    else if (field === 'password') error = validatePassword(value)
+    else if (field === 'phone_number') error = validatePhone(value)
+    else if (field === 'age') error = validateAge(value)
+    else if (field === 'date_of_birth') error = validateDateOfBirth(value)
+
+    setFieldErrors({
+      ...fieldErrors,
+      [field]: error,
+    })
   }
 
   const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -217,8 +256,8 @@ const Candidates = () => {
     })
     setProfilePicture(null)
     setProfilePicturePreview('')
-    setPhoneVerified(false)
-    setPasswordError('')
+    setFieldErrors({})
+    setError('')
     setShowModal(true)
   }
 
@@ -250,50 +289,29 @@ const Candidates = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    setPasswordError('')
+    const newErrors: Record<string, string> = {}
 
-    if (!formData.name || formData.name.trim().length === 0) {
-      setError('Candidate name is required')
-      return
-    }
+    newErrors.name = validateName(formData.name)
 
     if (!editingCandidate) {
-      if (!formData.password) {
-        setPasswordError('Password is required')
-        return
-      }
-      if (!validatePassword(formData.password)) {
-        return
-      }
-
-      if (!formData.phone_number) {
-        setError('Phone number is required')
-        return
-      }
-
-      if (!phoneVerified) {
-        setError('Phone number must be verified')
-        return
-      }
-
-      if (!profilePicture && !profilePicturePreview) {
-        setError('Profile picture is required')
-        return
-      }
+      newErrors.password = validatePassword(formData.password)
+      newErrors.phone_number = validatePhone(formData.phone_number)
+      const profileError = validateProfilePicture()
+      if (profileError) newErrors.profile_picture = profileError
     }
 
     if (formData.date_of_birth) {
-      const birthDate = new Date(formData.date_of_birth)
-      const today = new Date()
-      let age = today.getFullYear() - birthDate.getFullYear()
-      const monthDiff = today.getMonth() - birthDate.getMonth()
-      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-        age--
-      }
-      if (age < 18) {
-        setError('Date of Birth must be 18 years or older')
-        return
-      }
+      newErrors.date_of_birth = validateDateOfBirth(formData.date_of_birth)
+    }
+
+    if (formData.age) {
+      newErrors.age = validateAge(formData.age)
+    }
+
+    setFieldErrors(newErrors)
+
+    if (Object.values(newErrors).some((err) => err)) {
+      return
     }
 
     try {
@@ -665,9 +683,12 @@ const Candidates = () => {
               <label className="form-label">Candidate Name *</label>
               <Input
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
+                onChange={(e) => handleFieldChange('name', e.target.value)}
+                className={fieldErrors.name ? 'border-red-500' : ''}
               />
+              {fieldErrors.name && (
+                <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.name}</p>
+              )}
             </div>
 
             <div>
@@ -680,28 +701,16 @@ const Candidates = () => {
 
             <div>
               <label className="form-label">Phone Number {!editingCandidate && '*'}</label>
-              <div className="flex gap-2">
-                <Input
-                  type="tel"
-                  value={formData.phone_number}
-                  onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                  disabled={phoneVerified}
-                  className={phoneVerified ? 'bg-green-50 dark:bg-green-900/20' : ''}
-                />
-                <Button
-                  type="button"
-                  onClick={() => {
-                    if (formData.phone_number) {
-                      setPhoneVerified(true)
-                    } else {
-                      setError('Please enter a phone number first')
-                    }
-                  }}
-                  className={phoneVerified ? 'bg-green-600 hover:bg-green-700' : ''}
-                >
-                  {phoneVerified ? '✓ Verified' : 'Verify'}
-                </Button>
-              </div>
+              <Input
+                type="tel"
+                value={formData.phone_number}
+                onChange={(e) => handleFieldChange('phone_number', e.target.value)}
+                placeholder="+1 (555) 123-4567"
+                className={fieldErrors.phone_number ? 'border-red-500' : ''}
+              />
+              {fieldErrors.phone_number && (
+                <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.phone_number}</p>
+              )}
             </div>
 
             {!editingCandidate && (
@@ -711,25 +720,31 @@ const Candidates = () => {
                   <Input
                     type="password"
                     value={formData.password}
-                    onChange={handlePasswordChange}
+                    onChange={(e) => handleFieldChange('password', e.target.value)}
                     placeholder="6-9 characters, letters & numbers only"
+                    className={fieldErrors.password ? 'border-red-500' : ''}
                   />
-                  {passwordError && (
-                    <p className="text-red-600 dark:text-red-400 text-xs mt-1">{passwordError}</p>
+                  {fieldErrors.password && (
+                    <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.password}</p>
                   )}
                 </div>
 
                 <div className="col-span-2">
-                  <label className="form-label">Profile Picture *</label>
+                  <label className="form-label">Upload Profile Picture *</label>
                   <div className="flex gap-4">
                     <div className="flex-1">
                       <input
                         type="file"
                         accept="image/*"
                         onChange={handleProfilePictureChange}
-                        className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 cursor-pointer"
+                        className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 cursor-pointer ${
+                          fieldErrors.profile_picture ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
+                        }`}
                       />
                       <p className="text-xs text-gray-500 mt-1">Max 5MB, JPG/PNG/GIF</p>
+                      {fieldErrors.profile_picture && (
+                        <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.profile_picture}</p>
+                      )}
                     </div>
                     {profilePicturePreview && (
                       <div className="w-20 h-20 rounded-lg overflow-hidden border border-gray-300">
@@ -766,8 +781,26 @@ const Candidates = () => {
               <Input
                 type="date"
                 value={formData.date_of_birth}
-                onChange={(e) => setFormData({ ...formData, date_of_birth: e.target.value })}
+                onChange={(e) => handleFieldChange('date_of_birth', e.target.value)}
+                className={fieldErrors.date_of_birth ? 'border-red-500' : ''}
               />
+              {fieldErrors.date_of_birth && (
+                <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.date_of_birth}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="form-label">Age</label>
+              <Input
+                type="number"
+                value={formData.age}
+                onChange={(e) => handleFieldChange('age', e.target.value)}
+                placeholder="Enter age"
+                className={fieldErrors.age ? 'border-red-500' : ''}
+              />
+              {fieldErrors.age && (
+                <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.age}</p>
+              )}
             </div>
 
             <div>
