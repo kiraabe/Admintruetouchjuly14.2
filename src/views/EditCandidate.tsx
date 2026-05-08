@@ -27,6 +27,7 @@ interface Candidate {
   current_location: string | null
   resume_url: string | null
   medical_status: string | null
+  profile_picture: string | null
   created_at: Date
   updated_at: Date
 }
@@ -123,6 +124,9 @@ const EditCandidate = () => {
           current_location: cand.current_location || '',
           medical_status: cand.medical_status || '',
         })
+        if (cand.profile_picture) {
+          setProfilePicturePreview(cand.profile_picture)
+        }
       } else {
         notify.error('Error', 'Candidate not found')
         navigate('/candidates')
