@@ -61,25 +61,24 @@ const Security = () => {
                         onChange={(val) => setActiveTab(val as SecurityTab)}
                         defaultValue="activity"
                     >
-                        <Tabs.TabNav>
+                        <Tabs.TabList>
                             {tabs.map((tab) => (
-                                <Tabs.TabNav.Item
-                                    key={tab.value}
-                                    value={tab.value}
-                                    label={tab.label}
-                                />
-                            ))}
-                        </Tabs.TabNav>
-                        <Tabs.TabContent>
-                            {tabs.map((tab) => (
-                                <Tabs.TabPane
+                                <Tabs.TabNav
                                     key={tab.value}
                                     value={tab.value}
                                 >
-                                    {tab.component}
-                                </Tabs.TabPane>
+                                    {tab.label}
+                                </Tabs.TabNav>
                             ))}
-                        </Tabs.TabContent>
+                        </Tabs.TabList>
+                        {tabs.map((tab) => (
+                            <Tabs.TabContent
+                                key={tab.value}
+                                value={tab.value}
+                            >
+                                {tab.component}
+                            </Tabs.TabContent>
+                        ))}
                     </Tabs>
                 </div>
             </div>
