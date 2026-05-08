@@ -85,7 +85,6 @@ const Candidates = () => {
     phone_number: '',
     password: '',
     gender: '',
-    age: '',
     date_of_birth: '',
     nationality: '',
     religion: '',
@@ -271,7 +270,6 @@ const Candidates = () => {
       phone_number: '',
       password: '',
       gender: '',
-      age: '',
       date_of_birth: '',
       nationality: '',
       religion: '',
@@ -302,7 +300,6 @@ const Candidates = () => {
       passport_number: candidate.passport_number || '',
       phone_number: candidate.phone_number || '',
       gender: candidate.gender || '',
-      age: candidate.age?.toString() || '',
       date_of_birth: candidate.date_of_birth || '',
       nationality: candidate.nationality || '',
       religion: candidate.religion || '',
@@ -835,19 +832,6 @@ const Candidates = () => {
               )}
             </div>
 
-            <div>
-              <label className="form-label">Age</label>
-              <Input
-                type="number"
-                value={formData.age}
-                onChange={(e) => handleFieldChange('age', e.target.value)}
-                placeholder="Enter age"
-                className={fieldErrors.age ? 'border-red-500' : ''}
-              />
-              {fieldErrors.age && (
-                <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.age}</p>
-              )}
-            </div>
 
             <div>
               <label className="form-label">Nationality</label>
