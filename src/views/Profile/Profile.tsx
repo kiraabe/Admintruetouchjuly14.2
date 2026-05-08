@@ -1,5 +1,4 @@
 import { useSessionUser } from '@/store/authStore'
-import PageHeader from '@/components/template/PageHeader'
 import ProfileForm from './components/ProfileForm'
 
 const Profile = () => {
@@ -8,12 +7,14 @@ const Profile = () => {
     )
 
     return (
-        <>
-            <PageHeader
-                title="Profile"
-                description="Manage your profile information"
-            />
-            <div className="gap-4 grid grid-cols-1 lg:grid-cols-3 mt-6">
+        <div>
+            <div className="mb-6">
+                <h3 className="font-bold">Profile</h3>
+                <p className="text-sm text-gray-500">
+                    Manage your profile information
+                </p>
+            </div>
+            <div className="gap-4 grid grid-cols-1 lg:grid-cols-3">
                 <div className="lg:col-span-2">
                     <div className="card">
                         <div className="card-body">
@@ -71,7 +72,7 @@ const Profile = () => {
                     </div>
                 </div>
             </div>
-        </>
+        </div>
     )
 }
 
