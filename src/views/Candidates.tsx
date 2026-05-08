@@ -580,15 +580,6 @@ const Candidates = () => {
             </div>
 
             <div>
-              <label className="form-label">Age</label>
-              <Input
-                type="number"
-                value={formData.age}
-                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
-              />
-            </div>
-
-            <div>
               <label className="form-label">Date of Birth</label>
               <Input
                 type="date"
