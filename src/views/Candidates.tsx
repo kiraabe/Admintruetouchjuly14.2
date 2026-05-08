@@ -144,6 +144,7 @@ const Candidates = () => {
       if (!text) {
         console.warn('Empty response from /api/candidates')
         setCandidates([])
+        notify.error('Error', 'Empty response from server')
         return
       }
       const data = JSON.parse(text)
@@ -152,10 +153,13 @@ const Candidates = () => {
       } else {
         console.error('API returned success: false', data)
         setCandidates([])
+        notify.error('Error', data.message || 'Failed to fetch candidates')
       }
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
       console.error('Error fetching candidates:', error)
       setCandidates([])
+      notify.error('Fetch Error', errorMsg)
     } finally {
       setLoading(false)
     }
@@ -355,6 +359,10 @@ const Candidates = () => {
     }
 
     try {
+      const isEdit = !!editingCandidate
+      const action = isEdit ? 'updating' : 'creating'
+      const loadingToast = notify.loading(`${action.charAt(0).toUpperCase() + action.slice(1)} candidate...`)
+
       const formDataToSend = new FormData()
 
       Object.entries(formData).forEach(([key, value]) => {
@@ -404,7 +412,6 @@ const Candidates = () => {
             phone_number: '',
             password: '',
             gender: '',
-            age: '',
             date_of_birth: '',
             nationality: '',
             religion: '',
@@ -422,7 +429,7 @@ const Candidates = () => {
           setProfilePicture(null)
           setProfilePicturePreview('')
         } else {
-          const errorMsg = data.error || 'Failed to create candidate'
+          const errorMsg = data.error || `Failed to create candidate`
           setError(errorMsg)
           notify.error('Create Failed', errorMsg)
         }
@@ -439,10 +446,22 @@ const Candidates = () => {
     if (!window.confirm('Are you sure you want to delete this candidate?')) return
 
     try {
-      await fetch(`/api/candidates/${candidateId}`, { method: 'DELETE' })
+      const toastId = notify.loading('Deleting candidate...')
+      const response = await fetch(`/api/candidates/${candidateId}`, { method: 'DELETE' })
+
+      if (!response.ok) {
+        const data = await response.json()
+        const errorMsg = data.error || 'Failed to delete candidate'
+        notify.error('Delete Failed', errorMsg)
+        return
+      }
+
       await fetchCandidates()
+      notify.success('Success', 'Candidate deleted successfully')
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
       console.error('Error deleting candidate:', error)
+      notify.error('Delete Error', errorMsg)
     }
   }
 
