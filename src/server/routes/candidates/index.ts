@@ -1,4 +1,7 @@
-import { Router } from 'express'
+import { Router, type Request, type Response } from 'express'
+import multer from 'multer'
+import path from 'path'
+import fs from 'fs'
 import {
   getAllCandidates,
   getCandidateById,
@@ -10,6 +13,47 @@ import {
 } from '../../db/queries/candidateQueries'
 
 const router = Router()
+
+// Configure multer for file uploads
+const uploadsDir = path.join(process.cwd(), 'uploads', 'candidates')
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true })
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, uploadsDir)
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
+    const ext = path.extname(file.originalname)
+    const name = file.fieldname === 'profilePicture' ? 'profile' : 'resume'
+    cb(null, `${name}-${uniqueSuffix}${ext}`)
+  },
+})
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.fieldname === 'profilePicture') {
+      if (file.mimetype.startsWith('image/')) {
+        cb(null, true)
+      } else {
+        cb(new Error('Profile picture must be an image file'))
+      }
+    } else if (file.fieldname === 'resume') {
+      const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']
+      if (validTypes.includes(file.mimetype)) {
+        cb(null, true)
+      } else {
+        cb(new Error('Resume must be PDF, DOC, DOCX, or TXT'))
+      }
+    } else {
+      cb(new Error('Invalid file field'))
+    }
+  },
+})
 
 router.get('/', async (req, res) => {
   try {
@@ -48,9 +92,26 @@ router.get('/:candidateId', async (req, res) => {
   }
 })
 
-router.post('/', async (req, res) => {
+router.post('/', upload.fields([{ name: 'profilePicture', maxCount: 1 }, { name: 'resume', maxCount: 1 }]), async (req: Request, res: Response) => {
   try {
-    const candidate = await createCandidate(req.body)
+    const files = req.files as Record<string, Express.Multer.File[]>
+    const data: any = { ...req.body }
+
+    if (files?.profilePicture?.[0]) {
+      data.profile_picture = `/uploads/candidates/${files.profilePicture[0].filename}`
+    }
+
+    if (files?.resume?.[0]) {
+      data.resume_url = `/uploads/candidates/${files.resume[0].filename}`
+    }
+
+    // Convert password to password_hash for consistency
+    if (data.password) {
+      data.password_hash = data.password
+      delete data.password
+    }
+
+    const candidate = await createCandidate(data)
     res.status(201).json({ success: true, data: candidate })
   } catch (error) {
     console.error('Error creating candidate:', error)
@@ -60,9 +121,26 @@ router.post('/', async (req, res) => {
   }
 })
 
-router.put('/:candidateId', async (req, res) => {
+router.put('/:candidateId', upload.fields([{ name: 'profilePicture', maxCount: 1 }, { name: 'resume', maxCount: 1 }]), async (req: Request, res: Response) => {
   try {
-    const candidate = await updateCandidate(req.params.candidateId, req.body)
+    const files = req.files as Record<string, Express.Multer.File[]>
+    const data: any = { ...req.body }
+
+    if (files?.profilePicture?.[0]) {
+      data.profile_picture = `/uploads/candidates/${files.profilePicture[0].filename}`
+    }
+
+    if (files?.resume?.[0]) {
+      data.resume_url = `/uploads/candidates/${files.resume[0].filename}`
+    }
+
+    // Convert password to password_hash for consistency
+    if (data.password) {
+      data.password_hash = data.password
+      delete data.password
+    }
+
+    const candidate = await updateCandidate(req.params.candidateId, data)
     if (!candidate) {
       return res.status(404).json({ success: false, error: 'Candidate not found' })
     }

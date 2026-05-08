@@ -38,16 +38,20 @@ async function initPool() {
 const app = express()
 const PORT = process.env.PORT || 5000
 
-// Create uploads directory if it doesn't exist
-const uploadsDir = path.join(process.cwd(), 'uploads', 'profiles')
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true })
+// Create uploads directories if they don't exist
+const profilesDir = path.join(process.cwd(), 'uploads', 'profiles')
+const candidatesDir = path.join(process.cwd(), 'uploads', 'candidates')
+if (!fs.existsSync(profilesDir)) {
+  fs.mkdirSync(profilesDir, { recursive: true })
+}
+if (!fs.existsSync(candidatesDir)) {
+  fs.mkdirSync(candidatesDir, { recursive: true })
 }
 
 // Configure multer for profile picture uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, uploadsDir)
+    cb(null, profilesDir)
   },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
@@ -79,7 +83,8 @@ app.use(express.json({ limit: '5mb' }))
 app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 
 // Serve uploaded files
-app.use('/uploads', express.static(uploadsDir))
+app.use('/uploads/profiles', express.static(profilesDir))
+app.use('/uploads/candidates', express.static(candidatesDir))
 
 // Health check
 app.get('/health', (req, res) => {

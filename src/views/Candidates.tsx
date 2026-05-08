@@ -411,7 +411,6 @@ const Candidates = () => {
           })
           setProfilePicture(null)
           setProfilePicturePreview('')
-          setPhoneVerified(false)
         } else {
           setError(data.error || 'Failed to create candidate')
         }
