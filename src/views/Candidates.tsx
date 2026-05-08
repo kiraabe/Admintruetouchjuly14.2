@@ -53,7 +53,7 @@ const GENDERS = ['Male', 'Female', 'Other']
 const MARITAL_STATUS = ['Single', 'Married', 'Divorced', 'Widowed']
 const RELIGIONS = ['Christianity', 'Islam', 'Hinduism', 'Buddhism', 'Judaism', 'Sikhism', 'Atheism', 'Agnosticism', 'Other']
 const LANGUAGES = ['English', 'Spanish', 'French', 'German', 'Mandarin', 'Arabic', 'Portuguese', 'Russian', 'Japanese', 'Hindi']
-const COUNTRIES = ['India', 'Philippines', 'Indonesia', 'Vietnam', 'Thailand', 'Malaysia', 'Singapore', 'Sri Lanka', 'Bangladesh', 'Myanmar']
+const COUNTRIES = ['India', 'Philippines', 'Indonesia', 'Vietnam', 'Thailand', 'Malaysia', 'Singapore', 'Sri Lanka', 'Bangladesh', 'Myanmar', 'Ethiopia']
 const MEDICAL_STATUS = ['Fit', 'Fit with restrictions', 'Unfit', 'Under review', 'Not assessed']
 
 const Candidates = () => {
@@ -772,6 +772,7 @@ const Candidates = () => {
                     'Sri Lanka': ['Colombo', 'Kandy', 'Galle', 'Jaffna', 'Matara'],
                     'Bangladesh': ['Dhaka', 'Chittagong', 'Khulna', 'Rajshahi', 'Sylhet'],
                     'Myanmar': ['Yangon', 'Mandalay', 'Naypyidaw', 'Bagan', 'Tachileik'],
+                    'Ethiopia': ['Addis Ababa', 'Dire Dawa', 'Adama (Nazret)', 'Hawassa', 'Mekelle', 'Bahir Dar', 'Gondar', 'Jimma', 'Jigjiga', 'Harar', 'Dessie', 'Bishoftu (Debre Zeit)', 'Kombolcha', 'Shashamane', 'Arba Minch', 'Nekemte', 'Dilla', 'Debre Birhan', 'Asella', 'Wolkite', 'Hosaena', 'Semera', 'Gambela', 'Assosa', 'Axum', 'Debre Markos', 'Woldia', 'Waliso', 'Yirgalem', 'Goba', 'Mizan Teferi'],
                   }
                   setFilteredLocations(countryCities[e.target.value] || [])
                 }}
