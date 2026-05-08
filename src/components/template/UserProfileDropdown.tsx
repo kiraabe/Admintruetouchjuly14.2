@@ -21,8 +21,8 @@ const dropdownItemList: DropdownList[] = [
         icon: <UserIcon className="w-5 h-5" />,
     },
     {
-        label: 'Account Setting',
-        path: '/profile',
+        label: 'Security',
+        path: '/security',
         icon: <Cog6ToothIcon className="w-5 h-5" />,
     },
 ]
