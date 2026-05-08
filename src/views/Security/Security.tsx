@@ -4,10 +4,9 @@ import ActivityLogs from './components/ActivityLogs'
 import LoginHistory from './components/LoginHistory'
 import RolePermissions from './components/RolePermissions'
 import PasswordSecurity from './components/PasswordSecurity'
-import TwoFactorAuth from './components/TwoFactorAuth'
 import Sessions from './components/Sessions'
 
-type SecurityTab = 'activity' | 'login' | 'roles' | 'password' | 'twofa' | 'sessions'
+type SecurityTab = 'activity' | 'login' | 'roles' | 'password' | 'sessions'
 
 const Security = () => {
     const [activeTab, setActiveTab] = useState<SecurityTab>('activity')
@@ -32,11 +31,6 @@ const Security = () => {
             value: 'password',
             label: 'Password Security',
             component: <PasswordSecurity />,
-        },
-        {
-            value: 'twofa',
-            label: 'Two-Factor Auth',
-            component: <TwoFactorAuth />,
         },
         {
             value: 'sessions',
