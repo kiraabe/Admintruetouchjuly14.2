@@ -638,21 +638,6 @@ const Candidates = () => {
             </div>
 
 
-            <div className="col-span-2">
-              <label className="form-label">Job Category</label>
-              <select
-                value={formData.job_category}
-                onChange={(e) => setFormData({ ...formData, job_category: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-              >
-                <option value="">Select job category</option>
-                {JOB_CATEGORIES.map((cat) => (
-                  <option key={cat} value={cat}>
-                    {cat}
-                  </option>
-                ))}
-              </select>
-            </div>
 
             <div>
               <label className="form-label">Skill Level</label>
@@ -686,7 +671,23 @@ const Candidates = () => {
               </select>
             </div>
 
-            <div className="col-span-2 relative">
+            <div>
+              <label className="form-label">Job Category</label>
+              <select
+                value={formData.job_category}
+                onChange={(e) => setFormData({ ...formData, job_category: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+              >
+                <option value="">Select job category</option>
+                {JOB_CATEGORIES.map((cat) => (
+                  <option key={cat} value={cat}>
+                    {cat}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="relative">
               <label className="form-label">Language Skills</label>
               <Input
                 value={languageSearch}
@@ -808,7 +809,7 @@ const Candidates = () => {
               )}
             </div>
 
-            <div className="col-span-2">
+            <div>
               <label className="form-label">Current Location</label>
               <Input
                 value={formData.current_location}
@@ -816,7 +817,7 @@ const Candidates = () => {
               />
             </div>
 
-            <div className="col-span-2">
+            <div>
               <label className="form-label">Medical Status</label>
               <select
                 value={formData.medical_status}
