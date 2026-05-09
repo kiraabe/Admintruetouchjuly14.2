@@ -105,6 +105,45 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
 })
 
+// Migration endpoint - manually trigger column addition
+app.get('/api/migrate/add-partnership-id', async (req, res) => {
+  try {
+    const dbPool = await initPool()
+
+    // Check if column already exists
+    const checkColumn = await dbPool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.columns
+        WHERE table_name = 'users' AND column_name = 'partnership_id'
+      )
+    `)
+
+    if (checkColumn.rows[0].exists) {
+      return res.json({
+        status: 'ALREADY_EXISTS',
+        message: 'partnership_id column already exists in users table'
+      })
+    }
+
+    // Add the column
+    await dbPool.query(`
+      ALTER TABLE users
+      ADD COLUMN partnership_id UUID
+    `)
+
+    res.json({
+      status: 'SUCCESS',
+      message: 'partnership_id column added to users table'
+    })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    res.status(500).json({
+      status: 'ERROR',
+      error: errorMsg
+    })
+  }
+})
+
 // Debug endpoint to list all users (remove in production)
 app.get('/api/debug/users', async (req, res) => {
   try {
@@ -375,10 +414,15 @@ async function startServer() {
     `)
 
     // Add partnership_id column if it doesn't exist (for existing databases)
-    await dbPool.query(`
-      ALTER TABLE users
-      ADD COLUMN IF NOT EXISTS partnership_id UUID
-    `)
+    try {
+      await dbPool.query(`
+        ALTER TABLE users
+        ADD COLUMN IF NOT EXISTS partnership_id UUID
+      `)
+      console.log('✓ partnership_id column added to users table')
+    } catch (err) {
+      console.log('Note: partnership_id column may already exist or error occurred:', err instanceof Error ? err.message : err)
+    }
 
     // Seed test user
     const hashedPassword = await bcrypt.hash('123Qwe', 10)
