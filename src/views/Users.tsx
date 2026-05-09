@@ -438,6 +438,9 @@ const Users = () => {
                   Role
                 </th>
                 <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                  Partnership
+                </th>
+                <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
                   Status
                 </th>
                 <th className="text-left py-3 px-4">Actions</th>
@@ -465,6 +468,11 @@ const Users = () => {
                   </td>
                   <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{user.email}</td>
                   <td className="py-3 px-4 text-gray-600 dark:text-gray-400 capitalize">{user.authority}</td>
+                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                    {user.partnership_id
+                      ? partnerships.find((p) => p.partner_id === user.partnership_id)?.company_name || '-'
+                      : '-'}
+                  </td>
                   <td className="py-3 px-4">
                     <Tag className={`${getStatusColor(user.is_active)} text-gray-900 dark:text-gray-900`}>
                       {user.is_active ? 'Active' : 'Inactive'}
