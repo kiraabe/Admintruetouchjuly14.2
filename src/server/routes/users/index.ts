@@ -35,7 +35,7 @@ router.get('/', async (req: Request, res: Response) => {
   try {
     console.log('Fetching users from database...')
     const result = await pool.query(
-      'SELECT id, user_id, email, user_name, authority, is_active, avatar, created_at FROM users ORDER BY created_at DESC'
+      'SELECT id, user_id, email, user_name, authority, is_active, avatar, partnership_id, created_at FROM users ORDER BY created_at DESC'
     )
     console.log('Users fetched successfully:', result.rows.length)
     res.json({
@@ -57,7 +57,7 @@ router.get('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params
     const result = await pool.query(
-      'SELECT id, user_id, email, user_name, authority, is_active, avatar, created_at FROM users WHERE user_id = $1 OR id = $2',
+      'SELECT id, user_id, email, user_name, authority, is_active, avatar, partnership_id, created_at FROM users WHERE user_id = $1 OR id = $2',
       [id, id]
     )
     if (result.rows.length === 0) {

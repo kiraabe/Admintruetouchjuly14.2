@@ -126,25 +126,9 @@ router.post('/', upload.fields([
 
     await client.query('BEGIN')
 
-    // Create user for the partnership
-    const password = Math.random().toString(36).slice(-12)
-    const hashedPassword = await bcrypt.hash(password, 10)
-    const userId = randomUUID()
-
-    console.log('Creating user for partnership with email:', business_email)
-    const userResult = await client.query(
-      `INSERT INTO users (user_id, email, password_hash, user_name, authority, is_active)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING user_id, email, user_name, authority, is_active, created_at`,
-      [userId, business_email, hashedPassword, contact_person_name || company_name, 'partnership', true]
-    )
-
-    const user = userResult.rows[0]
-    console.log('User created:', user)
-
-    // Create partnership with user_id
+    // Create partnership first to get partner_id
+    const partnerId = randomUUID()
     const partnershipData: any = {
-      user_id: userId,
       company_name,
       business_email,
       business_category,
@@ -164,7 +148,6 @@ router.post('/', upload.fields([
     }
 
     const keys = Object.keys(partnershipData)
-    const partnerId = randomUUID()
     const allKeys = ['partner_id', ...keys]
     const allValues = [partnerId, ...keys.map((k) => partnershipData[k])]
     const keysStr = allKeys.join(', ')
@@ -176,6 +159,22 @@ router.post('/', upload.fields([
     const partnershipResult = await client.query(query, allValues)
     const partnership = partnershipResult.rows[0]
     console.log('Partnership created:', partnership)
+
+    // Create user for the partnership with partnership_id
+    const password = Math.random().toString(36).slice(-12)
+    const hashedPassword = await bcrypt.hash(password, 10)
+    const userId = randomUUID()
+
+    console.log('Creating user for partnership with email:', business_email)
+    const userResult = await client.query(
+      `INSERT INTO users (user_id, email, password_hash, user_name, authority, is_active, partnership_id)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING user_id, email, user_name, authority, is_active, partnership_id, created_at`,
+      [userId, business_email, hashedPassword, contact_person_name || company_name, 'partnership', true, partnerId]
+    )
+
+    const user = userResult.rows[0]
+    console.log('User created:', user)
 
     await client.query('COMMIT')
     res.json({ success: true, data: partnership, user: user })

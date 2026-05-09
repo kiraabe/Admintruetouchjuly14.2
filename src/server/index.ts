@@ -109,7 +109,7 @@ app.get('/health', (req, res) => {
 app.get('/api/debug/users', async (req, res) => {
   try {
     const dbPool = await initPool()
-    const result = await dbPool.query('SELECT id, user_id, email, user_name, authority, is_active FROM users')
+    const result = await dbPool.query('SELECT id, user_id, email, user_name, authority, is_active, partnership_id FROM users')
     res.json({ users: result.rows })
   } catch (error) {
     res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to fetch users' })
@@ -368,9 +368,16 @@ async function startServer() {
         authority VARCHAR(50) DEFAULT 'user',
         is_active BOOLEAN DEFAULT true,
         avatar VARCHAR(255),
+        partnership_id UUID,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
+    `)
+
+    // Add partnership_id column if it doesn't exist (for existing databases)
+    await dbPool.query(`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS partnership_id UUID
     `)
 
     // Seed test user
@@ -424,7 +431,6 @@ async function startServer() {
         CREATE TABLE IF NOT EXISTS partnerships (
           id SERIAL PRIMARY KEY,
           partner_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
-          user_id UUID REFERENCES users(user_id) ON DELETE CASCADE,
           company_name VARCHAR(255) NOT NULL,
           company_logo VARCHAR(255),
           business_email VARCHAR(255) UNIQUE NOT NULL,
@@ -440,12 +446,6 @@ async function startServer() {
         )
       `)
       console.log('✓ Partnerships table ready')
-
-      // Add user_id column if it doesn't exist (for existing databases)
-      await dbPool.query(`
-        ALTER TABLE partnerships
-        ADD COLUMN IF NOT EXISTS user_id UUID REFERENCES users(user_id) ON DELETE CASCADE
-      `)
     } catch (tableError) {
       console.error('Error creating partnerships table:', tableError)
     }

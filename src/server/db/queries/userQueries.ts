@@ -9,6 +9,7 @@ export interface User {
   avatar: string | null
   authority: string
   is_active: boolean
+  partnership_id?: string | null
   created_at: Date
   updated_at: Date
 }
