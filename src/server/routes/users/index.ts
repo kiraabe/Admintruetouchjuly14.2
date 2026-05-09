@@ -4,6 +4,33 @@ import pool from '../../db/config.ts'
 
 const router = Router()
 
+router.post('/', async (req: Request, res: Response) => {
+  try {
+    const { email, user_name, password, authority } = req.body
+
+    if (!email || !user_name || !password) {
+      return res.status(400).json({ error: 'Email, name, and password are required' })
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    const result = await pool.query(
+      'INSERT INTO users (email, password_hash, user_name, authority, is_active) VALUES ($1, $2, $3, $4, $5) RETURNING id, user_id, email, user_name, authority, is_active, avatar, created_at',
+      [email, hashedPassword, user_name, authority || 'user', true]
+    )
+
+    res.status(201).json({
+      success: true,
+      data: result.rows[0],
+      message: 'User created successfully',
+    })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'Failed to create user'
+    console.error('Error creating user:', error)
+    res.status(500).json({ error: errorMsg })
+  }
+})
+
 router.get('/', async (req: Request, res: Response) => {
   try {
     console.log('Fetching users from database...')

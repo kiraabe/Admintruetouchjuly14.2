@@ -26,9 +26,16 @@ const Users = () => {
   const [loading, setLoading] = useState(true)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
+  const [showAddModal, setShowAddModal] = useState(false)
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false)
   const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null)
   const [newPassword, setNewPassword] = useState('')
+  const [newUser, setNewUser] = useState({
+    email: '',
+    user_name: '',
+    authority: 'user',
+    password: '',
+  })
 
   useEffect(() => {
     fetchUsers()
@@ -179,6 +186,40 @@ const Users = () => {
     }
   }
 
+  const handleAddUser = async () => {
+    if (!newUser.email || !newUser.user_name || !newUser.password) {
+      notify.error('Error', 'Email, name, and password are required')
+      return
+    }
+
+    try {
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: newUser.email,
+          user_name: newUser.user_name,
+          authority: newUser.authority,
+          password: newUser.password,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        throw new Error(data.error || 'Failed to create user')
+      }
+
+      notify.success('Success', 'User created successfully')
+      setShowAddModal(false)
+      setNewUser({ email: '', user_name: '', authority: 'user', password: '' })
+      fetchUsers()
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Failed to create user'
+      console.error('Error creating user:', error)
+      notify.error('Error', errorMsg)
+    }
+  }
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedUsers(users.map((u) => u.user_id))
@@ -264,7 +305,7 @@ const Users = () => {
                 <span>Download</span>
               </span>
             </button>
-            <Button variant="primary">
+            <Button variant="primary" onClick={() => setShowAddModal(true)}>
               <span className="flex gap-1 items-center justify-center">
                 <span className="text-lg">
                   <svg
@@ -529,6 +570,68 @@ const Users = () => {
                   Cancel
                 </Button>
                 <Button onClick={handleEditUser}>Save Changes</Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      {/* Add User Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md">
+            <div className="p-6">
+              <h3 className="text-lg font-bold mb-4">Add New User</h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Email</label>
+                  <Input
+                    type="email"
+                    value={newUser.email}
+                    onChange={(e) => setNewUser({ ...newUser, email: e.target.value })}
+                    placeholder="user@example.com"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Name</label>
+                  <Input
+                    value={newUser.user_name}
+                    onChange={(e) => setNewUser({ ...newUser, user_name: e.target.value })}
+                    placeholder="Full name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Password</label>
+                  <Input
+                    type="password"
+                    value={newUser.password}
+                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                    placeholder="Enter password"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Role</label>
+                  <select
+                    value={newUser.authority}
+                    onChange={(e) => setNewUser({ ...newUser, authority: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-10"
+                  >
+                    <option value="user">User</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+              </div>
+              <div className="flex gap-3 mt-6">
+                <Button
+                  onClick={() => {
+                    setShowAddModal(false)
+                    setNewUser({ email: '', user_name: '', authority: 'user', password: '' })
+                  }}
+                  variant="default"
+                >
+                  Cancel
+                </Button>
+                <Button onClick={handleAddUser}>Add User</Button>
               </div>
             </div>
           </Card>
