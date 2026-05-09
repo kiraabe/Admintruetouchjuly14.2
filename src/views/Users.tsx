@@ -16,6 +16,13 @@ interface User {
   is_active: boolean
   avatar: string
   created_at: string
+  partnership_id?: string | null
+}
+
+interface Partnership {
+  id: number
+  partner_id: string
+  company_name: string
 }
 
 const Users = () => {
@@ -23,6 +30,7 @@ const Users = () => {
   const [currentPage, setCurrentPage] = useState(1)
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [users, setUsers] = useState<User[]>([])
+  const [partnerships, setPartnerships] = useState<Partnership[]>([])
   const [loading, setLoading] = useState(true)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [showEditModal, setShowEditModal] = useState(false)
@@ -36,11 +44,25 @@ const Users = () => {
     user_name: '',
     authority: 'user',
     password: '',
+    partnership_id: null as string | null,
   })
 
   useEffect(() => {
     fetchUsers()
+    fetchPartnerships()
   }, [])
+
+  const fetchPartnerships = async () => {
+    try {
+      const response = await fetch('/api/partnerships')
+      const data = await response.json()
+      if (data.success && Array.isArray(data.data)) {
+        setPartnerships(data.data)
+      }
+    } catch (error) {
+      console.error('Error fetching partnerships:', error)
+    }
+  }
 
   const fetchUsers = async () => {
     try {
@@ -78,6 +100,7 @@ const Users = () => {
           email: editingUser.email,
           user_name: editingUser.user_name,
           authority: editingUser.authority,
+          partnership_id: editingUser.partnership_id || null,
         }),
       })
 
@@ -202,6 +225,7 @@ const Users = () => {
           user_name: newUser.user_name,
           authority: newUser.authority,
           password: newUser.password,
+          partnership_id: newUser.partnership_id || null,
         }),
       })
 
@@ -223,7 +247,7 @@ const Users = () => {
 
       notify.success('Success', 'User created successfully and credentials downloaded')
       setShowAddModal(false)
-      setNewUser({ email: '', user_name: '', authority: 'user', password: '' })
+      setNewUser({ email: '', user_name: '', authority: 'user', password: '', partnership_id: null })
       setShowNewPassword(false)
       fetchUsers()
     } catch (error) {
@@ -575,6 +599,23 @@ const Users = () => {
                     <option value="partnership">Partnership</option>
                   </select>
                 </div>
+                {editingUser.authority === 'partnership' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Partnership (Optional)</label>
+                    <select
+                      value={editingUser.partnership_id || ''}
+                      onChange={(e) => setEditingUser({ ...editingUser, partnership_id: e.target.value || null })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-10"
+                    >
+                      <option value="">No Partnership</option>
+                      {partnerships.map((p) => (
+                        <option key={p.partner_id} value={p.partner_id}>
+                          {p.company_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
               <div className="flex gap-3 mt-6">
                 <Button
@@ -684,6 +725,23 @@ const Users = () => {
                     <option value="partnership">Partnership</option>
                   </select>
                 </div>
+                {newUser.authority === 'partnership' && (
+                  <div>
+                    <label className="block text-sm font-medium mb-2">Partnership (Optional)</label>
+                    <select
+                      value={newUser.partnership_id || ''}
+                      onChange={(e) => setNewUser({ ...newUser, partnership_id: e.target.value || null })}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-10"
+                    >
+                      <option value="">No Partnership</option>
+                      {partnerships.map((p) => (
+                        <option key={p.partner_id} value={p.partner_id}>
+                          {p.company_name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
               </div>
               <div className="flex gap-3 mt-6">
                 <Button
