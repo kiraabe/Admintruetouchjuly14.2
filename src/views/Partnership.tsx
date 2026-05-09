@@ -1,12 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
+import { useNavigate } from 'react-router'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Tag from '@/components/ui/Tag'
 import Pagination from '@/components/ui/Pagination'
 import Checkbox from '@/components/ui/Checkbox'
-import Dialog from '@/components/ui/Dialog'
-import Select from '@/components/ui/Select'
 import { toast } from 'sonner'
 
 interface Partnership {
@@ -27,59 +26,15 @@ interface Partnership {
 }
 
 const Partnership = () => {
+  const navigate = useNavigate()
   const [partnerships, setPartnerships] = useState<Partnership[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPartnerships, setSelectedPartnerships] = useState<string[]>([])
-  const [isModalOpen, setIsModalOpen] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
-  const [editingPartner, setEditingPartner] = useState<Partnership | null>(null)
-  const [formData, setFormData] = useState({
-    company_name: '',
-    business_email: '',
-    business_category: 'Agency',
-    license_number: '',
-    contact_person_name: '',
-    phone_number: '',
-    service_city: '',
-    status: 'pending',
-  })
-  const [files, setFiles] = useState<{
-    companyLogo: File | null
-    licenseDocument: File | null
-  }>({
-    companyLogo: null,
-    licenseDocument: null,
-  })
-
-  const businessCategories = ['Agency', 'Recruitment', 'Referral', 'Other']
-  const serviceCities = [
-    'Dubai',
-    'Abu Dhabi',
-    'Sharjah',
-    'Ajman',
-    'Umm Al Quwain',
-    'Ras Al Khaimah',
-    'Fujairah',
-  ]
 
   useEffect(() => {
     fetchPartnerships()
   }, [])
-
-  useEffect(() => {
-    if (isModalOpen) {
-      setTimeout(() => {
-        const dialogElement = document.querySelector('.dialog')
-        if (dialogElement) {
-          const rect = dialogElement.getBoundingClientRect()
-          window.scrollBy({
-            top: rect.top - window.innerHeight / 2 + rect.height / 2,
-            behavior: 'smooth',
-          })
-        }
-      }, 100)
-    }
-  }, [isModalOpen])
 
   const fetchPartnerships = async () => {
     try {
@@ -120,112 +75,15 @@ const Partnership = () => {
     }
   }
 
-  const handleOpenModal = (partner?: Partnership) => {
-    if (partner) {
-      setEditingPartner(partner)
-      setFormData({
-        company_name: partner.company_name,
-        business_email: partner.business_email,
-        business_category: partner.business_category,
-        license_number: partner.license_number,
-        contact_person_name: partner.contact_person_name,
-        phone_number: partner.phone_number,
-        service_city: partner.service_city,
-        status: partner.status,
-      })
-    } else {
-      setEditingPartner(null)
-      setFormData({
-        company_name: '',
-        business_email: '',
-        business_category: 'Agency',
-        license_number: '',
-        contact_person_name: '',
-        phone_number: '',
-        service_city: 'Dubai',
-        status: 'pending',
-      })
-    }
-    setFiles({ companyLogo: null, licenseDocument: null })
-    setIsModalOpen(true)
+  const handleEditPartnership = (partnerId: string) => {
+    navigate(`/partnership/edit/${partnerId}`)
   }
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false)
-    setEditingPartner(null)
+  const handleAddPartnership = () => {
+    navigate('/partnership/edit/new')
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // Validate required fields
-    if (!formData.company_name || !formData.business_email || !formData.business_category ||
-        !formData.license_number || !formData.contact_person_name || !formData.phone_number ||
-        !formData.service_city) {
-      toast.error('Please fill in all required fields')
-      return
-    }
-
-    const formDataObj = new FormData()
-    Object.entries(formData).forEach(([key, value]) => {
-      formDataObj.append(key, value as string)
-    })
-
-    if (files.companyLogo) {
-      formDataObj.append('companyLogo', files.companyLogo)
-    }
-    if (files.licenseDocument) {
-      formDataObj.append('licenseDocument', files.licenseDocument)
-    }
-
-    try {
-      const url = editingPartner ? `/api/partnerships/${editingPartner.partner_id}` : '/api/partnerships'
-      const method = editingPartner ? 'PUT' : 'POST'
-
-      console.log('Submitting form to:', url)
-      console.log('Form data:', {
-        company_name: formData.company_name,
-        business_email: formData.business_email,
-        business_category: formData.business_category,
-        license_number: formData.license_number,
-        contact_person_name: formData.contact_person_name,
-        phone_number: formData.phone_number,
-        service_city: formData.service_city,
-        status: formData.status,
-      })
-
-      const response = await fetch(url, {
-        method,
-        body: formDataObj,
-      })
-
-      let result
-      try {
-        result = await response.json()
-      } catch (e) {
-        console.error('Failed to parse response:', e)
-        throw new Error(`HTTP error! status: ${response.status}`)
-      }
-
-      if (!response.ok) {
-        throw new Error(result.error || `HTTP error! status: ${response.status}`)
-      }
-
-      if (result.success) {
-        toast.success(editingPartner ? 'Partnership updated' : 'Partnership created')
-        handleCloseModal()
-        await fetchPartnerships()
-      } else {
-        toast.error(result.error || 'Failed to save partnership')
-      }
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Failed to save partnership'
-      console.error('Error saving partnership:', error)
-      toast.error(errorMsg)
-    }
-  }
-
-  const handleDelete = async (partnerId: string) => {
+  const handleDeletePartnership = async (partnerId: string) => {
     if (!confirm('Are you sure you want to delete this partnership?')) return
 
     try {
@@ -331,7 +189,7 @@ const Partnership = () => {
                 <span>Download</span>
               </span>
             </button>
-            <Button variant="primary" onClick={() => handleOpenModal()}>
+            <Button variant="primary" onClick={handleAddPartnership}>
               <span className="flex gap-1 items-center justify-center">
                 <span className="text-lg">
                   <svg
@@ -480,7 +338,7 @@ const Partnership = () => {
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
                           <button
-                            onClick={() => handleOpenModal(partner)}
+                            onClick={() => handleEditPartnership(partner.partner_id)}
                             className="text-xl cursor-pointer hover:text-primary"
                             title="Edit"
                           >
@@ -500,7 +358,7 @@ const Partnership = () => {
                             </svg>
                           </button>
                           <button
-                            onClick={() => handleDelete(partner.partner_id)}
+                            onClick={() => handleDeletePartnership(partner.partner_id)}
                             className="text-xl cursor-pointer hover:text-red-500"
                             title="Delete"
                           >
@@ -540,155 +398,6 @@ const Partnership = () => {
           </>
         )}
       </div>
-
-      {/* Add/Edit Modal */}
-      <Dialog isOpen={isModalOpen} onClose={handleCloseModal} title="Add Partnership" size="md">
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Business Identity */}
-          <div className="border-b pb-4">
-            <h4 className="font-semibold mb-3">Business Identity</h4>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium mb-1">Company Name</label>
-                <Input
-                  type="text"
-                  value={formData.company_name}
-                  onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
-                  placeholder="Legal company name"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Business Email</label>
-                <Input
-                  type="email"
-                  value={formData.business_email}
-                  onChange={(e) => setFormData({ ...formData, business_email: e.target.value })}
-                  placeholder="official@company.com"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Business Category</label>
-                <Select
-                  options={businessCategories.map((cat) => ({ value: cat, label: cat }))}
-                  value={{ value: formData.business_category, label: formData.business_category }}
-                  onChange={(val) =>
-                    setFormData({ ...formData, business_category: val?.value || 'Agency' })
-                  }
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Company Logo</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    setFiles({ ...files, companyLogo: e.target.files?.[0] || null })
-                  }
-                  className="block w-full text-sm border border-gray-300 rounded-lg p-2"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Legal & Compliance */}
-          <div className="border-b pb-4">
-            <h4 className="font-semibold mb-3">Legal & Compliance</h4>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium mb-1">License Number</label>
-                <Input
-                  type="text"
-                  value={formData.license_number}
-                  onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
-                  placeholder="Unique business permit ID"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">License Document</label>
-                <input
-                  type="file"
-                  accept=".pdf,.doc,.docx,image/*"
-                  onChange={(e) =>
-                    setFiles({ ...files, licenseDocument: e.target.files?.[0] || null })
-                  }
-                  className="block w-full text-sm border border-gray-300 rounded-lg p-2"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Contact Person */}
-          <div className="border-b pb-4">
-            <h4 className="font-semibold mb-3">Contact Person</h4>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium mb-1">Full Name</label>
-                <Input
-                  type="text"
-                  value={formData.contact_person_name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, contact_person_name: e.target.value })
-                  }
-                  placeholder="Contact person name"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Phone Number</label>
-                <Input
-                  type="tel"
-                  value={formData.phone_number}
-                  onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
-                  placeholder="+971 50 123 4567"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Operational Details */}
-          <div className="pb-4">
-            <h4 className="font-semibold mb-3">Operational Details</h4>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-medium mb-1">Service City</label>
-                <Select
-                  options={serviceCities.map((city) => ({ value: city, label: city }))}
-                  value={formData.service_city ? { value: formData.service_city, label: formData.service_city } : null}
-                  onChange={(val) => setFormData({ ...formData, service_city: val?.value || '' })}
-                  placeholder="Select a city"
-                  isClearable
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Status</label>
-                <Select
-                  options={[
-                    { value: 'pending', label: 'Pending' },
-                    { value: 'active', label: 'Active' },
-                    { value: 'inactive', label: 'Inactive' },
-                  ]}
-                  value={{ value: formData.status, label: formData.status.charAt(0).toUpperCase() + formData.status.slice(1) }}
-                  onChange={(val) => setFormData({ ...formData, status: val?.value as 'pending' | 'active' | 'inactive' || 'pending' })}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Buttons */}
-          <div className="flex gap-3 justify-end">
-            <Button variant="default" onClick={handleCloseModal}>
-              Cancel
-            </Button>
-            <Button variant="primary" type="submit">
-              {editingPartner ? 'Update Partnership' : 'Create Partnership'}
-            </Button>
-          </div>
-        </form>
-      </Dialog>
     </Card>
   )
 }
