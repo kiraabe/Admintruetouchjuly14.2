@@ -415,13 +415,24 @@ async function startServer() {
 
     // Add partnership_id column if it doesn't exist (for existing databases)
     try {
-      await dbPool.query(`
-        ALTER TABLE users
-        ADD COLUMN IF NOT EXISTS partnership_id UUID
+      const columnCheck = await dbPool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns
+          WHERE table_name = 'users' AND column_name = 'partnership_id'
+        )
       `)
-      console.log('✓ partnership_id column added to users table')
+
+      if (!columnCheck.rows[0].exists) {
+        await dbPool.query(`
+          ALTER TABLE users
+          ADD COLUMN partnership_id UUID
+        `)
+        console.log('✓ partnership_id column added to users table')
+      } else {
+        console.log('✓ partnership_id column already exists in users table')
+      }
     } catch (err) {
-      console.log('Note: partnership_id column may already exist or error occurred:', err instanceof Error ? err.message : err)
+      console.error('Error adding partnership_id column:', err instanceof Error ? err.message : err)
     }
 
     // Seed test user
