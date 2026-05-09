@@ -179,6 +179,10 @@ const Partnership = () => {
         body: formDataObj,
       })
 
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
       const result = await response.json()
       if (result.success) {
         toast.success(editingPartner ? 'Partnership updated' : 'Partnership created')
@@ -200,6 +204,9 @@ const Partnership = () => {
       const response = await fetch(`/api/partnerships/${partnerId}`, {
         method: 'DELETE',
       })
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
       const result = await response.json()
       if (result.success) {
         toast.success('Partnership deleted')
