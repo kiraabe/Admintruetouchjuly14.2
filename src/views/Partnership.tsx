@@ -70,9 +70,16 @@ const Partnership = () => {
     try {
       setIsLoading(true)
       const response = await fetch('/api/partnerships')
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
       const result = await response.json()
       if (result.success) {
         setPartnerships(result.data || [])
+      } else {
+        toast.error(result.error || 'Failed to load partnerships')
       }
     } catch (error) {
       console.error('Error fetching partnerships:', error)

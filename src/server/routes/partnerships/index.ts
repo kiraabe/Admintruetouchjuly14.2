@@ -80,7 +80,7 @@ router.get('/', async (req, res) => {
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
     console.error('Error fetching partnerships:', errorMsg, error)
-    res.status(500).json({ success: false, error: errorMsg })
+    res.status(500).json({ success: false, error: errorMsg, details: error })
   }
 })
 
