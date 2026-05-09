@@ -383,123 +383,183 @@ const EmployeeRequest = () => {
           </button>
         </div>
 
-        {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <thead className="border-b border-gray-200 dark:border-gray-700">
-              <tr>
-                <th className="text-left py-3 px-4 w-12">
-                  <Checkbox
-                    checked={
-                      selectedRequests.length === filteredRequests.length &&
-                      filteredRequests.length > 0
-                    }
-                    onChange={(checked) => handleSelectAll(checked as boolean)}
-                  />
-                </th>
-                <th
-                  className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
-                  onClick={() => handleSort('company_name')}
-                >
-                  <div className="flex items-center gap-2">
-                    Company Name
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      {sortColumn === 'company_name' && sortDirection === 'asc' ? (
-                        <path d="M7 14l5-5 5 5z" />
-                      ) : sortColumn === 'company_name' && sortDirection === 'desc' ? (
-                        <path d="M7 10l5 5 5-5z" />
-                      ) : (
-                        <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
-                      )}
-                    </svg>
+        {/* Content: Cards for Standard, Table for Special */}
+        {loading ? (
+          <div className="py-8 text-center">Loading...</div>
+        ) : filteredRequests.length === 0 ? (
+          <div className="py-8 text-center text-gray-500">No requests found</div>
+        ) : activeTab === 'standard' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {filteredRequests.map((request) => (
+              <div
+                key={request.request_id}
+                className="border border-gray-200 dark:border-gray-700 rounded-lg p-5 hover:shadow-md dark:hover:shadow-lg transition-shadow bg-white dark:bg-gray-800"
+              >
+                <div className="flex justify-between items-start mb-3">
+                  <div className="flex-1">
+                    <h4 className="font-semibold text-gray-900 dark:text-gray-100">
+                      {request.company_name}
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {request.contact_person}
+                    </p>
                   </div>
-                </th>
-                <th
-                  className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
-                  onClick={() => handleSort('contact_person')}
-                >
-                  <div className="flex items-center gap-2">
-                    Contact Person
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      {sortColumn === 'contact_person' && sortDirection === 'asc' ? (
-                        <path d="M7 14l5-5 5 5z" />
-                      ) : sortColumn === 'contact_person' && sortDirection === 'desc' ? (
-                        <path d="M7 10l5 5 5-5z" />
-                      ) : (
-                        <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
-                      )}
-                    </svg>
+                  <span
+                    className={`inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize ${getStatusBadgeColor(
+                      request.status
+                    )}`}
+                  >
+                    {request.status}
+                  </span>
+                </div>
+
+                <div className="space-y-2 mb-4 text-sm">
+                  <div>
+                    <span className="text-gray-600 dark:text-gray-400">Position:</span>
+                    <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">
+                      {request.position}
+                    </span>
                   </div>
-                </th>
-                <th
-                  className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
-                  onClick={() => handleSort('position')}
-                >
-                  <div className="flex items-center gap-2">
-                    Position
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      {sortColumn === 'position' && sortDirection === 'asc' ? (
-                        <path d="M7 14l5-5 5 5z" />
-                      ) : sortColumn === 'position' && sortDirection === 'desc' ? (
-                        <path d="M7 10l5 5 5-5z" />
-                      ) : (
-                        <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
-                      )}
-                    </svg>
+                  <div>
+                    <span className="text-gray-600 dark:text-gray-400">Employees:</span>
+                    <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">
+                      {request.number_of_employees}
+                    </span>
                   </div>
-                </th>
-                <th
-                  className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
-                  onClick={() => handleSort('number_of_employees')}
-                >
-                  <div className="flex items-center gap-2">
-                    # of Employees
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      {sortColumn === 'number_of_employees' && sortDirection === 'asc' ? (
-                        <path d="M7 14l5-5 5 5z" />
-                      ) : sortColumn === 'number_of_employees' && sortDirection === 'desc' ? (
-                        <path d="M7 10l5 5 5-5z" />
-                      ) : (
-                        <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
-                      )}
-                    </svg>
-                  </div>
-                </th>
-                <th
-                  className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
-                  onClick={() => handleSort('status')}
-                >
-                  <div className="flex items-center gap-2">
-                    Status
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      {sortColumn === 'status' && sortDirection === 'asc' ? (
-                        <path d="M7 14l5-5 5 5z" />
-                      ) : sortColumn === 'status' && sortDirection === 'desc' ? (
-                        <path d="M7 10l5 5 5-5z" />
-                      ) : (
-                        <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
-                      )}
-                    </svg>
-                  </div>
-                </th>
-                <th className="text-left py-3 px-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
+                  {request.location && (
+                    <div>
+                      <span className="text-gray-600 dark:text-gray-400">Location:</span>
+                      <span className="ml-2 font-medium text-gray-900 dark:text-gray-100">
+                        {request.location}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
+                  <button
+                    onClick={() => {
+                      setSelectedRequest(request)
+                      setShowDetailsModal(true)
+                    }}
+                    className="flex-1 py-2 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:opacity-90 transition"
+                  >
+                    View Details
+                  </button>
+                  <button
+                    onClick={() => handleDelete(request.request_id)}
+                    className="py-2 px-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition text-sm"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm border-collapse">
+              <thead className="border-b border-gray-200 dark:border-gray-700">
                 <tr>
-                  <td colSpan={7} className="text-center py-4">
-                    Loading...
-                  </td>
+                  <th className="text-left py-3 px-4 w-12">
+                    <Checkbox
+                      checked={
+                        filteredRequests.every((r) => selectedRequests.includes(r.request_id)) &&
+                        filteredRequests.length > 0
+                      }
+                      onChange={(checked) => handleSelectAll(checked as boolean)}
+                    />
+                  </th>
+                  <th
+                    className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('company_name')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Company Name
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        {sortColumn === 'company_name' && sortDirection === 'asc' ? (
+                          <path d="M7 14l5-5 5 5z" />
+                        ) : sortColumn === 'company_name' && sortDirection === 'desc' ? (
+                          <path d="M7 10l5 5 5-5z" />
+                        ) : (
+                          <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
+                        )}
+                      </svg>
+                    </div>
+                  </th>
+                  <th
+                    className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('contact_person')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Contact Person
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        {sortColumn === 'contact_person' && sortDirection === 'asc' ? (
+                          <path d="M7 14l5-5 5 5z" />
+                        ) : sortColumn === 'contact_person' && sortDirection === 'desc' ? (
+                          <path d="M7 10l5 5 5-5z" />
+                        ) : (
+                          <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
+                        )}
+                      </svg>
+                    </div>
+                  </th>
+                  <th
+                    className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('position')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Position
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        {sortColumn === 'position' && sortDirection === 'asc' ? (
+                          <path d="M7 14l5-5 5 5z" />
+                        ) : sortColumn === 'position' && sortDirection === 'desc' ? (
+                          <path d="M7 10l5 5 5-5z" />
+                        ) : (
+                          <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
+                        )}
+                      </svg>
+                    </div>
+                  </th>
+                  <th
+                    className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('number_of_employees')}
+                  >
+                    <div className="flex items-center gap-2">
+                      # of Employees
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        {sortColumn === 'number_of_employees' && sortDirection === 'asc' ? (
+                          <path d="M7 14l5-5 5 5z" />
+                        ) : sortColumn === 'number_of_employees' && sortDirection === 'desc' ? (
+                          <path d="M7 10l5 5 5-5z" />
+                        ) : (
+                          <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
+                        )}
+                      </svg>
+                    </div>
+                  </th>
+                  <th
+                    className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                    onClick={() => handleSort('status')}
+                  >
+                    <div className="flex items-center gap-2">
+                      Status
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                        {sortColumn === 'status' && sortDirection === 'asc' ? (
+                          <path d="M7 14l5-5 5 5z" />
+                        ) : sortColumn === 'status' && sortDirection === 'desc' ? (
+                          <path d="M7 10l5 5 5-5z" />
+                        ) : (
+                          <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
+                        )}
+                      </svg>
+                    </div>
+                  </th>
+                  <th className="text-left py-3 px-4">Actions</th>
                 </tr>
-              ) : filteredRequests.length === 0 ? (
-                <tr>
-                  <td colSpan={7} className="text-center py-4 text-gray-500">
-                    No requests found
-                  </td>
-                </tr>
-              ) : (
-                filteredRequests.map((request) => (
+              </thead>
+              <tbody>
+                {filteredRequests.map((request) => (
                   <tr
                     key={request.request_id}
                     className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
@@ -582,11 +642,11 @@ const EmployeeRequest = () => {
                       </div>
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Results count */}
         <div className="text-sm text-gray-600 dark:text-gray-400">
