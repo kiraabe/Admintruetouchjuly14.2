@@ -182,14 +182,33 @@ const Partnership = () => {
       const url = editingPartner ? `/api/partnerships/${editingPartner.partner_id}` : '/api/partnerships'
       const method = editingPartner ? 'PUT' : 'POST'
 
+      console.log('Submitting form to:', url)
+      console.log('Form data:', {
+        company_name: formData.company_name,
+        business_email: formData.business_email,
+        business_category: formData.business_category,
+        license_number: formData.license_number,
+        contact_person_name: formData.contact_person_name,
+        phone_number: formData.phone_number,
+        service_city: formData.service_city,
+        status: formData.status,
+      })
+
       const response = await fetch(url, {
         method,
         body: formDataObj,
       })
 
+      let errorMsg = `HTTP error! status: ${response.status}`
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}))
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
+        try {
+          const errorData = await response.json()
+          errorMsg = errorData.error || errorMsg
+        } catch (e) {
+          const text = await response.text()
+          console.error('Raw response:', text)
+        }
+        throw new Error(errorMsg)
       }
 
       const result = await response.json()

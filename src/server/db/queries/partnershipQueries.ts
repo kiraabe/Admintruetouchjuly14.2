@@ -1,4 +1,5 @@
 import pool from '../config.ts'
+import { randomUUID } from 'crypto'
 
 export interface Partnership {
   id: number
@@ -79,16 +80,21 @@ export async function filterPartnerships(filters: Record<string, any>): Promise<
 
 export async function createPartnership(data: Partial<Partnership>): Promise<Partnership> {
   const keys = Object.keys(data).filter((k) => k !== 'id' && k !== 'partner_id')
-  const keysStr = keys.join(', ')
-  const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ')
-  const values = keys.map((k) => data[k as keyof Partnership])
+  const partnerId = randomUUID()
+
+  // Add partner_id to the beginning
+  const allKeys = ['partner_id', ...keys]
+  const allValues = [partnerId, ...keys.map((k) => data[k as keyof Partnership])]
+
+  const keysStr = allKeys.join(', ')
+  const placeholders = allKeys.map((_, i) => `$${i + 1}`).join(', ')
 
   const query = `INSERT INTO partnerships (${keysStr}) VALUES (${placeholders}) RETURNING *`
   console.log('createPartnership - Query:', query)
-  console.log('createPartnership - Values:', values)
+  console.log('createPartnership - Values:', allValues)
 
   try {
-    const result = await pool.query(query, values)
+    const result = await pool.query(query, allValues)
     console.log('createPartnership - Success:', result.rows[0])
     return result.rows[0]
   } catch (error) {
