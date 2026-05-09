@@ -30,6 +30,7 @@ const Users = () => {
   const [showResetPasswordModal, setShowResetPasswordModal] = useState(false)
   const [resetPasswordUser, setResetPasswordUser] = useState<User | null>(null)
   const [newPassword, setNewPassword] = useState('')
+  const [showNewPassword, setShowNewPassword] = useState(false)
   const [newUser, setNewUser] = useState({
     email: '',
     user_name: '',
@@ -209,9 +210,21 @@ const Users = () => {
         throw new Error(data.error || 'Failed to create user')
       }
 
-      notify.success('Success', 'User created successfully')
+      const credentials = `Login Credentials\n${'='.repeat(50)}\n\nEmail: ${newUser.email}\nPassword: ${newUser.password}\nUsername: ${newUser.user_name}\nRole: ${newUser.authority.charAt(0).toUpperCase() + newUser.authority.slice(1)}\n\nGenerated on: ${new Date().toLocaleString()}\n`
+      const blob = new Blob([credentials], { type: 'text/plain' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `credentials-${newUser.email.split('@')[0]}.txt`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      notify.success('Success', 'User created successfully and credentials downloaded')
       setShowAddModal(false)
       setNewUser({ email: '', user_name: '', authority: 'user', password: '' })
+      setShowNewPassword(false)
       fetchUsers()
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to create user'
@@ -603,13 +616,53 @@ const Users = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Password</label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="password"
-                      value={newUser.password}
-                      onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                      placeholder="Enter password"
-                    />
+                  <div className="flex gap-2 items-center">
+                    <div className="relative flex-1">
+                      <Input
+                        type={showNewPassword ? 'text' : 'password'}
+                        value={newUser.password}
+                        onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                        placeholder="Enter password"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowNewPassword(!showNewPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 dark:text-gray-400 hover:text-primary"
+                      >
+                        {showNewPassword ? (
+                          <svg
+                            stroke="currentColor"
+                            fill="none"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            height="1em"
+                            width="1em"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
+                            <path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"></path>
+                          </svg>
+                        ) : (
+                          <svg
+                            stroke="currentColor"
+                            fill="none"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            height="1em"
+                            width="1em"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path d="M3 3l18 18"></path>
+                            <path d="M10.584 10.587a2 2 0 0 0 2.828 2.83"></path>
+                            <path d="M9.363 5.365a9.466 9.466 0 0 1 2.637 -.365c3.6 0 6.6 2 9 6c-.666 1 -1.379 1.954 -2.128 2.821m-2.322 1.84a9.488 9.488 0 0 1 -3.55 .464c-3.6 0 -6.6 -2 -9 -6c1.333 -2 2.966 -3.667 4.875 -4.667"></path>
+                          </svg>
+                        )}
+                      </button>
+                    </div>
                     <Button
                       onClick={() => setNewUser({ ...newUser, password: generatePassword() })}
                       variant="default"
