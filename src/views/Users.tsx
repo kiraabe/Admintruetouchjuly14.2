@@ -48,8 +48,8 @@ const Users = () => {
   })
 
   useEffect(() => {
-    fetchUsers()
     fetchPartnerships()
+    fetchUsers()
   }, [])
 
   const fetchPartnerships = async () => {
@@ -298,8 +298,9 @@ const Users = () => {
 
   const getPartnershipName = (partnershipId: string | null | undefined) => {
     if (!partnershipId) return '-'
+    if (!partnerships || partnerships.length === 0) return partnershipId
     const partnership = partnerships.find((p) => p.partner_id === partnershipId)
-    return partnership?.company_name || '-'
+    return partnership?.company_name || partnershipId
   }
 
   const filteredUsers = users.filter(
