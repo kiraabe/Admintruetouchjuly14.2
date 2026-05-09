@@ -6,7 +6,7 @@ const router = Router()
 
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const { email, user_name, password, authority } = req.body
+    const { email, user_name, password, authority, partnership_id } = req.body
 
     if (!email || !user_name || !password) {
       return res.status(400).json({ error: 'Email, name, and password are required' })
@@ -15,8 +15,8 @@ router.post('/', async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, 10)
 
     const result = await pool.query(
-      'INSERT INTO users (email, password_hash, user_name, authority, is_active) VALUES ($1, $2, $3, $4, $5) RETURNING id, user_id, email, user_name, authority, is_active, avatar, created_at',
-      [email, hashedPassword, user_name, authority || 'user', true]
+      'INSERT INTO users (email, password_hash, user_name, authority, is_active, partnership_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, user_id, email, user_name, authority, is_active, avatar, partnership_id, created_at',
+      [email, hashedPassword, user_name, authority || 'user', true, partnership_id || null]
     )
 
     res.status(201).json({
@@ -77,11 +77,11 @@ router.get('/:id', async (req: Request, res: Response) => {
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params
-    const { email, user_name, authority, is_active } = req.body
+    const { email, user_name, authority, is_active, partnership_id } = req.body
 
     const result = await pool.query(
-      'UPDATE users SET email = COALESCE($1, email), user_name = COALESCE($2, user_name), authority = COALESCE($3, authority), is_active = COALESCE($4, is_active), updated_at = CURRENT_TIMESTAMP WHERE user_id = $5 OR id = $5 RETURNING *',
-      [email, user_name, authority, is_active, id]
+      'UPDATE users SET email = COALESCE($1, email), user_name = COALESCE($2, user_name), authority = COALESCE($3, authority), is_active = COALESCE($4, is_active), partnership_id = COALESCE($5, partnership_id), updated_at = CURRENT_TIMESTAMP WHERE user_id = $6 OR id = $6 RETURNING *',
+      [email, user_name, authority, is_active, partnership_id, id]
     )
 
     if (result.rows.length === 0) {
