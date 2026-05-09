@@ -801,7 +801,7 @@ const EmployeeRequest = () => {
       {/* Details Modal */}
       <Dialog isOpen={showDetailsModal} onClose={() => setShowDetailsModal(false)}>
         {selectedRequest && (
-          <div className="space-y-4 max-h-96 overflow-y-auto">
+          <div className="space-y-4 max-h-[80vh] overflow-y-auto w-full max-w-3xl">
             <div className="mb-4">
               <div className="flex items-center gap-4">
                 <h2 className="text-lg font-bold">Request Details</h2>
@@ -898,29 +898,7 @@ const EmployeeRequest = () => {
 
             <div>
               <label className="form-label">Status</label>
-              <select
-                value={selectedRequest.status}
-                onChange={(e) => {
-                  const updated = { ...selectedRequest, status: e.target.value }
-                  setSelectedRequest(updated)
-                }}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-              >
-                {STATUS_OPTIONS.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex gap-2 pt-4">
-              <Button onClick={() => setShowDetailsModal(false)}>Close</Button>
-              <Button
-                onClick={() => handleUpdateStatus(selectedRequest, selectedRequest.status)}
-              >
-                Save Changes
-              </Button>
+              <p className="text-gray-700 dark:text-gray-300 capitalize">{selectedRequest.status}</p>
             </div>
           </div>
         )}
