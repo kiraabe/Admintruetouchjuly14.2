@@ -29,6 +29,17 @@ interface EmployeeRequest {
   updated_at: string
 }
 
+interface Candidate {
+  candidate_id: string
+  name: string
+  job_category: string
+  skill_level: string
+  education_level: string
+  nationality: string
+  phone_number: string
+  status: string
+}
+
 const STATUS_OPTIONS = ['Pending', 'Approved', 'Rejected', 'In Progress', 'Completed']
 
 const EmployeeRequest = () => {
@@ -44,6 +55,11 @@ const EmployeeRequest = () => {
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [activeTab, setActiveTab] = useState<'all' | 'standard' | 'special'>('all')
+  const [showCandidateModal, setShowCandidateModal] = useState(false)
+  const [candidates, setCandidates] = useState<Candidate[]>([])
+  const [selectedCandidates, setSelectedCandidates] = useState<string[]>([])
+  const [candidateSearchTerm, setCandidateSearchTerm] = useState('')
+  const [currentStandardRequest, setCurrentStandardRequest] = useState<EmployeeRequest | null>(null)
 
   useEffect(() => {
     fetchRequests()
@@ -168,6 +184,82 @@ const EmployeeRequest = () => {
       const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
       console.error('Error updating request:', error)
       notify.error('Update Error', errorMsg)
+    }
+  }
+
+  const fetchCandidates = async () => {
+    try {
+      const response = await fetch('/api/candidates')
+      const data = await response.json()
+      if (data.success) {
+        setCandidates(data.data || [])
+      }
+    } catch (error) {
+      console.error('Error fetching candidates:', error)
+      notify.error('Fetch Error', 'Failed to load candidates')
+    }
+  }
+
+  const handleOpenCandidateModal = (request: EmployeeRequest) => {
+    setCurrentStandardRequest(request)
+    setSelectedCandidates([])
+    setCandidateSearchTerm('')
+    fetchCandidates()
+    setShowCandidateModal(true)
+  }
+
+  const handleSelectCandidate = (candidateId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedCandidates([...selectedCandidates, candidateId])
+    } else {
+      setSelectedCandidates(selectedCandidates.filter((id) => id !== candidateId))
+    }
+  }
+
+  const handleSelectAllCandidates = (checked: boolean) => {
+    if (checked) {
+      const filteredIds = candidates
+        .filter((c) =>
+          c.name.toLowerCase().includes(candidateSearchTerm.toLowerCase()) ||
+          c.job_category.toLowerCase().includes(candidateSearchTerm.toLowerCase())
+        )
+        .map((c) => c.candidate_id)
+      setSelectedCandidates(filteredIds)
+    } else {
+      setSelectedCandidates([])
+    }
+  }
+
+  const handleConfirmCandidateSelection = async () => {
+    if (!currentStandardRequest || selectedCandidates.length === 0) {
+      notify.error('Error', 'Please select at least one candidate')
+      return
+    }
+
+    try {
+      notify.loading('Assigning candidates...')
+
+      // For now, just update request status to show candidates are matched
+      const response = await fetch(`/api/employee-requests/${currentStandardRequest.request_id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...currentStandardRequest,
+          status: 'Approved',
+          notes: `${currentStandardRequest.notes || ''}\n[${selectedCandidates.length} candidates matched]`
+        }),
+      })
+
+      if (response.ok) {
+        notify.success('Success', `${selectedCandidates.length} candidates selected for "${currentStandardRequest.company_name}"`)
+        setShowCandidateModal(false)
+        fetchRequests()
+      } else {
+        notify.error('Error', 'Failed to update request')
+      }
+    } catch (error) {
+      console.error('Error:', error)
+      notify.error('Error', 'Failed to process selection')
     }
   }
 
@@ -438,13 +530,19 @@ const EmployeeRequest = () => {
 
                 <div className="flex gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
                   <button
+                    onClick={() => handleOpenCandidateModal(request)}
+                    className="flex-1 py-2 px-3 rounded-lg bg-green-600 text-white text-sm font-medium hover:opacity-90 transition"
+                  >
+                    Select Candidates
+                  </button>
+                  <button
                     onClick={() => {
                       setSelectedRequest(request)
                       setShowDetailsModal(true)
                     }}
-                    className="flex-1 py-2 px-3 rounded-lg bg-primary text-white text-sm font-medium hover:opacity-90 transition"
+                    className="py-2 px-3 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm font-medium hover:opacity-90 transition"
                   >
-                    View Details
+                    Details
                   </button>
                   <button
                     onClick={() => handleDelete(request.request_id)}
@@ -842,6 +940,123 @@ const EmployeeRequest = () => {
             </div>
           </div>
         )}
+      </Dialog>
+
+      {/* Candidate Selection Modal */}
+      <Dialog isOpen={showCandidateModal} onClose={() => setShowCandidateModal(false)}>
+        <div className="space-y-4 w-full max-w-2xl max-h-96 overflow-y-auto">
+          <div className="mb-4">
+            <h2 className="text-lg font-bold">
+              Select Candidates for {currentStandardRequest?.company_name}
+            </h2>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Position: {currentStandardRequest?.position} ({currentStandardRequest?.number_of_employees} employees needed)
+            </p>
+          </div>
+
+          <div className="flex gap-2 mb-4">
+            <Input
+              placeholder="Search candidates by name or skill..."
+              value={candidateSearchTerm}
+              onChange={(e) => setCandidateSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden">
+            <table className="w-full text-sm">
+              <thead className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+                <tr>
+                  <th className="text-left py-3 px-4 w-12">
+                    <Checkbox
+                      checked={
+                        candidates
+                          .filter((c) =>
+                            c.name.toLowerCase().includes(candidateSearchTerm.toLowerCase()) ||
+                            c.job_category.toLowerCase().includes(candidateSearchTerm.toLowerCase())
+                          )
+                          .every((c) => selectedCandidates.includes(c.candidate_id)) &&
+                        candidates.filter((c) =>
+                          c.name.toLowerCase().includes(candidateSearchTerm.toLowerCase()) ||
+                          c.job_category.toLowerCase().includes(candidateSearchTerm.toLowerCase())
+                        ).length > 0
+                      }
+                      onChange={(checked) => handleSelectAllCandidates(checked as boolean)}
+                    />
+                  </th>
+                  <th className="text-left py-3 px-4">Name</th>
+                  <th className="text-left py-3 px-4">Job Category</th>
+                  <th className="text-left py-3 px-4">Skill Level</th>
+                  <th className="text-left py-3 px-4">Education</th>
+                  <th className="text-left py-3 px-4">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {candidates
+                  .filter((c) =>
+                    c.name.toLowerCase().includes(candidateSearchTerm.toLowerCase()) ||
+                    c.job_category.toLowerCase().includes(candidateSearchTerm.toLowerCase())
+                  )
+                  .map((candidate) => (
+                    <tr
+                      key={candidate.candidate_id}
+                      className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      <td className="py-3 px-4">
+                        <Checkbox
+                          checked={selectedCandidates.includes(candidate.candidate_id)}
+                          onChange={(checked) =>
+                            handleSelectCandidate(candidate.candidate_id, checked as boolean)
+                          }
+                        />
+                      </td>
+                      <td className="py-3 px-4 font-medium text-gray-900 dark:text-gray-100">
+                        {candidate.name}
+                      </td>
+                      <td className="py-3 px-4 text-gray-700 dark:text-gray-300">
+                        {candidate.job_category}
+                      </td>
+                      <td className="py-3 px-4 text-gray-700 dark:text-gray-300">
+                        {candidate.skill_level}
+                      </td>
+                      <td className="py-3 px-4 text-gray-700 dark:text-gray-300">
+                        {candidate.education_level}
+                      </td>
+                      <td className="py-3 px-4">
+                        <span
+                          className={`inline-block px-2 py-1 rounded text-xs font-semibold capitalize ${
+                            candidate.status === 'available'
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
+                          }`}
+                        >
+                          {candidate.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+              </tbody>
+            </table>
+
+            {candidates.filter((c) =>
+              c.name.toLowerCase().includes(candidateSearchTerm.toLowerCase()) ||
+              c.job_category.toLowerCase().includes(candidateSearchTerm.toLowerCase())
+            ).length === 0 && (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                No candidates found
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-2 pt-4">
+            <Button onClick={() => setShowCandidateModal(false)}>Cancel</Button>
+            <Button
+              onClick={handleConfirmCandidateSelection}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              Confirm Selection ({selectedCandidates.length})
+            </Button>
+          </div>
+        </div>
       </Dialog>
     </Card>
   )
