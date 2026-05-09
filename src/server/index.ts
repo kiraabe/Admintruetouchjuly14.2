@@ -10,6 +10,7 @@ import bcrypt from 'bcryptjs'
 import candidatesRouter from './routes/candidates/index.ts'
 import usersRouter from './routes/users/index.ts'
 import partnershipsRouter from './routes/partnerships/index.ts'
+import employeeRequestsRouter from './routes/employeeRequests/index.ts'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
@@ -166,6 +167,7 @@ app.get('/api/debug/partnerships', async (req, res) => {
 app.use('/api/candidates', candidatesRouter)
 app.use('/api/partnerships', partnershipsRouter)
 app.use('/api/users', usersRouter)
+app.use('/api/employee-requests', employeeRequestsRouter)
 
 // Auth routes
 app.post('/api/sign-in', async (req: Request, res: Response) => {
@@ -314,6 +316,32 @@ async function startServer() {
       console.log('✓ Partnerships table ready')
     } catch (tableError) {
       console.error('Error creating partnerships table:', tableError)
+    }
+
+    try {
+      console.log('Creating employee_requests table...')
+      await dbPool.query(`
+        CREATE TABLE IF NOT EXISTS employee_requests (
+          id SERIAL PRIMARY KEY,
+          request_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+          company_name VARCHAR(255) NOT NULL,
+          contact_person VARCHAR(255) NOT NULL,
+          email VARCHAR(255) NOT NULL,
+          phone_number VARCHAR(20),
+          position VARCHAR(255) NOT NULL,
+          number_of_employees INT NOT NULL,
+          start_date DATE,
+          location VARCHAR(255),
+          status VARCHAR(50) DEFAULT 'Pending',
+          requirements TEXT,
+          notes TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `)
+      console.log('✓ Employee Requests table ready')
+    } catch (tableError) {
+      console.error('Error creating employee_requests table:', tableError)
     }
 
     console.log('✓ Database initialized')
