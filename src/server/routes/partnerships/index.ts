@@ -2,6 +2,9 @@ import { Router, type Request, type Response } from 'express'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
+import bcrypt from 'bcryptjs'
+import { randomUUID } from 'crypto'
+import pool from '../../db/config.ts'
 import {
   getAllPartnerships,
   getPartnershipById,
@@ -108,6 +111,7 @@ router.post('/', upload.fields([
   { name: 'companyLogo', maxCount: 1 },
   { name: 'licenseDocument', maxCount: 1 },
 ]), async (req, res) => {
+  const client = await pool.connect()
   try {
     console.log('POST /api/partnerships - body:', req.body)
     console.log('POST /api/partnerships - files:', req.files ? Object.keys(req.files) : 'no files')
@@ -120,7 +124,27 @@ router.post('/', upload.fields([
       return res.status(400).json({ success: false, error: 'Missing required fields' })
     }
 
-    const data: any = {
+    await client.query('BEGIN')
+
+    // Create user for the partnership
+    const password = Math.random().toString(36).slice(-12)
+    const hashedPassword = await bcrypt.hash(password, 10)
+    const userId = randomUUID()
+
+    console.log('Creating user for partnership with email:', business_email)
+    const userResult = await client.query(
+      `INSERT INTO users (user_id, email, password_hash, user_name, authority, is_active)
+       VALUES ($1, $2, $3, $4, $5, $6)
+       RETURNING user_id, email, user_name, authority, is_active, created_at`,
+      [userId, business_email, hashedPassword, contact_person_name || company_name, 'partnership', true]
+    )
+
+    const user = userResult.rows[0]
+    console.log('User created:', user)
+
+    // Create partnership with user_id
+    const partnershipData: any = {
+      user_id: userId,
       company_name,
       business_email,
       business_category,
@@ -132,21 +156,36 @@ router.post('/', upload.fields([
     }
 
     if (files?.companyLogo?.[0]) {
-      data.company_logo = `/uploads/partnerships/${files.companyLogo[0].filename}`
+      partnershipData.company_logo = `/uploads/partnerships/${files.companyLogo[0].filename}`
     }
 
     if (files?.licenseDocument?.[0]) {
-      data.license_document = `/uploads/partnerships/${files.licenseDocument[0].filename}`
+      partnershipData.license_document = `/uploads/partnerships/${files.licenseDocument[0].filename}`
     }
 
-    console.log('Creating partnership with data:', data)
-    const partnership = await createPartnership(data)
+    const keys = Object.keys(partnershipData)
+    const partnerId = randomUUID()
+    const allKeys = ['partner_id', ...keys]
+    const allValues = [partnerId, ...keys.map((k) => partnershipData[k])]
+    const keysStr = allKeys.join(', ')
+    const placeholders = allKeys.map((_, i) => `$${i + 1}`).join(', ')
+
+    const query = `INSERT INTO partnerships (${keysStr}) VALUES (${placeholders}) RETURNING *`
+    console.log('Creating partnership with data:', partnershipData)
+
+    const partnershipResult = await client.query(query, allValues)
+    const partnership = partnershipResult.rows[0]
     console.log('Partnership created:', partnership)
-    res.json({ success: true, data: partnership })
+
+    await client.query('COMMIT')
+    res.json({ success: true, data: partnership, user: user })
   } catch (error) {
+    await client.query('ROLLBACK')
     const errorMsg = error instanceof Error ? error.message : String(error)
     console.error('Error creating partnership:', errorMsg, error)
     res.status(500).json({ success: false, error: errorMsg })
+  } finally {
+    client.release()
   }
 })
 

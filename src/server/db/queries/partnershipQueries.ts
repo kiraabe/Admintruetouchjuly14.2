@@ -4,6 +4,7 @@ import { randomUUID } from 'crypto'
 export interface Partnership {
   id: number
   partner_id: string
+  user_id?: string | null
   company_name: string
   company_logo: string | null
   business_email: string

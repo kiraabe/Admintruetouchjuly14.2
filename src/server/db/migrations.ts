@@ -71,6 +71,7 @@ async function runMigrations() {
       CREATE TABLE IF NOT EXISTS partnerships (
         id SERIAL PRIMARY KEY,
         partner_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+        user_id UUID REFERENCES users(user_id) ON DELETE CASCADE,
         company_name VARCHAR(255) NOT NULL,
         company_logo VARCHAR(255),
         business_email VARCHAR(255) UNIQUE NOT NULL,
