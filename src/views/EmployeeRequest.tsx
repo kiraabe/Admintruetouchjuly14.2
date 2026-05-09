@@ -392,16 +392,6 @@ const EmployeeRequest = () => {
         {/* Tabs */}
         <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
           <button
-            onClick={() => setActiveTab('all')}
-            className={`px-4 py-3 font-medium border-b-2 transition-colors ${
-              activeTab === 'all'
-                ? 'border-primary text-primary dark:text-primary'
-                : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
-            }`}
-          >
-            All ({requests.length})
-          </button>
-          <button
             onClick={() => setActiveTab('standard')}
             className={`px-4 py-3 font-medium border-b-2 transition-colors ${
               activeTab === 'standard'
