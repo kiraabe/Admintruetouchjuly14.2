@@ -559,6 +559,7 @@ const Users = () => {
                   >
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
+                    <option value="partnership">Partnership</option>
                   </select>
                 </div>
               </div>
@@ -602,12 +603,21 @@ const Users = () => {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Password</label>
-                  <Input
-                    type="password"
-                    value={newUser.password}
-                    onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
-                    placeholder="Enter password"
-                  />
+                  <div className="flex gap-2">
+                    <Input
+                      type="password"
+                      value={newUser.password}
+                      onChange={(e) => setNewUser({ ...newUser, password: e.target.value })}
+                      placeholder="Enter password"
+                    />
+                    <Button
+                      onClick={() => setNewUser({ ...newUser, password: generatePassword() })}
+                      variant="default"
+                      className="whitespace-nowrap"
+                    >
+                      Generate
+                    </Button>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-2">Role</label>
@@ -618,6 +628,7 @@ const Users = () => {
                   >
                     <option value="user">User</option>
                     <option value="admin">Admin</option>
+                    <option value="partnership">Partnership</option>
                   </select>
                 </div>
               </div>
