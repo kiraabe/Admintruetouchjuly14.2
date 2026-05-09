@@ -404,15 +404,15 @@ const Candidates = () => {
                 >
                   <div className="flex items-center gap-2">
                     Name
-                    {sortColumn === 'name' && (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        {sortDirection === 'asc' ? (
-                          <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
-                        ) : (
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707a1 1 0 00-1.414-1.414L11 9.586V6a1 1 0 00-2 0v3.586L7.707 8.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3z" />
-                        )}
-                      </svg>
-                    )}
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      {sortColumn === 'name' && sortDirection === 'asc' ? (
+                        <path d="M7 14l5-5 5 5z" />
+                      ) : sortColumn === 'name' && sortDirection === 'desc' ? (
+                        <path d="M7 10l5 5 5-5z" />
+                      ) : (
+                        <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
+                      )}
+                    </svg>
                   </div>
                 </th>
                 <th
@@ -421,15 +421,15 @@ const Candidates = () => {
                 >
                   <div className="flex items-center gap-2">
                     Phone
-                    {sortColumn === 'phone_number' && (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        {sortDirection === 'asc' ? (
-                          <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
-                        ) : (
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707a1 1 0 00-1.414-1.414L11 9.586V6a1 1 0 00-2 0v3.586L7.707 8.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3z" />
-                        )}
-                      </svg>
-                    )}
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      {sortColumn === 'phone_number' && sortDirection === 'asc' ? (
+                        <path d="M7 14l5-5 5 5z" />
+                      ) : sortColumn === 'phone_number' && sortDirection === 'desc' ? (
+                        <path d="M7 10l5 5 5-5z" />
+                      ) : (
+                        <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
+                      )}
+                    </svg>
                   </div>
                 </th>
                 <th
@@ -438,15 +438,15 @@ const Candidates = () => {
                 >
                   <div className="flex items-center gap-2">
                     Job Category
-                    {sortColumn === 'job_category' && (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        {sortDirection === 'asc' ? (
-                          <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
-                        ) : (
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707a1 1 0 00-1.414-1.414L11 9.586V6a1 1 0 00-2 0v3.586L7.707 8.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3z" />
-                        )}
-                      </svg>
-                    )}
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      {sortColumn === 'job_category' && sortDirection === 'asc' ? (
+                        <path d="M7 14l5-5 5 5z" />
+                      ) : sortColumn === 'job_category' && sortDirection === 'desc' ? (
+                        <path d="M7 10l5 5 5-5z" />
+                      ) : (
+                        <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
+                      )}
+                    </svg>
                   </div>
                 </th>
                 <th
@@ -455,15 +455,15 @@ const Candidates = () => {
                 >
                   <div className="flex items-center gap-2">
                     Nationality
-                    {sortColumn === 'nationality' && (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        {sortDirection === 'asc' ? (
-                          <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
-                        ) : (
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707a1 1 0 00-1.414-1.414L11 9.586V6a1 1 0 00-2 0v3.586L7.707 8.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3z" />
-                        )}
-                      </svg>
-                    )}
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      {sortColumn === 'nationality' && sortDirection === 'asc' ? (
+                        <path d="M7 14l5-5 5 5z" />
+                      ) : sortColumn === 'nationality' && sortDirection === 'desc' ? (
+                        <path d="M7 10l5 5 5-5z" />
+                      ) : (
+                        <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
+                      )}
+                    </svg>
                   </div>
                 </th>
                 <th
@@ -472,15 +472,15 @@ const Candidates = () => {
                 >
                   <div className="flex items-center gap-2">
                     Skill Level
-                    {sortColumn === 'skill_level' && (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        {sortDirection === 'asc' ? (
-                          <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
-                        ) : (
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707a1 1 0 00-1.414-1.414L11 9.586V6a1 1 0 00-2 0v3.586L7.707 8.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3z" />
-                        )}
-                      </svg>
-                    )}
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      {sortColumn === 'skill_level' && sortDirection === 'asc' ? (
+                        <path d="M7 14l5-5 5 5z" />
+                      ) : sortColumn === 'skill_level' && sortDirection === 'desc' ? (
+                        <path d="M7 10l5 5 5-5z" />
+                      ) : (
+                        <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
+                      )}
+                    </svg>
                   </div>
                 </th>
                 <th
@@ -489,15 +489,15 @@ const Candidates = () => {
                 >
                   <div className="flex items-center gap-2">
                     Status
-                    {sortColumn === 'status' && (
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                        {sortDirection === 'asc' ? (
-                          <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
-                        ) : (
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707a1 1 0 00-1.414-1.414L11 9.586V6a1 1 0 00-2 0v3.586L7.707 8.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3z" />
-                        )}
-                      </svg>
-                    )}
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      {sortColumn === 'status' && sortDirection === 'asc' ? (
+                        <path d="M7 14l5-5 5 5z" />
+                      ) : sortColumn === 'status' && sortDirection === 'desc' ? (
+                        <path d="M7 10l5 5 5-5z" />
+                      ) : (
+                        <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
+                      )}
+                    </svg>
                   </div>
                 </th>
                 <th className="text-left py-3 px-4">Actions</th>
