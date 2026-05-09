@@ -906,7 +906,7 @@ const EmployeeRequest = () => {
 
       {/* Candidate Selection Modal */}
       <Dialog isOpen={showCandidateModal} onClose={() => setShowCandidateModal(false)}>
-        <div className="space-y-4 w-full max-w-5xl max-h-[80vh] overflow-y-auto">
+        <div className="space-y-4 w-full max-w-7xl max-h-[90vh] overflow-y-auto">
           <div className="mb-4">
             <h2 className="text-lg font-bold">
               Select Candidates for {currentStandardRequest?.company_name}
