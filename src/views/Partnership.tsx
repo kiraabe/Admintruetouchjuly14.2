@@ -142,7 +142,7 @@ const Partnership = () => {
         license_number: '',
         contact_person_name: '',
         phone_number: '',
-        service_city: '',
+        service_city: 'Dubai',
         status: 'pending',
       })
     }
@@ -157,6 +157,14 @@ const Partnership = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+
+    // Validate required fields
+    if (!formData.company_name || !formData.business_email || !formData.business_category ||
+        !formData.license_number || !formData.contact_person_name || !formData.phone_number ||
+        !formData.service_city) {
+      toast.error('Please fill in all required fields')
+      return
+    }
 
     const formDataObj = new FormData()
     Object.entries(formData).forEach(([key, value]) => {
@@ -180,7 +188,8 @@ const Partnership = () => {
       })
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`)
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`)
       }
 
       const result = await response.json()
@@ -192,8 +201,9 @@ const Partnership = () => {
         toast.error(result.error || 'Failed to save partnership')
       }
     } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Failed to save partnership'
       console.error('Error saving partnership:', error)
-      toast.error('Failed to save partnership')
+      toast.error(errorMsg)
     }
   }
 
