@@ -172,7 +172,7 @@ const EditPartnership = () => {
           if (partnerId) {
             const password = Math.random().toString(36).slice(-12)
             try {
-              await fetch('/api/users', {
+              const userResponse = await fetch('/api/users', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -183,6 +183,11 @@ const EditPartnership = () => {
                   partnership_id: partnerId,
                 }),
               })
+
+              if (!userResponse.ok) {
+                const errorData = await userResponse.json()
+                console.error('Error creating partnership user:', errorData)
+              }
             } catch (userError) {
               console.error('Error creating partnership user:', userError)
             }

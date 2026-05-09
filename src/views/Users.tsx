@@ -296,6 +296,12 @@ const Users = () => {
     return isActive ? 'bg-emerald-200' : 'bg-red-200'
   }
 
+  const getPartnershipName = (partnershipId: string | null | undefined) => {
+    if (!partnershipId) return '-'
+    const partnership = partnerships.find((p) => p.partner_id === partnershipId)
+    return partnership?.company_name || '-'
+  }
+
   const filteredUsers = users.filter(
     (user) =>
       user.user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -471,9 +477,7 @@ const Users = () => {
                   <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{user.email}</td>
                   <td className="py-3 px-4 text-gray-600 dark:text-gray-400 capitalize">{user.authority}</td>
                   <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
-                    {user.partnership_id
-                      ? partnerships.find((p) => p.partner_id === user.partnership_id)?.company_name || '-'
-                      : '-'}
+                    {getPartnershipName(user.partnership_id)}
                   </td>
                   <td className="py-3 px-4">
                     <Tag className={`${getStatusColor(user.is_active)} text-gray-900 dark:text-gray-900`}>
