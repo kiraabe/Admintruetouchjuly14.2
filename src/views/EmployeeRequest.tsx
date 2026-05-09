@@ -43,6 +43,7 @@ const EmployeeRequest = () => {
   const [filters, setFilters] = useState<Partial<EmployeeRequest>>({})
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+  const [activeTab, setActiveTab] = useState<'all' | 'standard' | 'special'>('all')
 
   useEffect(() => {
     fetchRequests()
@@ -59,6 +60,12 @@ const EmployeeRequest = () => {
 
   useEffect(() => {
     let filtered = requests
+
+    if (activeTab === 'standard') {
+      filtered = filtered.filter((r) => r.request_type === 'Standard')
+    } else if (activeTab === 'special') {
+      filtered = filtered.filter((r) => r.request_type === 'Special')
+    }
 
     if (searchTerm) {
       filtered = filtered.filter(
@@ -105,7 +112,7 @@ const EmployeeRequest = () => {
     }
 
     setFilteredRequests(filtered)
-  }, [requests, searchTerm, filters, sortColumn, sortDirection])
+  }, [requests, searchTerm, filters, sortColumn, sortDirection, activeTab])
 
   const fetchRequests = async () => {
     try {
@@ -290,6 +297,40 @@ const EmployeeRequest = () => {
           </button>
         </div>
 
+        {/* Tabs */}
+        <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
+          <button
+            onClick={() => setActiveTab('all')}
+            className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+              activeTab === 'all'
+                ? 'border-primary text-primary dark:text-primary'
+                : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            }`}
+          >
+            All ({requests.length})
+          </button>
+          <button
+            onClick={() => setActiveTab('standard')}
+            className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+              activeTab === 'standard'
+                ? 'border-primary text-primary dark:text-primary'
+                : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            }`}
+          >
+            Standard ({requests.filter((r) => r.request_type === 'Standard').length})
+          </button>
+          <button
+            onClick={() => setActiveTab('special')}
+            className={`px-4 py-3 font-medium border-b-2 transition-colors ${
+              activeTab === 'special'
+                ? 'border-primary text-primary dark:text-primary'
+                : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+            }`}
+          >
+            Special ({requests.filter((r) => r.request_type === 'Special').length})
+          </button>
+        </div>
+
         {/* Search and Filter */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
           <div className="input-wrapper relative flex-1">
@@ -426,23 +467,6 @@ const EmployeeRequest = () => {
                 </th>
                 <th
                   className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
-                  onClick={() => handleSort('request_type')}
-                >
-                  <div className="flex items-center gap-2">
-                    Type
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      {sortColumn === 'request_type' && sortDirection === 'asc' ? (
-                        <path d="M7 14l5-5 5 5z" />
-                      ) : sortColumn === 'request_type' && sortDirection === 'desc' ? (
-                        <path d="M7 10l5 5 5-5z" />
-                      ) : (
-                        <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
-                      )}
-                    </svg>
-                  </div>
-                </th>
-                <th
-                  className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
                   onClick={() => handleSort('status')}
                 >
                   <div className="flex items-center gap-2">
@@ -464,13 +488,13 @@ const EmployeeRequest = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-4">
+                  <td colSpan={7} className="text-center py-4">
                     Loading...
                   </td>
                 </tr>
               ) : filteredRequests.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-4 text-gray-500">
+                  <td colSpan={7} className="text-center py-4 text-gray-500">
                     No requests found
                   </td>
                 </tr>
@@ -497,11 +521,6 @@ const EmployeeRequest = () => {
                     </td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
                       {request.number_of_employees}
-                    </td>
-                    <td className="py-3 px-4">
-                      <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize bg-blue-200 text-blue-900 dark:bg-blue-900 dark:text-blue-200">
-                        {request.request_type}
-                      </span>
                     </td>
                     <td className="py-3 px-4">
                       <span
