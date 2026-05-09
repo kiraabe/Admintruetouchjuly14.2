@@ -116,6 +116,53 @@ app.get('/api/debug/users', async (req, res) => {
   }
 })
 
+// Debug endpoint to check employee requests table
+app.get('/api/debug/employee-requests', async (req, res) => {
+  try {
+    const dbPool = await initPool()
+
+    // Check if table exists
+    const tableCheck = await dbPool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_name = 'employee_requests'
+      )
+    `)
+    const tableExists = tableCheck.rows[0].exists
+
+    if (!tableExists) {
+      return res.json({
+        status: 'TABLE_MISSING',
+        message: 'Employee requests table does not exist',
+        tableExists: false
+      })
+    }
+
+    // Get column info
+    const columns = await dbPool.query(`
+      SELECT column_name, data_type
+      FROM information_schema.columns
+      WHERE table_name = 'employee_requests'
+      ORDER BY ordinal_position
+    `)
+
+    // Count rows
+    const count = await dbPool.query('SELECT COUNT(*) as count FROM employee_requests')
+
+    res.json({
+      status: 'OK',
+      tableExists: true,
+      rowCount: count.rows[0].count,
+      columns: columns.rows
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to check employee requests table',
+      details: error
+    })
+  }
+})
+
 // Debug endpoint to check partnerships table
 app.get('/api/debug/partnerships', async (req, res) => {
   try {
@@ -160,6 +207,18 @@ app.get('/api/debug/partnerships', async (req, res) => {
       error: error instanceof Error ? error.message : 'Failed to check partnerships table',
       details: error
     })
+  }
+})
+
+// Test employee requests table
+app.get('/api/test-employee-requests', async (req, res) => {
+  try {
+    const dbPool = await initPool()
+    const result = await dbPool.query('SELECT 1 as test')
+    res.json({ success: true, message: 'Database connection working', data: result.rows })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    res.status(500).json({ error: errorMsg })
   }
 })
 

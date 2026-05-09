@@ -1,4 +1,5 @@
 import { Router, type Request, type Response } from 'express'
+import pool from '../../db/config.ts'
 import {
   getAllEmployeeRequests,
   getEmployeeRequestById,
@@ -11,18 +12,59 @@ import {
 
 const router = Router()
 
+// Ensure table exists
+async function ensureTableExists() {
+  try {
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS employee_requests (
+        id SERIAL PRIMARY KEY,
+        request_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+        company_name VARCHAR(255) NOT NULL,
+        contact_person VARCHAR(255) NOT NULL,
+        email VARCHAR(255) NOT NULL,
+        phone_number VARCHAR(20),
+        position VARCHAR(255) NOT NULL,
+        number_of_employees INT NOT NULL,
+        start_date DATE,
+        location VARCHAR(255),
+        status VARCHAR(50) DEFAULT 'Pending',
+        requirements TEXT,
+        notes TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+  } catch (error) {
+    console.error('Failed to ensure employee_requests table exists:', error)
+  }
+}
+
 router.get('/', async (req, res) => {
   try {
+    console.log('GET /api/employee-requests - fetching requests')
+
+    // Ensure table exists before querying
+    await ensureTableExists()
+
     const { search, ...filters } = req.query
 
     let requests
 
-    if (search && typeof search === 'string') {
-      requests = await searchEmployeeRequests(search)
-    } else if (Object.keys(filters).length > 0) {
-      requests = await filterEmployeeRequests(filters as any)
-    } else {
-      requests = await getAllEmployeeRequests()
+    try {
+      if (search && typeof search === 'string') {
+        console.log('Searching with term:', search)
+        requests = await searchEmployeeRequests(search)
+      } else if (Object.keys(filters).length > 0) {
+        console.log('Filtering with:', filters)
+        requests = await filterEmployeeRequests(filters as any)
+      } else {
+        console.log('Fetching all employee requests')
+        requests = await getAllEmployeeRequests()
+      }
+      console.log('Successfully fetched', requests.length, 'employee requests')
+    } catch (queryError) {
+      console.error('Database query error:', queryError)
+      throw new Error(`Database error: ${queryError instanceof Error ? queryError.message : String(queryError)}`)
     }
 
     res.json({ success: true, data: requests || [] })
@@ -35,6 +77,7 @@ router.get('/', async (req, res) => {
 
 router.get('/:requestId', async (req, res) => {
   try {
+    await ensureTableExists()
     const request = await getEmployeeRequestById(req.params.requestId)
 
     if (!request) {
@@ -50,6 +93,7 @@ router.get('/:requestId', async (req, res) => {
 
 router.post('/', async (req: Request, res: Response) => {
   try {
+    await ensureTableExists()
     const data = req.body
 
     const request = await createEmployeeRequest(data)
@@ -64,6 +108,7 @@ router.post('/', async (req: Request, res: Response) => {
 
 router.put('/:requestId', async (req: Request, res: Response) => {
   try {
+    await ensureTableExists()
     const data = req.body
 
     const request = await updateEmployeeRequest(req.params.requestId, data)
@@ -80,6 +125,7 @@ router.put('/:requestId', async (req: Request, res: Response) => {
 
 router.delete('/:requestId', async (req, res) => {
   try {
+    await ensureTableExists()
     const success = await deleteEmployeeRequest(req.params.requestId)
 
     if (!success) {

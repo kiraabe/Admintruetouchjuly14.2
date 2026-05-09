@@ -32,14 +32,15 @@ export async function getEmployeeRequestById(requestId: string) {
 }
 
 export async function searchEmployeeRequests(searchTerm: string) {
+  const term = `%${searchTerm}%`
   const result = await pool.query(
     `SELECT * FROM employee_requests
-    WHERE LOWER(company_name) LIKE LOWER($1)
-    OR LOWER(contact_person) LIKE LOWER($1)
-    OR LOWER(email) LIKE LOWER($1)
-    OR LOWER(position) LIKE LOWER($1)
+    WHERE company_name ILIKE $1
+    OR contact_person ILIKE $1
+    OR email ILIKE $1
+    OR position ILIKE $1
     ORDER BY created_at DESC`,
-    [`%${searchTerm}%`]
+    [term]
   )
   return result.rows
 }
@@ -56,19 +57,19 @@ export async function filterEmployeeRequests(filters: Record<string, any>) {
   }
 
   if (filters.position) {
-    query += ` AND LOWER(position) LIKE LOWER($${paramIndex})`
+    query += ` AND position ILIKE $${paramIndex}`
     params.push(`%${filters.position}%`)
     paramIndex++
   }
 
   if (filters.location) {
-    query += ` AND LOWER(location) LIKE LOWER($${paramIndex})`
+    query += ` AND location ILIKE $${paramIndex}`
     params.push(`%${filters.location}%`)
     paramIndex++
   }
 
   if (filters.company_name) {
-    query += ` AND LOWER(company_name) LIKE LOWER($${paramIndex})`
+    query += ` AND company_name ILIKE $${paramIndex}`
     params.push(`%${filters.company_name}%`)
     paramIndex++
   }
