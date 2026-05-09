@@ -83,11 +83,18 @@ export async function createPartnership(data: Partial<Partnership>): Promise<Par
   const placeholders = keys.map((_, i) => `$${i + 1}`).join(', ')
   const values = keys.map((k) => data[k as keyof Partnership])
 
-  const result = await pool.query(
-    `INSERT INTO partnerships (${keysStr}) VALUES (${placeholders}) RETURNING *`,
-    values,
-  )
-  return result.rows[0]
+  const query = `INSERT INTO partnerships (${keysStr}) VALUES (${placeholders}) RETURNING *`
+  console.log('createPartnership - Query:', query)
+  console.log('createPartnership - Values:', values)
+
+  try {
+    const result = await pool.query(query, values)
+    console.log('createPartnership - Success:', result.rows[0])
+    return result.rows[0]
+  } catch (error) {
+    console.error('createPartnership - Query error:', error)
+    throw error
+  }
 }
 
 export async function updatePartnership(

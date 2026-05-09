@@ -109,10 +109,14 @@ router.post('/', upload.fields([
   { name: 'licenseDocument', maxCount: 1 },
 ]), async (req, res) => {
   try {
+    console.log('POST /api/partnerships - body:', req.body)
+    console.log('POST /api/partnerships - files:', req.files ? Object.keys(req.files) : 'no files')
+
     const { company_name, business_email, business_category, license_number, contact_person_name, phone_number, service_city, status } = req.body
     const files = req.files as { [key: string]: Express.Multer.File[] }
 
     if (!company_name || !business_email || !business_category || !license_number || !contact_person_name || !phone_number || !service_city) {
+      console.log('Missing fields:', { company_name, business_email, business_category, license_number, contact_person_name, phone_number, service_city })
       return res.status(400).json({ success: false, error: 'Missing required fields' })
     }
 
@@ -135,7 +139,9 @@ router.post('/', upload.fields([
       data.license_document = `/uploads/partnerships/${files.licenseDocument[0].filename}`
     }
 
+    console.log('Creating partnership with data:', data)
     const partnership = await createPartnership(data)
+    console.log('Partnership created:', partnership)
     res.json({ success: true, data: partnership })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
