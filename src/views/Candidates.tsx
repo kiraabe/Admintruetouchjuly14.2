@@ -27,6 +27,7 @@ interface Candidate {
   country: string | null
   city: string | null
   current_location: string | null
+  profile_picture: string | null
   resume_url: string | null
   medical_status: string | null
   created_at: Date
@@ -373,7 +374,19 @@ const Candidates = () => {
                         onChange={(checked) => handleSelectCandidate(candidate.candidate_id, checked as boolean)}
                       />
                     </td>
-                    <td className="py-3 px-4 font-semibold">{candidate.name}</td>
+                    <td className="py-3 px-4 font-semibold">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={candidate.profile_picture || '/img/placeholder-avatar.png'}
+                          alt={candidate.name}
+                          className="w-10 h-10 rounded-full object-cover"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).src = '/img/placeholder-avatar.png'
+                          }}
+                        />
+                        <span>{candidate.name}</span>
+                      </div>
+                    </td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.phone_number || '-'}</td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
                       {candidate.job_category || '-'}
