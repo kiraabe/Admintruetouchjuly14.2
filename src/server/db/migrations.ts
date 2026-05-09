@@ -87,6 +87,26 @@ async function runMigrations() {
       )
     `)
 
+    // Add foreign key constraint from users to partnerships if it doesn't exist
+    try {
+      const constraintCheck = await pool.query(`
+        SELECT constraint_name
+        FROM information_schema.table_constraints
+        WHERE table_name = 'users' AND constraint_name = 'fk_users_partnership_id'
+      `)
+
+      if (constraintCheck.rows.length === 0) {
+        await pool.query(`
+          ALTER TABLE users
+          ADD CONSTRAINT fk_users_partnership_id
+          FOREIGN KEY (partnership_id) REFERENCES partnerships(partner_id) ON DELETE CASCADE
+        `)
+        console.log('✓ Foreign key constraint added from users to partnerships')
+      }
+    } catch (fkError) {
+      console.log('Foreign key constraint may already exist or error:', fkError instanceof Error ? fkError.message : fkError)
+    }
+
     console.log('✓ Partnerships table created')
 
     console.log('Migrations completed successfully')

@@ -501,6 +501,28 @@ async function startServer() {
         )
       `)
       console.log('✓ Partnerships table ready')
+
+      // Add foreign key constraint from users to partnerships
+      try {
+        const constraintCheck = await dbPool.query(`
+          SELECT constraint_name
+          FROM information_schema.table_constraints
+          WHERE table_name = 'users' AND constraint_name = 'fk_users_partnership_id'
+        `)
+
+        if (constraintCheck.rows.length === 0) {
+          await dbPool.query(`
+            ALTER TABLE users
+            ADD CONSTRAINT fk_users_partnership_id
+            FOREIGN KEY (partnership_id) REFERENCES partnerships(partner_id) ON DELETE CASCADE
+          `)
+          console.log('✓ Foreign key constraint added from users to partnerships')
+        } else {
+          console.log('✓ Foreign key constraint already exists')
+        }
+      } catch (fkError) {
+        console.log('Note: Foreign key constraint setup:', fkError instanceof Error ? fkError.message : fkError)
+      }
     } catch (tableError) {
       console.error('Error creating partnerships table:', tableError)
     }
