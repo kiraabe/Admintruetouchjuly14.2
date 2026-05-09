@@ -68,10 +68,16 @@ const Partnership = () => {
 
   useEffect(() => {
     if (isModalOpen) {
-      const dialogElement = document.querySelector('.dialog')
-      if (dialogElement) {
-        dialogElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      }
+      setTimeout(() => {
+        const dialogElement = document.querySelector('.dialog')
+        if (dialogElement) {
+          const rect = dialogElement.getBoundingClientRect()
+          window.scrollBy({
+            top: rect.top - window.innerHeight / 2 + rect.height / 2,
+            behavior: 'smooth',
+          })
+        }
+      }, 100)
     }
   }, [isModalOpen])
 
