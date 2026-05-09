@@ -59,6 +59,7 @@ async function runMigrations() {
         current_location VARCHAR(255),
         resume_url VARCHAR(255),
         medical_status VARCHAR(255),
+        status VARCHAR(50) DEFAULT 'available',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
