@@ -9,6 +9,7 @@ import { notify } from '@/utils/notification'
 interface EmployeeRequest {
   id: number
   request_id: string
+  request_type: 'Standard' | 'Special'
   company_name: string
   contact_person: string
   email: string
@@ -20,6 +21,10 @@ interface EmployeeRequest {
   status: string
   requirements: string | null
   notes: string | null
+  salary_range: string | null
+  required_skills: string | null
+  work_city: string | null
+  urgency: string | null
   created_at: string
   updated_at: string
 }
@@ -421,6 +426,23 @@ const EmployeeRequest = () => {
                 </th>
                 <th
                   className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                  onClick={() => handleSort('request_type')}
+                >
+                  <div className="flex items-center gap-2">
+                    Type
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      {sortColumn === 'request_type' && sortDirection === 'asc' ? (
+                        <path d="M7 14l5-5 5 5z" />
+                      ) : sortColumn === 'request_type' && sortDirection === 'desc' ? (
+                        <path d="M7 10l5 5 5-5z" />
+                      ) : (
+                        <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
+                      )}
+                    </svg>
+                  </div>
+                </th>
+                <th
+                  className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
                   onClick={() => handleSort('status')}
                 >
                   <div className="flex items-center gap-2">
@@ -442,13 +464,13 @@ const EmployeeRequest = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-4">
+                  <td colSpan={8} className="text-center py-4">
                     Loading...
                   </td>
                 </tr>
               ) : filteredRequests.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-4 text-gray-500">
+                  <td colSpan={8} className="text-center py-4 text-gray-500">
                     No requests found
                   </td>
                 </tr>
@@ -475,6 +497,11 @@ const EmployeeRequest = () => {
                     </td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
                       {request.number_of_employees}
+                    </td>
+                    <td className="py-3 px-4">
+                      <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize bg-blue-200 text-blue-900 dark:bg-blue-900 dark:text-blue-200">
+                        {request.request_type}
+                      </span>
                     </td>
                     <td className="py-3 px-4">
                       <span
@@ -555,6 +582,19 @@ const EmployeeRequest = () => {
         </div>
         <div className="space-y-4 max-h-96 overflow-y-auto">
           <div>
+            <label className="form-label">Request Type</label>
+            <select
+              value={filters.request_type || ''}
+              onChange={(e) => setFilters({ ...filters, request_type: e.target.value })}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+            >
+              <option value="">All types</option>
+              <option value="Standard">Standard</option>
+              <option value="Special">Special</option>
+            </select>
+          </div>
+
+          <div>
             <label className="form-label">Status</label>
             <select
               value={filters.status || ''}
@@ -600,9 +640,14 @@ const EmployeeRequest = () => {
       {/* Details Modal */}
       <Dialog isOpen={showDetailsModal} onClose={() => setShowDetailsModal(false)}>
         {selectedRequest && (
-          <div className="space-y-4">
+          <div className="space-y-4 max-h-96 overflow-y-auto">
             <div className="mb-4">
-              <h2 className="text-lg font-bold">Request Details</h2>
+              <div className="flex items-center gap-4">
+                <h2 className="text-lg font-bold">Request Details</h2>
+                <span className="inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize bg-blue-200 text-blue-900 dark:bg-blue-900 dark:text-blue-200">
+                  {selectedRequest.request_type}
+                </span>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -643,6 +688,38 @@ const EmployeeRequest = () => {
                 </p>
               </div>
             </div>
+
+            {selectedRequest.request_type === 'Special' && (
+              <div className="space-y-3 border-t border-gray-200 dark:border-gray-700 pt-4">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">Special Request Details</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  {selectedRequest.salary_range && (
+                    <div>
+                      <label className="form-label">Salary Range</label>
+                      <p className="text-gray-700 dark:text-gray-300">{selectedRequest.salary_range}</p>
+                    </div>
+                  )}
+                  {selectedRequest.work_city && (
+                    <div>
+                      <label className="form-label">Work City</label>
+                      <p className="text-gray-700 dark:text-gray-300">{selectedRequest.work_city}</p>
+                    </div>
+                  )}
+                  {selectedRequest.urgency && (
+                    <div>
+                      <label className="form-label">Urgency</label>
+                      <p className="text-gray-700 dark:text-gray-300 capitalize">{selectedRequest.urgency}</p>
+                    </div>
+                  )}
+                </div>
+                {selectedRequest.required_skills && (
+                  <div>
+                    <label className="form-label">Required Skills</label>
+                    <p className="text-gray-700 dark:text-gray-300">{selectedRequest.required_skills}</p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {selectedRequest.requirements && (
               <div>

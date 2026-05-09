@@ -2,6 +2,7 @@ import pool from '../config.ts'
 
 interface EmployeeRequest {
   request_id?: string
+  request_type?: 'Standard' | 'Special'
   company_name: string
   contact_person: string
   email: string
@@ -13,6 +14,10 @@ interface EmployeeRequest {
   status?: string
   requirements?: string | null
   notes?: string | null
+  salary_range?: string | null
+  required_skills?: string | null
+  work_city?: string | null
+  urgency?: string | null
 }
 
 export async function getAllEmployeeRequests() {
@@ -81,6 +86,7 @@ export async function filterEmployeeRequests(filters: Record<string, any>) {
 
 export async function createEmployeeRequest(data: EmployeeRequest) {
   const {
+    request_type = 'Standard',
     company_name,
     contact_person,
     email,
@@ -92,6 +98,10 @@ export async function createEmployeeRequest(data: EmployeeRequest) {
     status = 'Pending',
     requirements,
     notes,
+    salary_range,
+    required_skills,
+    work_city,
+    urgency,
   } = data
 
   if (!company_name || !contact_person || !email || !position || !number_of_employees) {
@@ -100,10 +110,10 @@ export async function createEmployeeRequest(data: EmployeeRequest) {
 
   const result = await pool.query(
     `INSERT INTO employee_requests
-    (company_name, contact_person, email, phone_number, position, number_of_employees, start_date, location, status, requirements, notes)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+    (request_type, company_name, contact_person, email, phone_number, position, number_of_employees, start_date, location, status, requirements, notes, salary_range, required_skills, work_city, urgency)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
     RETURNING *`,
-    [company_name, contact_person, email, phone_number, position, number_of_employees, start_date, location, status, requirements, notes]
+    [request_type, company_name, contact_person, email, phone_number, position, number_of_employees, start_date, location, status, requirements, notes, salary_range, required_skills, work_city, urgency]
   )
   return result.rows[0]
 }
@@ -114,6 +124,7 @@ export async function updateEmployeeRequest(requestId: string, data: Partial<Emp
   let paramIndex = 1
 
   const fieldsToUpdate = [
+    'request_type',
     'company_name',
     'contact_person',
     'email',
@@ -125,6 +136,10 @@ export async function updateEmployeeRequest(requestId: string, data: Partial<Emp
     'status',
     'requirements',
     'notes',
+    'salary_range',
+    'required_skills',
+    'work_city',
+    'urgency',
   ]
 
   for (const field of fieldsToUpdate) {

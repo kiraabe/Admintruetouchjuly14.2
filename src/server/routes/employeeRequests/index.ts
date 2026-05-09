@@ -19,6 +19,7 @@ async function ensureTableExists() {
       CREATE TABLE IF NOT EXISTS employee_requests (
         id SERIAL PRIMARY KEY,
         request_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+        request_type VARCHAR(50) DEFAULT 'Standard',
         company_name VARCHAR(255) NOT NULL,
         contact_person VARCHAR(255) NOT NULL,
         email VARCHAR(255) NOT NULL,
@@ -30,6 +31,10 @@ async function ensureTableExists() {
         status VARCHAR(50) DEFAULT 'Pending',
         requirements TEXT,
         notes TEXT,
+        salary_range VARCHAR(255),
+        required_skills TEXT,
+        work_city VARCHAR(255),
+        urgency VARCHAR(50),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
