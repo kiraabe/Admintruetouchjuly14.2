@@ -536,17 +536,12 @@ const Partnership = () => {
               <div>
                 <label className="block text-sm font-medium mb-1">Business Category</label>
                 <Select
-                  value={formData.business_category}
+                  options={businessCategories.map((cat) => ({ value: cat, label: cat }))}
+                  value={{ value: formData.business_category, label: formData.business_category }}
                   onChange={(val) =>
-                    setFormData({ ...formData, business_category: val || 'Agency' })
+                    setFormData({ ...formData, business_category: val?.value || 'Agency' })
                   }
-                >
-                  {businessCategories.map((cat) => (
-                    <Select.Option key={cat} value={cat}>
-                      {cat}
-                    </Select.Option>
-                  ))}
-                </Select>
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Company Logo</label>
@@ -626,27 +621,24 @@ const Partnership = () => {
               <div>
                 <label className="block text-sm font-medium mb-1">Service City</label>
                 <Select
-                  value={formData.service_city}
-                  onChange={(val) => setFormData({ ...formData, service_city: val || '' })}
-                >
-                  <Select.Option value="">Select a city</Select.Option>
-                  {serviceCities.map((city) => (
-                    <Select.Option key={city} value={city}>
-                      {city}
-                    </Select.Option>
-                  ))}
-                </Select>
+                  options={serviceCities.map((city) => ({ value: city, label: city }))}
+                  value={formData.service_city ? { value: formData.service_city, label: formData.service_city } : null}
+                  onChange={(val) => setFormData({ ...formData, service_city: val?.value || '' })}
+                  placeholder="Select a city"
+                  isClearable
+                />
               </div>
               <div>
                 <label className="block text-sm font-medium mb-1">Status</label>
                 <Select
-                  value={formData.status}
-                  onChange={(val) => setFormData({ ...formData, status: val || 'pending' })}
-                >
-                  <Select.Option value="pending">Pending</Select.Option>
-                  <Select.Option value="active">Active</Select.Option>
-                  <Select.Option value="inactive">Inactive</Select.Option>
-                </Select>
+                  options={[
+                    { value: 'pending', label: 'Pending' },
+                    { value: 'active', label: 'Active' },
+                    { value: 'inactive', label: 'Inactive' },
+                  ]}
+                  value={{ value: formData.status, label: formData.status.charAt(0).toUpperCase() + formData.status.slice(1) }}
+                  onChange={(val) => setFormData({ ...formData, status: val?.value as 'pending' | 'active' | 'inactive' || 'pending' })}
+                />
               </div>
             </div>
           </div>
