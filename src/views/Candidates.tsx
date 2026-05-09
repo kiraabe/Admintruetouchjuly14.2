@@ -30,6 +30,7 @@ interface Candidate {
   profile_picture: string | null
   resume_url: string | null
   medical_status: string | null
+  status: string | null
   created_at: Date
   updated_at: Date
 }
@@ -68,6 +69,7 @@ const Candidates = () => {
   const [showFilterModal, setShowFilterModal] = useState(false)
   const [loading, setLoading] = useState(false)
   const [filters, setFilters] = useState<Partial<Candidate>>({})
+  const [activeTab, setActiveTab] = useState('available')
 
   useEffect(() => {
     fetchCandidates()
@@ -75,6 +77,9 @@ const Candidates = () => {
 
   useEffect(() => {
     let filtered = candidates
+
+    // Filter by active tab
+    filtered = filtered.filter((c) => c.status === activeTab)
 
     if (searchTerm) {
       filtered = filtered.filter(
@@ -99,7 +104,7 @@ const Candidates = () => {
     }
 
     setFilteredCandidates(filtered)
-  }, [candidates, searchTerm, filters])
+  }, [candidates, searchTerm, filters, activeTab])
 
   const fetchCandidates = async () => {
     try {
@@ -175,6 +180,7 @@ const Candidates = () => {
       'Job Category',
       'Skill Level',
       'Country',
+      'Status',
     ]
     const csv = [
       headers,
@@ -188,6 +194,7 @@ const Candidates = () => {
         c.job_category || '',
         c.skill_level || '',
         c.country || '',
+        c.status || '',
       ]),
     ]
       .map((row) => row.join(','))
@@ -275,6 +282,23 @@ const Candidates = () => {
           </div>
         </div>
 
+        {/* Tabs */}
+        <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
+          {['available', 'Processing', 'Employee'].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`px-4 py-2 font-medium transition-colors ${
+                activeTab === tab
+                  ? 'text-primary border-b-2 border-primary'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300'
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+
         {/* Search and Filter */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
           <div className="input-wrapper relative flex-1">
@@ -346,19 +370,20 @@ const Candidates = () => {
                 <th className="text-left py-3 px-4">Job Category</th>
                 <th className="text-left py-3 px-4">Nationality</th>
                 <th className="text-left py-3 px-4">Skill Level</th>
+                <th className="text-left py-3 px-4">Status</th>
                 <th className="text-left py-3 px-4">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-4">
+                  <td colSpan={8} className="text-center py-4">
                     Loading...
                   </td>
                 </tr>
               ) : filteredCandidates.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="text-center py-4 text-gray-500">
+                  <td colSpan={8} className="text-center py-4 text-gray-500">
                     No candidates found
                   </td>
                 </tr>
@@ -393,6 +418,19 @@ const Candidates = () => {
                     </td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.nationality || '-'}</td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.skill_level || '-'}</td>
+                    <td className="py-3 px-4">
+                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize ${
+                        candidate.status === 'available'
+                          ? 'bg-emerald-200 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200'
+                          : candidate.status === 'Processing'
+                          ? 'bg-blue-200 text-blue-900 dark:bg-blue-900 dark:text-blue-200'
+                          : candidate.status === 'Employee'
+                          ? 'bg-purple-200 text-purple-900 dark:bg-purple-900 dark:text-purple-200'
+                          : 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-300'
+                      }`}>
+                        {candidate.status || 'Unknown'}
+                      </span>
+                    </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">
                         <button
