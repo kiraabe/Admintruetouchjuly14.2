@@ -111,6 +111,7 @@ const Users = () => {
       notify.success('Success', 'User updated successfully')
       setShowEditModal(false)
       fetchUsers()
+      fetchPartnerships()
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to update user'
       console.error('Error updating user:', error)
@@ -250,6 +251,7 @@ const Users = () => {
       setNewUser({ email: '', user_name: '', authority: 'user', password: '', partnership_id: null })
       setShowNewPassword(false)
       fetchUsers()
+      fetchPartnerships()
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to create user'
       console.error('Error creating user:', error)

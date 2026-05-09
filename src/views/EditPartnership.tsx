@@ -167,6 +167,27 @@ const EditPartnership = () => {
 
         const data = await response.json()
         if (response.ok) {
+          const partnerId = data.data?.partner_id
+
+          if (partnerId) {
+            const password = Math.random().toString(36).slice(-12)
+            try {
+              await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  email: formData.business_email,
+                  user_name: formData.contact_person_name || formData.company_name,
+                  authority: 'partnership',
+                  password: password,
+                  partnership_id: partnerId,
+                }),
+              })
+            } catch (userError) {
+              console.error('Error creating partnership user:', userError)
+            }
+          }
+
           toast.success('Partnership created successfully')
           setTimeout(() => navigate('/partnership'), 500)
         } else {
