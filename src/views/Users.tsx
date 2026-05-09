@@ -303,6 +303,12 @@ const Users = () => {
     return partnership?.company_name || partnershipId
   }
 
+  const getPartnershipLogo = (partnershipId: string | null | undefined) => {
+    if (!partnershipId || !partnerships || partnerships.length === 0) return null
+    const partnership = partnerships.find((p) => p.partner_id === partnershipId)
+    return partnership?.company_logo || null
+  }
+
   const filteredUsers = users.filter(
     (user) =>
       user.user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -469,9 +475,17 @@ const Users = () => {
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-sm">
-                        {user.user_name.charAt(0).toUpperCase()}
-                      </div>
+                      {getPartnershipLogo(user.partnership_id) ? (
+                        <img
+                          src={getPartnershipLogo(user.partnership_id)}
+                          alt={user.user_name}
+                          className="w-10 h-10 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-sm">
+                          {user.user_name.charAt(0).toUpperCase()}
+                        </div>
+                      )}
                       <span className="font-semibold text-gray-900 dark:text-gray-100">{user.user_name}</span>
                     </div>
                   </td>
