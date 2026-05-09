@@ -225,9 +225,16 @@ async function startServer() {
         current_location VARCHAR(255),
         resume_url VARCHAR(255),
         medical_status VARCHAR(255),
+        status VARCHAR(50) DEFAULT 'available',
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
+    `)
+
+    // Add status column if it doesn't exist (for existing databases)
+    await dbPool.query(`
+      ALTER TABLE candidates
+      ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'available'
     `)
     console.log('✓ Database initialized')
 

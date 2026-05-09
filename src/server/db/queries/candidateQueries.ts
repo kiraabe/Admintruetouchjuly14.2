@@ -25,6 +25,7 @@ export interface Candidate {
   current_location: string | null
   resume_url: string | null
   medical_status: string | null
+  status: string | null
   created_at: Date
   updated_at: Date
 }
@@ -82,6 +83,9 @@ export async function createCandidate(data: Omit<Candidate, 'id' | 'candidate_id
 
   // Prepare data with password hashing if provided
   const processedData = { ...data }
+  if (!processedData.status) {
+    processedData.status = 'available'
+  }
   if (data.password_hash) {
     processedData.password_hash = await bcrypt.hash(data.password_hash, 10)
   }
