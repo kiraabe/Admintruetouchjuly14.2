@@ -141,8 +141,9 @@ const EditPartnership = () => {
       return
     }
 
+    const toastId = toast.loading(isNewPartnership ? 'Creating partnership...' : 'Updating partnership...')
+
     try {
-      toast.loading(isNewPartnership ? 'Creating partnership...' : 'Updating partnership...')
       const formDataToSend = new FormData()
 
       Object.entries(formData).forEach(([key, value]) => {
@@ -167,9 +168,11 @@ const EditPartnership = () => {
 
         const data = await response.json()
         if (response.ok) {
+          toast.dismiss(toastId)
           toast.success('Partnership created successfully')
           setTimeout(() => navigate('/partnership'), 500)
         } else {
+          toast.dismiss(toastId)
           const errorMsg = data.error || 'Failed to create partnership'
           toast.error(errorMsg)
         }
@@ -181,14 +184,17 @@ const EditPartnership = () => {
 
         const data = await response.json()
         if (response.ok) {
+          toast.dismiss(toastId)
           toast.success('Partnership updated successfully')
           setTimeout(() => navigate('/partnership'), 500)
         } else {
+          toast.dismiss(toastId)
           const errorMsg = data.error || 'Failed to update partnership'
           toast.error(errorMsg)
         }
       }
     } catch (error) {
+      toast.dismiss(toastId)
       const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
       console.error('Error saving partnership:', error)
       toast.error(errorMsg)
