@@ -87,24 +87,46 @@ const Users = () => {
     }
   }
 
-  const handleResetPassword = async () => {
-    if (!resetPasswordUser || !newPassword) {
-      notify.error('Error', 'Password is required')
-      return
+  const generatePassword = (): string => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%'
+    let password = ''
+    for (let i = 0; i < 12; i++) {
+      password += chars.charAt(Math.floor(Math.random() * chars.length))
     }
+    return password
+  }
+
+  const downloadCredentials = (user: User, password: string) => {
+    const credentials = `Login Credentials\n${'='.repeat(50)}\n\nEmail: ${user.email}\nPassword: ${password}\nUsername: ${user.user_name}\n\nGenerated on: ${new Date().toLocaleString()}\n`
+    const blob = new Blob([credentials], { type: 'text/plain' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `credentials-${user.email.split('@')[0]}.txt`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
+  const handleResetPassword = async () => {
+    if (!resetPasswordUser) return
+
+    const password = newPassword || generatePassword()
 
     try {
       const response = await fetch(`/api/users/${resetPasswordUser.user_id}/reset-password`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: newPassword }),
+        body: JSON.stringify({ password }),
       })
 
       if (!response.ok) {
         throw new Error('Failed to reset password')
       }
 
-      notify.success('Success', 'Password reset successfully')
+      downloadCredentials(resetPasswordUser, password)
+      notify.success('Success', 'Password reset and credentials downloaded')
       setShowResetPasswordModal(false)
       setNewPassword('')
       fetchUsers()
@@ -398,6 +420,7 @@ const Users = () => {
                       <button
                         onClick={() => {
                           setResetPasswordUser(user)
+                          setNewPassword('')
                           setShowResetPasswordModal(true)
                         }}
                         className="text-xl cursor-pointer hover:text-primary"
@@ -414,7 +437,9 @@ const Users = () => {
                           width="1em"
                           xmlns="http://www.w3.org/2000/svg"
                         >
-                          <path d="M5 13a3 3 0 0 0 3 3h7a3 3 0 0 0 3 -3M9 18v3h6v-3M7 10l.75 -1.5M17 10l-.75 -1.5M12 7v1m0 -8a2 2 0 0 1 2 2v2a2 2 0 1 1 -4 0v-2a2 2 0 0 1 2 -2Z"></path>
+                          <path d="M7 14a2 2 0 1 1 4 0c0 1 -.756 1.89 -1.5 2.236v1.764h-1v-1.764c-.744 -.346 -1.5 -1.236 -1.5 -2.236"></path>
+                          <path d="M12.586 7.586a2 2 0 1 0 -2.828 2.828l1.172 1.172a1 1 0 0 0 1.414 0l1.242 -1.242a2 2 0 0 0 0 -2.828"></path>
+                          <path d="M9.172 3.172a4 4 0 0 1 5.656 0l1.414 1.414a1 1 0 1 1 -1.414 1.415l-1.414 -1.415a2 2 0 0 0 -2.828 2.829l1.172 1.172a1 1 0 0 0 1.415 0l1.414 1.414a1 1 0 0 1 0 1.415a4 4 0 0 1 -5.657 0l-1.414 -1.414a1 1 0 0 1 1.414 -1.415l1.414 1.415a2 2 0 1 0 -2.828 -2.829l-1.172 -1.172a1 1 0 0 0 -1.415 0a1 1 0 0 1 -1.414 -1.414l1.414 -1.414"></path>
                         </svg>
                       </button>
                       <button
@@ -517,15 +542,15 @@ const Users = () => {
             <div className="p-6">
               <h3 className="text-lg font-bold mb-4">Reset Password</h3>
               <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-                Set a new password for {resetPasswordUser.user_name}
+                Generate and download new credentials for {resetPasswordUser.user_name}
               </p>
               <div className="mb-4">
-                <label className="block text-sm font-medium mb-2">New Password</label>
+                <label className="block text-sm font-medium mb-2">Password (leave empty to auto-generate)</label>
                 <Input
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Enter new password"
+                  placeholder="Leave empty for auto-generated password"
                 />
               </div>
               <div className="flex gap-3">
@@ -538,7 +563,7 @@ const Users = () => {
                 >
                   Cancel
                 </Button>
-                <Button onClick={handleResetPassword}>Reset Password</Button>
+                <Button onClick={handleResetPassword}>Generate & Download</Button>
               </div>
             </div>
           </Card>
