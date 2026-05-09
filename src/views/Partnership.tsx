@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -65,6 +65,15 @@ const Partnership = () => {
   useEffect(() => {
     fetchPartnerships()
   }, [])
+
+  useEffect(() => {
+    if (isModalOpen) {
+      const dialogElement = document.querySelector('.dialog')
+      if (dialogElement) {
+        dialogElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }
+  }, [isModalOpen])
 
   const fetchPartnerships = async () => {
     try {
