@@ -1,139 +1,214 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Tag from '@/components/ui/Tag'
 import Pagination from '@/components/ui/Pagination'
 import Checkbox from '@/components/ui/Checkbox'
+import Dialog from '@/components/ui/Dialog'
+import Select from '@/components/ui/Select'
+import { toast } from 'sonner'
 
-interface Partner {
+interface Partnership {
   id: number
-  name: string
-  email: string
-  partnerType: string
+  partner_id: string
+  company_name: string
+  company_logo: string | null
+  business_email: string
+  business_category: string
+  license_number: string
+  license_document: string | null
+  contact_person_name: string
+  phone_number: string
+  service_city: string
   status: 'active' | 'inactive' | 'pending'
-  revenue: string
-  avatar: string
+  created_at: string
+  updated_at: string
 }
 
 const Partnership = () => {
+  const [partnerships, setPartnerships] = useState<Partnership[]>([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [selectedPartners, setSelectedPartners] = useState<number[]>([])
+  const [selectedPartnerships, setSelectedPartnerships] = useState<string[]>([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [editingPartner, setEditingPartner] = useState<Partnership | null>(null)
+  const [formData, setFormData] = useState({
+    company_name: '',
+    business_email: '',
+    business_category: 'Agency',
+    license_number: '',
+    contact_person_name: '',
+    phone_number: '',
+    service_city: '',
+    status: 'pending',
+  })
+  const [files, setFiles] = useState<{
+    companyLogo: File | null
+    licenseDocument: File | null
+  }>({
+    companyLogo: null,
+    licenseDocument: null,
+  })
 
-  const partners: Partner[] = [
-    {
-      id: 1,
-      name: 'Tech Solutions Inc',
-      email: 'contact@techsolutions.com',
-      partnerType: 'Technology',
-      status: 'active',
-      revenue: '$125,000',
-      avatar: '/img/avatars/thumb-1.jpg',
-    },
-    {
-      id: 2,
-      name: 'Global Marketing Group',
-      email: 'hello@globalmarketing.com',
-      partnerType: 'Marketing',
-      status: 'active',
-      revenue: '$98,500',
-      avatar: '/img/avatars/thumb-2.jpg',
-    },
-    {
-      id: 3,
-      name: 'Enterprise Consulting',
-      email: 'info@enterprise-consulting.io',
-      partnerType: 'Consulting',
-      status: 'pending',
-      revenue: '$0',
-      avatar: '/img/avatars/thumb-3.jpg',
-    },
-    {
-      id: 4,
-      name: 'Cloud Services Ltd',
-      email: 'support@cloudservices.co.uk',
-      partnerType: 'Cloud Provider',
-      status: 'active',
-      revenue: '$234,750',
-      avatar: '/img/avatars/thumb-4.jpg',
-    },
-    {
-      id: 5,
-      name: 'Data Analytics Pro',
-      email: 'team@dataanalyticspro.io',
-      partnerType: 'Data Services',
-      status: 'active',
-      revenue: '$67,300',
-      avatar: '/img/avatars/thumb-5.jpg',
-    },
-    {
-      id: 6,
-      name: 'Design Studios',
-      email: 'hello@designstudios.io',
-      partnerType: 'Design',
-      status: 'inactive',
-      revenue: '$45,200',
-      avatar: '/img/avatars/thumb-6.jpg',
-    },
-    {
-      id: 7,
-      name: 'Integration Experts',
-      email: 'partners@integrationexperts.com',
-      partnerType: 'Integration',
-      status: 'active',
-      revenue: '$156,800',
-      avatar: '/img/avatars/thumb-7.jpg',
-    },
-    {
-      id: 8,
-      name: 'Security Solutions',
-      email: 'business@securitysolutions.io',
-      partnerType: 'Security',
-      status: 'pending',
-      revenue: '$0',
-      avatar: '/img/avatars/thumb-8.jpg',
-    },
-    {
-      id: 9,
-      name: 'Mobile Development Co',
-      email: 'sales@mobiledev.com',
-      partnerType: 'Development',
-      status: 'active',
-      revenue: '$89,600',
-      avatar: '/img/avatars/thumb-9.jpg',
-    },
-    {
-      id: 10,
-      name: 'Infrastructure Partners',
-      email: 'partnerships@infra-partners.co',
-      partnerType: 'Infrastructure',
-      status: 'active',
-      revenue: '$312,400',
-      avatar: '/img/avatars/thumb-10.jpg',
-    },
+  const businessCategories = ['Agency', 'Recruitment', 'Referral', 'Other']
+  const serviceCities = [
+    'Dubai',
+    'Abu Dhabi',
+    'Sharjah',
+    'Ajman',
+    'Umm Al Quwain',
+    'Ras Al Khaimah',
+    'Fujairah',
   ]
 
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedPartners(partners.map((p) => p.id))
-    } else {
-      setSelectedPartners([])
+  useEffect(() => {
+    fetchPartnerships()
+  }, [])
+
+  const fetchPartnerships = async () => {
+    try {
+      setIsLoading(true)
+      const response = await fetch('/api/partnerships')
+      const result = await response.json()
+      if (result.success) {
+        setPartnerships(result.data || [])
+      }
+    } catch (error) {
+      console.error('Error fetching partnerships:', error)
+      toast.error('Failed to load partnerships')
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const handleSelectPartner = (id: number, checked: boolean) => {
+  const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedPartners([...selectedPartners, id])
+      setSelectedPartnerships(partnerships.map((p) => p.partner_id))
     } else {
-      setSelectedPartners(selectedPartners.filter((pid) => pid !== id))
+      setSelectedPartnerships([])
+    }
+  }
+
+  const handleSelectPartnership = (partnerId: string, checked: boolean) => {
+    if (checked) {
+      setSelectedPartnerships([...selectedPartnerships, partnerId])
+    } else {
+      setSelectedPartnerships(selectedPartnerships.filter((id) => id !== partnerId))
+    }
+  }
+
+  const handleOpenModal = (partner?: Partnership) => {
+    if (partner) {
+      setEditingPartner(partner)
+      setFormData({
+        company_name: partner.company_name,
+        business_email: partner.business_email,
+        business_category: partner.business_category,
+        license_number: partner.license_number,
+        contact_person_name: partner.contact_person_name,
+        phone_number: partner.phone_number,
+        service_city: partner.service_city,
+        status: partner.status,
+      })
+    } else {
+      setEditingPartner(null)
+      setFormData({
+        company_name: '',
+        business_email: '',
+        business_category: 'Agency',
+        license_number: '',
+        contact_person_name: '',
+        phone_number: '',
+        service_city: '',
+        status: 'pending',
+      })
+    }
+    setFiles({ companyLogo: null, licenseDocument: null })
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setEditingPartner(null)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    const formDataObj = new FormData()
+    Object.entries(formData).forEach(([key, value]) => {
+      formDataObj.append(key, value as string)
+    })
+
+    if (files.companyLogo) {
+      formDataObj.append('companyLogo', files.companyLogo)
+    }
+    if (files.licenseDocument) {
+      formDataObj.append('licenseDocument', files.licenseDocument)
+    }
+
+    try {
+      const url = editingPartner ? `/api/partnerships/${editingPartner.partner_id}` : '/api/partnerships'
+      const method = editingPartner ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method,
+        body: formDataObj,
+      })
+
+      const result = await response.json()
+      if (result.success) {
+        toast.success(editingPartner ? 'Partnership updated' : 'Partnership created')
+        handleCloseModal()
+        await fetchPartnerships()
+      } else {
+        toast.error(result.error || 'Failed to save partnership')
+      }
+    } catch (error) {
+      console.error('Error saving partnership:', error)
+      toast.error('Failed to save partnership')
+    }
+  }
+
+  const handleDelete = async (partnerId: string) => {
+    if (!confirm('Are you sure you want to delete this partnership?')) return
+
+    try {
+      const response = await fetch(`/api/partnerships/${partnerId}`, {
+        method: 'DELETE',
+      })
+      const result = await response.json()
+      if (result.success) {
+        toast.success('Partnership deleted')
+        await fetchPartnerships()
+      } else {
+        toast.error(result.error || 'Failed to delete partnership')
+      }
+    } catch (error) {
+      console.error('Error deleting partnership:', error)
+      toast.error('Failed to delete partnership')
     }
   }
 
   const handleDownload = () => {
+    if (partnerships.length === 0) {
+      toast.error('No partnerships to download')
+      return
+    }
+
     const csv = [
-      ['Name', 'Email', 'Partner Type', 'Status', 'Revenue'],
-      ...partners.map((p) => [p.name, p.email, p.partnerType, p.status, p.revenue]),
+      ['Company', 'Email', 'Category', 'License', 'Contact', 'Phone', 'City', 'Status'],
+      ...partnerships.map((p) => [
+        p.company_name,
+        p.business_email,
+        p.business_category,
+        p.license_number,
+        p.contact_person_name,
+        p.phone_number,
+        p.service_city,
+        p.status,
+      ]),
     ]
       .map((row) => row.join(','))
       .join('\n')
@@ -142,7 +217,7 @@ const Partnership = () => {
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = 'partnershipList.csv'
+    a.download = 'partnerships.csv'
     a.click()
     window.URL.revokeObjectURL(url)
   }
@@ -160,11 +235,11 @@ const Partnership = () => {
     }
   }
 
-  const filteredPartners = partners.filter(
+  const filteredPartnerships = partnerships.filter(
     (partner) =>
-      partner.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      partner.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      partner.partnerType.toLowerCase().includes(searchTerm.toLowerCase()),
+      partner.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      partner.business_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      partner.service_city.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
   return (
@@ -199,7 +274,7 @@ const Partnership = () => {
                 <span>Download</span>
               </span>
             </button>
-            <Button variant="primary">
+            <Button variant="primary" onClick={() => handleOpenModal()}>
               <span className="flex gap-1 items-center justify-center">
                 <span className="text-lg">
                   <svg
@@ -227,7 +302,7 @@ const Partnership = () => {
 
         {/* Search and Filter */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-          <div className="input-wrapper relative">
+          <div className="input-wrapper relative flex-1">
             <Input
               placeholder="Quick search..."
               value={searchTerm}
@@ -252,139 +327,319 @@ const Partnership = () => {
               </svg>
             </div>
           </div>
-          <button className="button bg-white border border-gray-300 dark:bg-gray-700 dark:border-gray-700 ring-primary dark:ring-white hover:border-primary dark:hover:border-white hover:ring-1 hover:text-primary dark:hover:text-white dark:hover:bg-transparent text-gray-600 dark:text-gray-100 h-12 rounded-xl px-5 py-2 button-press-feedback">
-            <span className="flex gap-1 items-center justify-center">
-              <span className="text-lg">
-                <svg
-                  stroke="currentColor"
-                  fill="none"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  height="1em"
-                  width="1em"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path d="M4 4h16v2.172a2 2 0 0 1 -.586 1.414l-4.414 4.414v7l-6 2v-8.5l-4.48 -4.928a2 2 0 0 1 -.52 -1.345v-2.227z"></path>
-                </svg>
-              </span>
-              <span>Filter</span>
-            </span>
-          </button>
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse">
-            <thead className="border-b border-gray-200 dark:border-gray-700">
-              <tr>
-                <th className="text-left py-3 px-4 w-12">
-                  <Checkbox
-                    checked={selectedPartners.length === partners.length && partners.length > 0}
-                    onChange={(checked) => handleSelectAll(checked as boolean)}
-                  />
-                </th>
-                <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
-                  Name
-                </th>
-                <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
-                  Email
-                </th>
-                <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
-                  Partner Type
-                </th>
-                <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
-                  Status
-                </th>
-                <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
-                  Revenue
-                </th>
-                <th className="text-left py-3 px-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredPartners.map((partner) => (
-                <tr
-                  key={partner.id}
-                  className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
-                >
-                  <td className="py-3 px-4 w-12">
-                    <Checkbox
-                      checked={selectedPartners.includes(partner.id)}
-                      onChange={(checked) => handleSelectPartner(partner.id, checked as boolean)}
-                    />
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={partner.avatar}
-                        alt={partner.name}
-                        className="w-10 h-10 rounded-full"
-                      />
-                      <a href="#" className="hover:text-primary font-semibold text-gray-900 dark:text-gray-100">
-                        {partner.name}
-                      </a>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{partner.email}</td>
-                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{partner.partnerType}</td>
-                  <td className="py-3 px-4">
-                    <Tag className={`${getStatusColor(partner.status)} text-gray-900 dark:text-gray-900`}>
-                      {partner.status.charAt(0).toUpperCase() + partner.status.slice(1)}
-                    </Tag>
-                  </td>
-                  <td className="py-3 px-4 font-semibold">{partner.revenue}</td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-3">
-                      <button className="text-xl cursor-pointer hover:text-primary" title="Edit">
-                        <svg
-                          stroke="currentColor"
-                          fill="none"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          height="1em"
-                          width="1em"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4"></path>
-                          <path d="M13.5 6.5l4 4"></path>
-                        </svg>
-                      </button>
-                      <button className="text-xl cursor-pointer hover:text-primary" title="View">
-                        <svg
-                          stroke="currentColor"
-                          fill="none"
-                          strokeWidth="2"
-                          viewBox="0 0 24 24"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          height="1em"
-                          width="1em"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"></path>
-                          <path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"></path>
-                        </svg>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* Pagination */}
-        <div className="flex items-center justify-between mt-4">
-          <div className="text-sm text-gray-600 dark:text-gray-400">
-            Showing 1 to {filteredPartners.length} of {partners.length} results
+        {isLoading ? (
+          <div className="py-8 text-center text-gray-500">Loading partnerships...</div>
+        ) : filteredPartnerships.length === 0 ? (
+          <div className="py-8 text-center text-gray-500">
+            {partnerships.length === 0 ? 'No partnerships yet' : 'No results found'}
           </div>
-          <Pagination />
-        </div>
+        ) : (
+          <>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm border-collapse">
+                <thead className="border-b border-gray-200 dark:border-gray-700">
+                  <tr>
+                    <th className="text-left py-3 px-4 w-12">
+                      <Checkbox
+                        checked={
+                          selectedPartnerships.length === filteredPartnerships.length &&
+                          filteredPartnerships.length > 0
+                        }
+                        onChange={(checked) => handleSelectAll(checked as boolean)}
+                      />
+                    </th>
+                    <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                      Company
+                    </th>
+                    <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                      Email
+                    </th>
+                    <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                      Category
+                    </th>
+                    <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                      Contact
+                    </th>
+                    <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                      City
+                    </th>
+                    <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                      Status
+                    </th>
+                    <th className="text-left py-3 px-4">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredPartnerships.map((partner) => (
+                    <tr
+                      key={partner.partner_id}
+                      className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                    >
+                      <td className="py-3 px-4 w-12">
+                        <Checkbox
+                          checked={selectedPartnerships.includes(partner.partner_id)}
+                          onChange={(checked) =>
+                            handleSelectPartnership(partner.partner_id, checked as boolean)
+                          }
+                        />
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-3">
+                          {partner.company_logo && (
+                            <img
+                              src={partner.company_logo}
+                              alt={partner.company_name}
+                              className="w-10 h-10 rounded-full object-cover"
+                            />
+                          )}
+                          <a
+                            href="#"
+                            className="hover:text-primary font-semibold text-gray-900 dark:text-gray-100"
+                          >
+                            {partner.company_name}
+                          </a>
+                        </div>
+                      </td>
+                      <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                        {partner.business_email}
+                      </td>
+                      <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                        {partner.business_category}
+                      </td>
+                      <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                        {partner.contact_person_name}
+                      </td>
+                      <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                        {partner.service_city}
+                      </td>
+                      <td className="py-3 px-4">
+                        <Tag className={`${getStatusColor(partner.status)} text-gray-900`}>
+                          {partner.status.charAt(0).toUpperCase() + partner.status.slice(1)}
+                        </Tag>
+                      </td>
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => handleOpenModal(partner)}
+                            className="text-xl cursor-pointer hover:text-primary"
+                            title="Edit"
+                          >
+                            <svg
+                              stroke="currentColor"
+                              fill="none"
+                              strokeWidth="2"
+                              viewBox="0 0 24 24"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              height="1em"
+                              width="1em"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4"></path>
+                              <path d="M13.5 6.5l4 4"></path>
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => handleDelete(partner.partner_id)}
+                            className="text-xl cursor-pointer hover:text-red-500"
+                            title="Delete"
+                          >
+                            <svg
+                              stroke="currentColor"
+                              fill="none"
+                              strokeWidth="2"
+                              viewBox="0 0 24 24"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              height="1em"
+                              width="1em"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M4 7l16 0"></path>
+                              <path d="M10 11l0 6"></path>
+                              <path d="M14 11l0 6"></path>
+                              <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"></path>
+                              <path d="M9 7v-1a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v1"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Showing {filteredPartnerships.length} of {partnerships.length} results
+              </div>
+              <Pagination />
+            </div>
+          </>
+        )}
       </div>
+
+      {/* Add/Edit Modal */}
+      <Dialog isOpen={isModalOpen} onClose={handleCloseModal} title="Add Partnership" size="md">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          {/* Business Identity */}
+          <div className="border-b pb-4">
+            <h4 className="font-semibold mb-3">Business Identity</h4>
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">Company Name</label>
+                <Input
+                  type="text"
+                  value={formData.company_name}
+                  onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
+                  placeholder="Legal company name"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Business Email</label>
+                <Input
+                  type="email"
+                  value={formData.business_email}
+                  onChange={(e) => setFormData({ ...formData, business_email: e.target.value })}
+                  placeholder="official@company.com"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Business Category</label>
+                <Select
+                  value={formData.business_category}
+                  onChange={(val) =>
+                    setFormData({ ...formData, business_category: val || 'Agency' })
+                  }
+                >
+                  {businessCategories.map((cat) => (
+                    <Select.Option key={cat} value={cat}>
+                      {cat}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Company Logo</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) =>
+                    setFiles({ ...files, companyLogo: e.target.files?.[0] || null })
+                  }
+                  className="block w-full text-sm border border-gray-300 rounded-lg p-2"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Legal & Compliance */}
+          <div className="border-b pb-4">
+            <h4 className="font-semibold mb-3">Legal & Compliance</h4>
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">License Number</label>
+                <Input
+                  type="text"
+                  value={formData.license_number}
+                  onChange={(e) => setFormData({ ...formData, license_number: e.target.value })}
+                  placeholder="Unique business permit ID"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">License Document</label>
+                <input
+                  type="file"
+                  accept=".pdf,.doc,.docx,image/*"
+                  onChange={(e) =>
+                    setFiles({ ...files, licenseDocument: e.target.files?.[0] || null })
+                  }
+                  className="block w-full text-sm border border-gray-300 rounded-lg p-2"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Person */}
+          <div className="border-b pb-4">
+            <h4 className="font-semibold mb-3">Contact Person</h4>
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">Full Name</label>
+                <Input
+                  type="text"
+                  value={formData.contact_person_name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, contact_person_name: e.target.value })
+                  }
+                  placeholder="Contact person name"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Phone Number</label>
+                <Input
+                  type="tel"
+                  value={formData.phone_number}
+                  onChange={(e) => setFormData({ ...formData, phone_number: e.target.value })}
+                  placeholder="+971 50 123 4567"
+                  required
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Operational Details */}
+          <div className="pb-4">
+            <h4 className="font-semibold mb-3">Operational Details</h4>
+            <div className="flex flex-col gap-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">Service City</label>
+                <Select
+                  value={formData.service_city}
+                  onChange={(val) => setFormData({ ...formData, service_city: val || '' })}
+                >
+                  <Select.Option value="">Select a city</Select.Option>
+                  {serviceCities.map((city) => (
+                    <Select.Option key={city} value={city}>
+                      {city}
+                    </Select.Option>
+                  ))}
+                </Select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Status</label>
+                <Select
+                  value={formData.status}
+                  onChange={(val) => setFormData({ ...formData, status: val || 'pending' })}
+                >
+                  <Select.Option value="pending">Pending</Select.Option>
+                  <Select.Option value="active">Active</Select.Option>
+                  <Select.Option value="inactive">Inactive</Select.Option>
+                </Select>
+              </div>
+            </div>
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-3 justify-end">
+            <Button variant="default" onClick={handleCloseModal}>
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit">
+              {editingPartner ? 'Update Partnership' : 'Create Partnership'}
+            </Button>
+          </div>
+        </form>
+      </Dialog>
     </Card>
   )
 }

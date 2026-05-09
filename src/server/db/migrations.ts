@@ -67,6 +67,27 @@ async function runMigrations() {
 
     console.log('✓ Candidates table created')
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS partnerships (
+        id SERIAL PRIMARY KEY,
+        partner_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+        company_name VARCHAR(255) NOT NULL,
+        company_logo VARCHAR(255),
+        business_email VARCHAR(255) UNIQUE NOT NULL,
+        business_category VARCHAR(100) NOT NULL,
+        license_number VARCHAR(255) NOT NULL,
+        license_document VARCHAR(255),
+        contact_person_name VARCHAR(255) NOT NULL,
+        phone_number VARCHAR(20) NOT NULL,
+        service_city VARCHAR(255) NOT NULL,
+        status VARCHAR(50) DEFAULT 'pending',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    console.log('✓ Partnerships table created')
+
     console.log('Migrations completed successfully')
     process.exit(0)
   } catch (error) {

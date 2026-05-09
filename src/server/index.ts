@@ -9,6 +9,7 @@ import fs from 'fs'
 import bcrypt from 'bcryptjs'
 import candidatesRouter from './routes/candidates/index.ts'
 import usersRouter from './routes/users/index.ts'
+import partnershipsRouter from './routes/partnerships/index.ts'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
@@ -48,11 +49,15 @@ const PORT = process.env.PORT || 5000
 // Create uploads directories if they don't exist
 const profilesDir = path.join(process.cwd(), 'uploads', 'profiles')
 const candidatesDir = path.join(process.cwd(), 'uploads', 'candidates')
+const partnershipsDir = path.join(process.cwd(), 'uploads', 'partnerships')
 if (!fs.existsSync(profilesDir)) {
   fs.mkdirSync(profilesDir, { recursive: true })
 }
 if (!fs.existsSync(candidatesDir)) {
   fs.mkdirSync(candidatesDir, { recursive: true })
+}
+if (!fs.existsSync(partnershipsDir)) {
+  fs.mkdirSync(partnershipsDir, { recursive: true })
 }
 
 // Configure multer for profile picture uploads
@@ -92,6 +97,7 @@ app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 // Serve uploaded files
 app.use('/uploads/profiles', express.static(profilesDir))
 app.use('/uploads/candidates', express.static(candidatesDir))
+app.use('/uploads/partnerships', express.static(partnershipsDir))
 
 // Health check
 app.get('/health', (req, res) => {
@@ -111,6 +117,7 @@ app.get('/api/debug/users', async (req, res) => {
 
 // API Routes
 app.use('/api/candidates', candidatesRouter)
+app.use('/api/partnerships', partnershipsRouter)
 app.use('/api/users', usersRouter)
 
 // Auth routes
