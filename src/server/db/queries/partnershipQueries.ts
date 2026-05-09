@@ -18,8 +18,15 @@ export interface Partnership {
 }
 
 export async function getAllPartnerships(): Promise<Partnership[]> {
-  const result = await pool.query('SELECT * FROM partnerships ORDER BY created_at DESC')
-  return result.rows
+  try {
+    console.log('getAllPartnerships: Starting query')
+    const result = await pool.query('SELECT * FROM partnerships ORDER BY created_at DESC')
+    console.log('getAllPartnerships: Got', result.rows.length, 'rows')
+    return result.rows
+  } catch (error) {
+    console.error('getAllPartnerships error:', error)
+    throw error
+  }
 }
 
 export async function getPartnershipById(partnerId: string): Promise<Partnership | null> {

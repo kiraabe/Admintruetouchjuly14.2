@@ -64,23 +64,30 @@ const upload = multer({
 
 router.get('/', async (req, res) => {
   try {
+    console.log('GET /api/partnerships - start')
     const { search, ...filters } = req.query
+    console.log('Query params:', { search, filters })
 
     let partnerships
 
     if (search && typeof search === 'string') {
+      console.log('Searching partnerships:', search)
       partnerships = await searchPartnerships(search)
     } else if (Object.keys(filters).length > 0) {
+      console.log('Filtering partnerships:', filters)
       partnerships = await filterPartnerships(filters)
     } else {
+      console.log('Getting all partnerships')
       partnerships = await getAllPartnerships()
     }
 
+    console.log('Got partnerships:', partnerships?.length)
     res.json({ success: true, data: partnerships || [] })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
-    console.error('Error fetching partnerships:', errorMsg, error)
-    res.status(500).json({ success: false, error: errorMsg, details: error })
+    console.error('Error fetching partnerships:', errorMsg)
+    console.error('Full error:', error)
+    res.status(500).json({ success: false, error: errorMsg })
   }
 })
 

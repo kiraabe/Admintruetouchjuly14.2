@@ -115,6 +115,53 @@ app.get('/api/debug/users', async (req, res) => {
   }
 })
 
+// Debug endpoint to check partnerships table
+app.get('/api/debug/partnerships', async (req, res) => {
+  try {
+    const dbPool = await initPool()
+
+    // Check if table exists
+    const tableCheck = await dbPool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_name = 'partnerships'
+      )
+    `)
+    const tableExists = tableCheck.rows[0].exists
+
+    if (!tableExists) {
+      return res.json({
+        status: 'TABLE_MISSING',
+        message: 'Partnerships table does not exist',
+        tableExists: false
+      })
+    }
+
+    // Get column info
+    const columns = await dbPool.query(`
+      SELECT column_name, data_type
+      FROM information_schema.columns
+      WHERE table_name = 'partnerships'
+      ORDER BY ordinal_position
+    `)
+
+    // Count rows
+    const count = await dbPool.query('SELECT COUNT(*) as count FROM partnerships')
+
+    res.json({
+      status: 'OK',
+      tableExists: true,
+      rowCount: count.rows[0].count,
+      columns: columns.rows
+    })
+  } catch (error) {
+    res.status(500).json({
+      error: error instanceof Error ? error.message : 'Failed to check partnerships table',
+      details: error
+    })
+  }
+})
+
 // API Routes
 app.use('/api/candidates', candidatesRouter)
 app.use('/api/partnerships', partnershipsRouter)
@@ -244,24 +291,30 @@ async function startServer() {
       ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'available'
     `)
 
-    await dbPool.query(`
-      CREATE TABLE IF NOT EXISTS partnerships (
-        id SERIAL PRIMARY KEY,
-        partner_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
-        company_name VARCHAR(255) NOT NULL,
-        company_logo VARCHAR(255),
-        business_email VARCHAR(255) UNIQUE NOT NULL,
-        business_category VARCHAR(100) NOT NULL,
-        license_number VARCHAR(255) NOT NULL,
-        license_document VARCHAR(255),
-        contact_person_name VARCHAR(255) NOT NULL,
-        phone_number VARCHAR(20) NOT NULL,
-        service_city VARCHAR(255) NOT NULL,
-        status VARCHAR(50) DEFAULT 'pending',
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-      )
-    `)
+    try {
+      console.log('Creating partnerships table...')
+      await dbPool.query(`
+        CREATE TABLE IF NOT EXISTS partnerships (
+          id SERIAL PRIMARY KEY,
+          partner_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+          company_name VARCHAR(255) NOT NULL,
+          company_logo VARCHAR(255),
+          business_email VARCHAR(255) UNIQUE NOT NULL,
+          business_category VARCHAR(100) NOT NULL,
+          license_number VARCHAR(255) NOT NULL,
+          license_document VARCHAR(255),
+          contact_person_name VARCHAR(255) NOT NULL,
+          phone_number VARCHAR(20) NOT NULL,
+          service_city VARCHAR(255) NOT NULL,
+          status VARCHAR(50) DEFAULT 'pending',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `)
+      console.log('✓ Partnerships table ready')
+    } catch (tableError) {
+      console.error('Error creating partnerships table:', tableError)
+    }
 
     console.log('✓ Database initialized')
 
