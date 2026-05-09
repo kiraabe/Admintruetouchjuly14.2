@@ -27,6 +27,7 @@ interface Candidate {
   current_location: string | null
   resume_url: string | null
   medical_status: string | null
+  status: string | null
   profile_picture: string | null
   created_at: Date
   updated_at: Date
@@ -86,6 +87,7 @@ const EditCandidate = () => {
     city: '',
     current_location: '',
     medical_status: '',
+    status: 'available',
   })
 
   useEffect(() => {
@@ -130,6 +132,7 @@ const EditCandidate = () => {
           city: cand.city || '',
           current_location: cand.current_location || '',
           medical_status: cand.medical_status || '',
+          status: cand.status || 'available',
         })
 
         if (cand.country) {
@@ -554,6 +557,19 @@ const EditCandidate = () => {
                             onChange={(e) => setFormData({ ...formData, language_skills: e.target.value })}
                             placeholder="e.g., English, Spanish"
                           />
+                        </div>
+
+                        <div>
+                          <label className="form-label mb-2">Status</label>
+                          <select
+                            value={formData.status}
+                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
+                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
+                          >
+                            <option value="available">Available</option>
+                            <option value="Processing">Processing</option>
+                            <option value="Employee">Employee</option>
+                          </select>
                         </div>
                       </div>
                     </div>
