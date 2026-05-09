@@ -222,6 +222,72 @@ app.get('/api/test-employee-requests', async (req, res) => {
   }
 })
 
+// Seed employee requests with test data
+app.get('/api/seed-employee-requests', async (req: Request, res: Response) => {
+  const dbPool = await initPool()
+
+  try {
+    // First ensure all columns exist
+    const alterCommands = [
+      `ALTER TABLE employee_requests ADD COLUMN IF NOT EXISTS request_type VARCHAR(50) DEFAULT 'Standard'`,
+      `ALTER TABLE employee_requests ADD COLUMN IF NOT EXISTS salary_range VARCHAR(255)`,
+      `ALTER TABLE employee_requests ADD COLUMN IF NOT EXISTS required_skills TEXT`,
+      `ALTER TABLE employee_requests ADD COLUMN IF NOT EXISTS work_city VARCHAR(255)`,
+      `ALTER TABLE employee_requests ADD COLUMN IF NOT EXISTS urgency VARCHAR(50)`,
+    ]
+
+    for (const cmd of alterCommands) {
+      try {
+        await dbPool.query(cmd)
+      } catch (e) {
+        console.log(`Column already exists or error: ${e}`)
+      }
+    }
+
+    // Clear existing data
+    await dbPool.query('DELETE FROM employee_requests')
+    console.log('Cleared existing employee requests')
+
+    // Insert seed data
+    const insertResult = await dbPool.query(`
+      INSERT INTO employee_requests (
+        request_type, company_name, contact_person, email, phone_number,
+        position, number_of_employees, start_date, location, status,
+        requirements, notes, salary_range, required_skills, work_city, urgency
+      ) VALUES
+      ('Standard', 'Tech Solutions Inc.', 'John Smith', 'john@techsolutions.com', '+1-555-0101',
+       'Software Engineer', 5, '2024-06-01', 'New York, NY', 'Pending',
+       NULL, 'Urgent need for experienced developers', NULL, NULL, NULL, NULL),
+      ('Standard', 'Global Manufacturing Ltd.', 'Sarah Johnson', 'sarah@globalmfg.com', '+1-555-0102',
+       'Production Manager', 20, '2024-06-15', 'Chicago, IL', 'Approved',
+       NULL, 'To manage production floor operations', NULL, NULL, NULL, NULL),
+      ('Special', 'Healthcare Services', 'Dr. Michael Chen', 'michael@healthcare.com', '+1-555-0103',
+       'Medical Staff', 15, '2024-07-01', 'Los Angeles, CA', 'In Progress',
+       'Certified nurses and healthcare professionals required', 'Immediate staffing required for new facility', '$35,000-$45,000/month', 'Nursing, Medical certification, Patient care', 'Los Angeles', 'High'),
+      ('Standard', 'Finance & Associates', 'Emma Wilson', 'emma@finance-assoc.com', '+1-555-0104',
+       'Financial Analyst', 8, '2024-07-20', 'Boston, MA', 'Pending',
+       NULL, 'Need analytical skills and CPA preferred', NULL, NULL, NULL, NULL),
+      ('Special', 'Creative Design Studio', 'Alex Rodriguez', 'alex@creativedesign.com', '+1-555-0105',
+       'Design Team Lead', 12, '2024-08-01', 'San Francisco, CA', 'Rejected',
+       'Portfolio review required, minimum 5 years UI/UX experience', 'Specialized design team for major project', '$50,000-$60,000/month', 'UI/UX Design, Figma, Adobe Creative Suite', 'San Francisco', 'Medium'),
+      ('Standard', 'Retail Operations', 'Linda Davis', 'linda@retail-ops.com', '+1-555-0106',
+       'Store Manager', 30, '2024-08-15', 'Houston, TX', 'Pending',
+       NULL, 'Multiple store locations opening', NULL, NULL, NULL, NULL)
+      RETURNING *
+    `)
+
+    console.log(`Successfully inserted ${insertResult.rows.length} records`)
+    return res.json({
+      success: true,
+      message: `Seeded ${insertResult.rows.length} employee requests`,
+      data: insertResult.rows
+    })
+  } catch (error) {
+    console.error('Error seeding:', error)
+    return res.json({ success: false, error: error instanceof Error ? error.message : String(error) })
+  }
+})
+
 // API Routes
 app.use('/api/candidates', candidatesRouter)
 app.use('/api/partnerships', partnershipsRouter)
