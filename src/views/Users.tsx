@@ -437,8 +437,9 @@ const Users = () => {
                           width="1em"
                           xmlns="http://www.w3.org/2000/svg"
                         >
-                          <circle cx="7" cy="17" r="2"></circle>
-                          <path d="M16 16V4a2 2 0 0 0 -4 0v5H7a2 2 0 0 0 -2 2v7a2 2 0 0 0 2 2h9a2 2 0 0 0 2 -2v-1"></path>
+                          <rect x="3" y="12" width="18" height="11" rx="2" ry="2"></rect>
+                          <path d="M7 12V7a5 5 0 0 1 10 0v5"></path>
+                          <circle cx="12" cy="20" r="1"></circle>
                         </svg>
                       </button>
                       <button
