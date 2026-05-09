@@ -512,7 +512,7 @@ const Partnership = () => {
           {/* Business Identity */}
           <div className="border-b pb-4">
             <h4 className="font-semibold mb-3">Business Identity</h4>
-            <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium mb-1">Company Name</label>
                 <Input
@@ -565,7 +565,7 @@ const Partnership = () => {
           {/* Legal & Compliance */}
           <div className="border-b pb-4">
             <h4 className="font-semibold mb-3">Legal & Compliance</h4>
-            <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium mb-1">License Number</label>
                 <Input
@@ -593,7 +593,7 @@ const Partnership = () => {
           {/* Contact Person */}
           <div className="border-b pb-4">
             <h4 className="font-semibold mb-3">Contact Person</h4>
-            <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium mb-1">Full Name</label>
                 <Input
@@ -622,7 +622,7 @@ const Partnership = () => {
           {/* Operational Details */}
           <div className="pb-4">
             <h4 className="font-semibold mb-3">Operational Details</h4>
-            <div className="flex flex-col gap-3">
+            <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-sm font-medium mb-1">Service City</label>
                 <Select
