@@ -383,6 +383,7 @@ async function startServer() {
         CREATE TABLE IF NOT EXISTS employee_requests (
           id SERIAL PRIMARY KEY,
           request_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+          request_type VARCHAR(50) DEFAULT 'Standard',
           company_name VARCHAR(255) NOT NULL,
           contact_person VARCHAR(255) NOT NULL,
           email VARCHAR(255) NOT NULL,
@@ -394,11 +395,73 @@ async function startServer() {
           status VARCHAR(50) DEFAULT 'Pending',
           requirements TEXT,
           notes TEXT,
+          salary_range VARCHAR(255),
+          required_skills TEXT,
+          work_city VARCHAR(255),
+          urgency VARCHAR(50),
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `)
       console.log('✓ Employee Requests table ready')
+
+      // Add missing columns to employee_requests if they don't exist
+      const missingColumns = ['request_type', 'salary_range', 'required_skills', 'work_city', 'urgency']
+      for (const col of missingColumns) {
+        try {
+          if (col === 'request_type') {
+            await dbPool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} VARCHAR(50) DEFAULT 'Standard'`)
+          } else if (col === 'salary_range' || col === 'required_skills' || col === 'work_city' || col === 'urgency') {
+            await dbPool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} VARCHAR(255)`)
+          }
+        } catch (e) {
+          // Column likely already exists, ignore
+        }
+      }
+
+      // Seed hardcoded data for testing
+      const existingCount = await dbPool.query('SELECT COUNT(*) as count FROM employee_requests')
+      if (existingCount.rows[0].count === 0) {
+        console.log('Seeding employee_requests with test data...')
+        await dbPool.query(`
+          INSERT INTO employee_requests (
+            request_type, company_name, contact_person, email, phone_number,
+            position, number_of_employees, start_date, location, status,
+            requirements, notes, salary_range, required_skills, work_city, urgency
+          ) VALUES
+          (
+            'Standard', 'Tech Solutions Inc.', 'John Smith', 'john@techsolutions.com', '+1-555-0101',
+            'Software Engineer', 5, '2024-06-01', 'New York, NY', 'Pending',
+            NULL, 'Urgent need for experienced developers', NULL, NULL, NULL, NULL
+          ),
+          (
+            'Standard', 'Global Manufacturing Ltd.', 'Sarah Johnson', 'sarah@globalmfg.com', '+1-555-0102',
+            'Production Manager', 20, '2024-06-15', 'Chicago, IL', 'Approved',
+            NULL, 'To manage production floor operations', NULL, NULL, NULL, NULL
+          ),
+          (
+            'Special', 'Healthcare Services', 'Dr. Michael Chen', 'michael@healthcare.com', '+1-555-0103',
+            'Medical Staff', 15, '2024-07-01', 'Los Angeles, CA', 'In Progress',
+            'Certified nurses and healthcare professionals required', 'Immediate staffing required for new facility', '$35,000-$45,000/month', 'Nursing, Medical certification, Patient care', 'Los Angeles', 'High'
+          ),
+          (
+            'Standard', 'Finance & Associates', 'Emma Wilson', 'emma@finance-assoc.com', '+1-555-0104',
+            'Financial Analyst', 8, '2024-07-20', 'Boston, MA', 'Pending',
+            NULL, 'Need analytical skills and CPA preferred', NULL, NULL, NULL, NULL
+          ),
+          (
+            'Special', 'Creative Design Studio', 'Alex Rodriguez', 'alex@creativedesign.com', '+1-555-0105',
+            'Design Team Lead', 12, '2024-08-01', 'San Francisco, CA', 'Rejected',
+            'Portfolio review required, minimum 5 years UI/UX experience', 'Specialized design team for major project', '$50,000-$60,000/month', 'UI/UX Design, Figma, Adobe Creative Suite', 'San Francisco', 'Medium'
+          ),
+          (
+            'Standard', 'Retail Operations', 'Linda Davis', 'linda@retail-ops.com', '+1-555-0106',
+            'Store Manager', 30, '2024-08-15', 'Houston, TX', 'Pending',
+            NULL, 'Multiple store locations opening', NULL, NULL, NULL, NULL
+          )
+        `)
+        console.log('✓ Employee requests test data seeded')
+      }
     } catch (tableError) {
       console.error('Error creating employee_requests table:', tableError)
     }
