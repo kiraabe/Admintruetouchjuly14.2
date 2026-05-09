@@ -199,19 +199,18 @@ const Partnership = () => {
         body: formDataObj,
       })
 
-      let errorMsg = `HTTP error! status: ${response.status}`
-      if (!response.ok) {
-        try {
-          const errorData = await response.json()
-          errorMsg = errorData.error || errorMsg
-        } catch (e) {
-          const text = await response.text()
-          console.error('Raw response:', text)
-        }
-        throw new Error(errorMsg)
+      let result
+      try {
+        result = await response.json()
+      } catch (e) {
+        console.error('Failed to parse response:', e)
+        throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      const result = await response.json()
+      if (!response.ok) {
+        throw new Error(result.error || `HTTP error! status: ${response.status}`)
+      }
+
       if (result.success) {
         toast.success(editingPartner ? 'Partnership updated' : 'Partnership created')
         handleCloseModal()
