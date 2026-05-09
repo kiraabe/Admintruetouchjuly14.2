@@ -70,10 +70,21 @@ const Candidates = () => {
   const [loading, setLoading] = useState(false)
   const [filters, setFilters] = useState<Partial<Candidate>>({})
   const [activeTab, setActiveTab] = useState('available')
+  const [sortColumn, setSortColumn] = useState<string | null>(null)
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
 
   useEffect(() => {
     fetchCandidates()
   }, [])
+
+  const handleSort = (column: string) => {
+    if (sortColumn === column) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortColumn(column)
+      setSortDirection('asc')
+    }
+  }
 
   useEffect(() => {
     let filtered = candidates
@@ -103,8 +114,30 @@ const Candidates = () => {
       })
     }
 
+    // Apply sorting
+    if (sortColumn) {
+      filtered.sort((a, b) => {
+        const aValue = a[sortColumn as keyof Candidate]
+        const bValue = b[sortColumn as keyof Candidate]
+
+        if (aValue === null || aValue === undefined) return 1
+        if (bValue === null || bValue === undefined) return -1
+
+        let comparison = 0
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
+          comparison = aValue.toLowerCase().localeCompare(bValue.toLowerCase())
+        } else if (typeof aValue === 'number' && typeof bValue === 'number') {
+          comparison = aValue - bValue
+        } else {
+          comparison = String(aValue).localeCompare(String(bValue))
+        }
+
+        return sortDirection === 'asc' ? comparison : -comparison
+      })
+    }
+
     setFilteredCandidates(filtered)
-  }, [candidates, searchTerm, filters, activeTab])
+  }, [candidates, searchTerm, filters, activeTab, sortColumn, sortDirection])
 
   const fetchCandidates = async () => {
     try {
@@ -365,12 +398,108 @@ const Candidates = () => {
                     onChange={(checked) => handleSelectAll(checked as boolean)}
                   />
                 </th>
-                <th className="text-left py-3 px-4">Name</th>
-                <th className="text-left py-3 px-4">Phone</th>
-                <th className="text-left py-3 px-4">Job Category</th>
-                <th className="text-left py-3 px-4">Nationality</th>
-                <th className="text-left py-3 px-4">Skill Level</th>
-                <th className="text-left py-3 px-4">Status</th>
+                <th
+                  className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                  onClick={() => handleSort('name')}
+                >
+                  <div className="flex items-center gap-2">
+                    Name
+                    {sortColumn === 'name' && (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        {sortDirection === 'asc' ? (
+                          <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+                        ) : (
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707a1 1 0 00-1.414-1.414L11 9.586V6a1 1 0 00-2 0v3.586L7.707 8.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3z" />
+                        )}
+                      </svg>
+                    )}
+                  </div>
+                </th>
+                <th
+                  className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                  onClick={() => handleSort('phone_number')}
+                >
+                  <div className="flex items-center gap-2">
+                    Phone
+                    {sortColumn === 'phone_number' && (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        {sortDirection === 'asc' ? (
+                          <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+                        ) : (
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707a1 1 0 00-1.414-1.414L11 9.586V6a1 1 0 00-2 0v3.586L7.707 8.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3z" />
+                        )}
+                      </svg>
+                    )}
+                  </div>
+                </th>
+                <th
+                  className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                  onClick={() => handleSort('job_category')}
+                >
+                  <div className="flex items-center gap-2">
+                    Job Category
+                    {sortColumn === 'job_category' && (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        {sortDirection === 'asc' ? (
+                          <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+                        ) : (
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707a1 1 0 00-1.414-1.414L11 9.586V6a1 1 0 00-2 0v3.586L7.707 8.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3z" />
+                        )}
+                      </svg>
+                    )}
+                  </div>
+                </th>
+                <th
+                  className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                  onClick={() => handleSort('nationality')}
+                >
+                  <div className="flex items-center gap-2">
+                    Nationality
+                    {sortColumn === 'nationality' && (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        {sortDirection === 'asc' ? (
+                          <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+                        ) : (
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707a1 1 0 00-1.414-1.414L11 9.586V6a1 1 0 00-2 0v3.586L7.707 8.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3z" />
+                        )}
+                      </svg>
+                    )}
+                  </div>
+                </th>
+                <th
+                  className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                  onClick={() => handleSort('skill_level')}
+                >
+                  <div className="flex items-center gap-2">
+                    Skill Level
+                    {sortColumn === 'skill_level' && (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        {sortDirection === 'asc' ? (
+                          <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+                        ) : (
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707a1 1 0 00-1.414-1.414L11 9.586V6a1 1 0 00-2 0v3.586L7.707 8.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3z" />
+                        )}
+                      </svg>
+                    )}
+                  </div>
+                </th>
+                <th
+                  className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                  onClick={() => handleSort('status')}
+                >
+                  <div className="flex items-center gap-2">
+                    Status
+                    {sortColumn === 'status' && (
+                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                        {sortDirection === 'asc' ? (
+                          <path fillRule="evenodd" d="M3 10a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z" />
+                        ) : (
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707a1 1 0 00-1.414-1.414L11 9.586V6a1 1 0 00-2 0v3.586L7.707 8.293a1 1 0 00-1.414 1.414l3 3a1 1 0 001.414 0l3-3z" />
+                        )}
+                      </svg>
+                    )}
+                  </div>
+                </th>
                 <th className="text-left py-3 px-4">Actions</th>
               </tr>
             </thead>
