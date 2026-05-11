@@ -31,9 +31,9 @@ const Dashboard = () => {
 
   const kpis: KPI[] = [
     {
-      title: 'Total marketing spend',
-      value: '$192,817',
-      change: '+5.3%',
+      title: 'Total Candidates',
+      value: '1,245',
+      change: '+12.5%',
       icon: (
         <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
           <path d="M9.5 3h5a1.5 1.5 0 0 1 1.5 1.5a3.5 3.5 0 0 1 -3.5 3.5h-1a3.5 3.5 0 0 1 -3.5 -3.5a1.5 1.5 0 0 1 1.5 -1.5z"></path>
@@ -43,9 +43,9 @@ const Dashboard = () => {
       bgColor: 'bg-rose-200',
     },
     {
-      title: 'ROI',
-      value: '270%',
-      change: '+8.1%',
+      title: 'Open Positions',
+      value: '28',
+      change: '+3.2%',
       icon: (
         <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
           <path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"></path>
@@ -57,9 +57,9 @@ const Dashboard = () => {
       bgColor: 'bg-sky-200',
     },
     {
-      title: 'Conversion rates',
-      value: '4.5%',
-      change: '+0.9%',
+      title: 'Placement Rate',
+      value: '72%',
+      change: '+8.7%',
       icon: (
         <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
           <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path>
@@ -71,9 +71,9 @@ const Dashboard = () => {
       bgColor: 'bg-emerald-200',
     },
     {
-      title: 'Total leads',
-      value: '1,289',
-      change: '+16.2%',
+      title: 'Active Requests',
+      value: '42',
+      change: '+6.1%',
       icon: (
         <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
           <path d="M4 13v-8a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v8a2 2 0 0 0 6 0v-8a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v8a8 8 0 0 1 -16 0"></path>
@@ -88,13 +88,13 @@ const Dashboard = () => {
   const campaigns: Campaign[] = [
     {
       id: '1',
-      name: 'Summer Sale',
-      type: 'Promotional',
+      name: 'Senior Software Engineer',
+      type: 'Standard',
       status: 'Completed',
-      budget: '$20,000',
-      conversions: '50%',
-      startDate: '27 Apr 2026',
-      endDate: '10 May 2026',
+      budget: '5 positions',
+      conversions: '80%',
+      startDate: '15 Apr 2026',
+      endDate: '01 May 2026',
       icon: (
         <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
           <path d="M9.5 3h5a1.5 1.5 0 0 1 1.5 1.5a3.5 3.5 0 0 1 -3.5 3.5h-1a3.5 3.5 0 0 1 -3.5 -3.5a1.5 1.5 0 0 1 1.5 -1.5z"></path>
@@ -103,13 +103,13 @@ const Dashboard = () => {
     },
     {
       id: '2',
-      name: 'Back-to-School Promo',
-      type: 'Seasonal',
+      name: 'Product Manager',
+      type: 'Standard',
       status: 'Active',
-      budget: '$15,000',
-      conversions: '35%',
-      startDate: '02 May 2026',
-      endDate: '11 May 2026',
+      budget: '3 positions',
+      conversions: '65%',
+      startDate: '08 May 2026',
+      endDate: '20 May 2026',
       icon: (
         <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
           <path d="M5 21c.5 -4.5 2.5 -8 7 -10"></path>
@@ -118,13 +118,13 @@ const Dashboard = () => {
     },
     {
       id: '3',
-      name: 'New Product Launch',
-      type: 'Seasonal',
+      name: 'UX/UI Designer',
+      type: 'Standard',
       status: 'Active',
-      budget: '$30,000',
-      conversions: '60%',
-      startDate: '05 May 2026',
-      endDate: '13 May 2026',
+      budget: '2 positions',
+      conversions: '75%',
+      startDate: '10 May 2026',
+      endDate: '25 May 2026',
       icon: (
         <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
           <path d="M5 21c.5 -4.5 2.5 -8 7 -10"></path>
@@ -133,13 +133,13 @@ const Dashboard = () => {
     },
     {
       id: '4',
-      name: 'Holiday Gift Guide',
-      type: 'Launch',
+      name: 'Data Scientist',
+      type: 'Special',
       status: 'Scheduled',
-      budget: '$50,000',
+      budget: '4 positions',
       conversions: '0%',
-      startDate: '02 May 2026',
-      endDate: '11 May 2026',
+      startDate: '15 May 2026',
+      endDate: '31 May 2026',
       icon: (
         <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
           <path d="M4 13a8 8 0 0 1 7 7a6 6 0 0 0 3 -5a9 9 0 0 0 6 -8a3 3 0 0 0 -3 -3a9 9 0 0 0 -8 6a6 6 0 0 0 -5 3"></path>
@@ -148,13 +148,13 @@ const Dashboard = () => {
     },
     {
       id: '5',
-      name: 'Clearance Sale',
-      type: 'Promotional',
+      name: 'DevOps Engineer',
+      type: 'Standard',
       status: 'Active',
-      budget: '$10,000',
-      conversions: '20%',
-      startDate: '02 May 2026',
-      endDate: '11 May 2026',
+      budget: '2 positions',
+      conversions: '55%',
+      startDate: '05 May 2026',
+      endDate: '18 May 2026',
       icon: (
         <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
           <path d="M9.5 3h5a1.5 1.5 0 0 1 1.5 1.5a3.5 3.5 0 0 1 -3.5 3.5h-1a3.5 3.5 0 0 1 -3.5 -3.5a1.5 1.5 0 0 1 1.5 -1.5z"></path>
@@ -165,23 +165,23 @@ const Dashboard = () => {
 
   const chartSeries = [
     {
-      name: 'Campaign ROI',
-      data: [440, 505, 414, 671, 227, 413, 201, 352, 752, 320, 257, 160],
+      name: 'Candidates Matched',
+      data: [45, 52, 48, 61, 55, 48, 59, 65, 72, 68, 75, 82],
     },
     {
-      name: 'Email ROI',
-      data: [230, 100, 170, 190, 120, 170, 180, 270, 200, 300, 310, 280],
+      name: 'Requests Fulfilled',
+      data: [25, 30, 28, 35, 32, 30, 38, 42, 45, 40, 48, 52],
     },
   ]
 
-  const chartXAxis = ['01 Jan', '02 Jan', '03 Jan', '04 Jan', '05 Jan', '06 Jan', '07 Jan', '08 Jan', '09 Jan', '10 Jan', '11 Jan', '12 Jan']
+  const chartXAxis = ['01 May', '02 May', '03 May', '04 May', '05 May', '06 May', '07 May', '08 May', '09 May', '10 May', '11 May', '12 May']
 
   const performanceScores = [
-    { label: 'Lead Volume', score: '78%', status: 'success' },
-    { label: 'Conversion Rate', score: '57%', status: 'warning' },
-    { label: 'Lead Quality', score: '26%', status: 'error' },
-    { label: 'Response Time', score: '76%', status: 'success' },
-    { label: 'Cost per Lead', score: '42%', status: 'warning' },
+    { label: 'Candidate Quality', score: '88%', status: 'success' },
+    { label: 'Request Fulfillment', score: '72%', status: 'success' },
+    { label: 'Time-to-Hire', score: '64%', status: 'warning' },
+    { label: 'Placement Success', score: '81%', status: 'success' },
+    { label: 'Candidate Retention', score: '58%', status: 'warning' },
   ]
 
   const getStatusColor = (status: string) => {
@@ -237,7 +237,7 @@ const Dashboard = () => {
       {/* KPI Summary */}
       <Card>
         <div className="flex items-center justify-between mb-4">
-          <h4 className="text-lg font-bold">Kpi summary</h4>
+          <h4 className="text-lg font-bold">Recruitment KPIs</h4>
         </div>
         <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
           {kpis.map((kpi) => (
@@ -262,20 +262,20 @@ const Dashboard = () => {
       </Card>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-y-4 xl:gap-x-4">
-        {/* Ads Performance Chart */}
+        {/* Recruitment Performance Chart */}
         <div className="col-span-2">
           <Card>
             <div className="flex items-center justify-between mb-4">
-              <h4 className="text-lg font-bold">Ads performance</h4>
+              <h4 className="text-lg font-bold">Recruitment Performance</h4>
               <Segment>
                 <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'all' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('all')}>
                   All
                 </button>
                 <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'campaign' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('campaign')}>
-                  Campaign
+                  Standard
                 </button>
                 <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'email' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('email')}>
-                  Email
+                  Special
                 </button>
               </Segment>
             </div>
@@ -285,14 +285,14 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Lead Performance Score */}
+        {/* Recruitment Performance Score */}
         <Card>
           <div className="flex items-center justify-between mb-4">
-            <h4 className="text-lg font-bold">Lead performance score</h4>
+            <h4 className="text-lg font-bold">Recruitment Performance</h4>
           </div>
           <div style={{ minHeight: '265px' }} className="flex items-center justify-center mb-6">
             <div className="text-center">
-              <div className="text-4xl font-bold text-primary">78%</div>
+              <div className="text-4xl font-bold text-primary">76%</div>
               <p className="text-gray-600 mt-2">Overall Score</p>
             </div>
           </div>
@@ -312,11 +312,11 @@ const Dashboard = () => {
         </Card>
       </div>
 
-      {/* Campaigns Table */}
+      {/* Active Requests Table */}
       <Card>
         <div className="flex items-center justify-between mb-4">
-          <h4 className="text-lg font-bold">Campaigns</h4>
-          <Button variant="default">Create campaign</Button>
+          <h4 className="text-lg font-bold">Active Job Requests</h4>
+          <Button variant="default">New Request</Button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
@@ -325,10 +325,10 @@ const Dashboard = () => {
                 <th className="text-left py-3 px-4">
                   <input type="checkbox" />
                 </th>
-                <th className="text-left py-3 px-4">Campaign</th>
+                <th className="text-left py-3 px-4">Position</th>
                 <th className="text-left py-3 px-4">Status</th>
-                <th className="text-left py-3 px-4">Budget</th>
-                <th className="text-left py-3 px-4">Conversions</th>
+                <th className="text-left py-3 px-4">Positions</th>
+                <th className="text-left py-3 px-4">Matched</th>
                 <th className="text-left py-3 px-4">Start</th>
                 <th className="text-left py-3 px-4">End</th>
               </tr>
@@ -351,8 +351,8 @@ const Dashboard = () => {
                   <td className="py-3 px-4">
                     <Tag className={getStatusColor(campaign.status)}>{campaign.status}</Tag>
                   </td>
-                  <td className="py-3 px-4">{campaign.budget}</td>
-                  <td className="py-3 px-4">{campaign.conversions}</td>
+                  <td className="py-3 px-4 text-gray-700 dark:text-gray-300">{campaign.budget}</td>
+                  <td className="py-3 px-4 text-gray-700 dark:text-gray-300">{campaign.conversions}</td>
                   <td className="py-3 px-4 whitespace-nowrap">{campaign.startDate}</td>
                   <td className="py-3 px-4 whitespace-nowrap">{campaign.endDate}</td>
                 </tr>
