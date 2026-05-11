@@ -74,11 +74,15 @@ const Job = () => {
 
   const handleEdit = (job: Job) => {
     setSelectedJob(job)
+    // Convert ISO date format to YYYY-MM-DD for date input
+    const dateValue = job.expire_date
+      ? new Date(job.expire_date).toISOString().split('T')[0]
+      : ''
     setFormData({
       title: job.title,
       description: job.description,
       author: job.author,
-      expire_date: job.expire_date,
+      expire_date: dateValue,
       status: job.status,
     })
     if (job.image_url) {
@@ -110,7 +114,7 @@ const Job = () => {
         title: formData.title,
         description: formData.description,
         author: formData.author,
-        expire_date: formData.expire_date,
+        expire_date: formData.expire_date ? new Date(formData.expire_date).toISOString() : '',
         status: formData.status,
       }
 
