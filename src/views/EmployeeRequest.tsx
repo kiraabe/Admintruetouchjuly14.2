@@ -182,7 +182,7 @@ const EmployeeRequest = () => {
         return
       }
 
-      await fetchRequests()
+      fetchRequests(currentPage)
       notify.success('Success', 'Request updated successfully')
       setShowDetailsModal(false)
     } catch (error) {
@@ -258,7 +258,7 @@ const EmployeeRequest = () => {
       if (response.ok) {
         notify.success('Success', `${selectedCandidates.length} candidates selected for "${currentStandardRequest.company_name}"`)
         setShowCandidateModal(false)
-        fetchRequests()
+        fetchRequests(currentPage)
       } else {
         notify.error('Error', 'Failed to update request')
       }
@@ -282,7 +282,7 @@ const EmployeeRequest = () => {
         return
       }
 
-      await fetchRequests()
+      fetchRequests(currentPage)
       notify.success('Success', 'Request deleted successfully')
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'

@@ -171,7 +171,8 @@ const SpecialRequest = () => {
         budget: '',
       })
       setShowAddModal(false)
-      await fetchRequests(1)
+      setCurrentPage(1)
+      fetchRequests(1)
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
       notify.error('Error', errorMsg)

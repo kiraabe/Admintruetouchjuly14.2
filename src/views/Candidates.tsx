@@ -198,7 +198,7 @@ const Candidates = () => {
         return
       }
 
-      await fetchCandidates()
+      fetchCandidates(currentPage)
       notify.success('Success', 'Candidate deleted successfully')
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'

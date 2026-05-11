@@ -118,7 +118,7 @@ const LicenseInfo = () => {
         toast.success('License added successfully')
         setShowAddModal(false)
       }
-      await fetchLicenses()
+      fetchLicenses()
     } catch (error) {
       toast.error('Failed to save license')
     }
@@ -133,7 +133,7 @@ const LicenseInfo = () => {
       })
       if (!response.ok) throw new Error('Failed to delete license')
       toast.success('License deleted successfully')
-      await fetchLicenses()
+      fetchLicenses()
     } catch (error) {
       toast.error('Failed to delete license')
     }

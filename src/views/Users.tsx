@@ -116,8 +116,7 @@ const Users = () => {
 
       notify.success('Success', 'User updated successfully')
       setShowEditModal(false)
-      fetchUsers()
-      fetchPartnerships()
+      fetchUsers(currentPage)
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to update user'
       console.error('Error updating user:', error)
@@ -169,7 +168,7 @@ const Users = () => {
       notify.success('Success', 'Password reset and credentials downloaded')
       setShowResetPasswordModal(false)
       setNewPassword('')
-      await fetchUsers()
+      fetchUsers(currentPage)
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to reset password'
       console.error('Error resetting password:', error)
@@ -193,7 +192,7 @@ const Users = () => {
       }
 
       notify.success('Success', 'User deactivated successfully')
-      await fetchUsers()
+      fetchUsers(currentPage)
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to deactivate user'
       console.error('Error deactivating user:', error)
@@ -215,7 +214,7 @@ const Users = () => {
       }
 
       notify.success('Success', 'User activated successfully')
-      await fetchUsers()
+      fetchUsers(currentPage)
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to activate user'
       console.error('Error activating user:', error)
@@ -262,8 +261,8 @@ const Users = () => {
       setShowAddModal(false)
       setNewUser({ email: '', user_name: '', authority: 'user', password: '', partnership_id: null })
       setShowNewPassword(false)
-      await fetchUsers()
-      await fetchPartnerships()
+      fetchUsers(currentPage)
+      fetchPartnerships()
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to create user'
       console.error('Error creating user:', error)

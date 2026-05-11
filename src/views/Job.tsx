@@ -159,7 +159,7 @@ const Job = () => {
       toast.success(selectedJob ? 'Job updated successfully' : 'Job added successfully')
       setShowEditModal(false)
       setShowAddModal(false)
-      await fetchJobs(currentPage)
+      fetchJobs(currentPage)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to save job')
     }
@@ -175,7 +175,7 @@ const Job = () => {
       if (!response.ok) throw new Error('Failed to delete job')
       toast.success('Job deleted successfully')
       setCurrentPage(1)
-      await fetchJobs(1)
+      fetchJobs(1)
     } catch (error) {
       toast.error('Failed to delete job')
     }
@@ -194,7 +194,7 @@ const Job = () => {
       })
       if (!response.ok) throw new Error('Failed to update job status')
       toast.success(`Job ${newStatus}`)
-      await fetchJobs(currentPage)
+      fetchJobs(currentPage)
     } catch (error) {
       toast.error('Failed to update job status')
     }
