@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Tag from '@/components/ui/Tag'
@@ -37,33 +37,7 @@ const PartnershipDashboard = () => {
   const [kpis, setKpis] = useState<KPI[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  const fetchData = async () => {
-    try {
-      const response = await fetch('/api/special-requests')
-      const text = await response.text()
-
-      let requestsData: SpecialRequest[] = []
-      if (text) {
-        const parsed = JSON.parse(text)
-        if (parsed.success) {
-          requestsData = parsed.data || []
-        }
-      }
-
-      setRequests(requestsData)
-      calculateKPIs(requestsData)
-    } catch (error) {
-      console.error('Error fetching data:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const calculateKPIs = (requestsData: SpecialRequest[]) => {
+  const calculateKPIs = useCallback((requestsData: SpecialRequest[]) => {
     const totalRequests = requestsData.length
     const approvedRequests = requestsData.filter((r) => r.status === 'Approved').length
     const pendingRequests = requestsData.filter((r) => r.status === 'Pending').length
@@ -123,7 +97,33 @@ const PartnershipDashboard = () => {
     ]
 
     setKpis(calculatedKpis)
-  }
+  }, [])
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const response = await fetch('/api/special-requests')
+        const text = await response.text()
+
+        let requestsData: SpecialRequest[] = []
+        if (text) {
+          const parsed = JSON.parse(text)
+          if (parsed.success) {
+            requestsData = parsed.data || []
+          }
+        }
+
+        setRequests(requestsData)
+        calculateKPIs(requestsData)
+      } catch (error) {
+        console.error('Error fetching data:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [calculateKPIs])
 
   const campaigns: SpecialRequest[] = requests.map((request) => ({
     ...request,
