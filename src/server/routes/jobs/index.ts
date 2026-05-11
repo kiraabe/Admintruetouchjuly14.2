@@ -144,13 +144,24 @@ router.post('/', async (req: Request, res: Response) => {
 
     // Handle data URL images
     let finalImageUrl: string | null = null
-    if (image_url && image_url.startsWith('data:image/')) {
-      console.log('Converting data URL image (length:', image_url.length, ')')
-      finalImageUrl = saveDataUrlImage(image_url)
-      console.log('Converted to:', finalImageUrl)
-    } else if (image_url) {
-      finalImageUrl = image_url
-      console.log('Using existing image URL:', finalImageUrl)
+    if (image_url) {
+      if (image_url.startsWith('data:image/')) {
+        console.log('Converting data URL image (length:', image_url.length, ')')
+        const savedPath = saveDataUrlImage(image_url)
+        finalImageUrl = savedPath
+        console.log('Converted to:', finalImageUrl, 'length:', finalImageUrl?.length || 0)
+        if (!finalImageUrl) {
+          console.warn('Failed to save image, using null instead of data URL')
+          finalImageUrl = null
+        }
+      } else if (image_url.length <= 255) {
+        // Only use existing URL if it's not too long
+        finalImageUrl = image_url
+        console.log('Using existing image URL:', finalImageUrl)
+      } else {
+        console.warn('Image URL too long:', image_url.length, 'chars, using null')
+        finalImageUrl = null
+      }
     }
 
     if (!title || !description || !expire_date) {
@@ -199,13 +210,25 @@ router.put('/:id', async (req: Request, res: Response) => {
     status = (status && typeof status === 'string') ? status.trim() : 'active'
 
     // Handle data URL images
-    let finalImageUrl: string | null = image_url || null
-    if (image_url && image_url.startsWith('data:image/')) {
-      console.log('Converting data URL image (length:', image_url.length, ')')
-      finalImageUrl = saveDataUrlImage(image_url)
-      console.log('Converted to:', finalImageUrl)
-    } else if (image_url) {
-      console.log('Using existing image URL:', image_url)
+    let finalImageUrl: string | null = null
+    if (image_url) {
+      if (image_url.startsWith('data:image/')) {
+        console.log('Converting data URL image (length:', image_url.length, ')')
+        const savedPath = saveDataUrlImage(image_url)
+        finalImageUrl = savedPath
+        console.log('Converted to:', finalImageUrl, 'length:', finalImageUrl?.length || 0)
+        if (!finalImageUrl) {
+          console.warn('Failed to save image, using null instead of data URL')
+          finalImageUrl = null
+        }
+      } else if (image_url.length <= 255) {
+        // Only use existing URL if it's not too long
+        finalImageUrl = image_url
+        console.log('Using existing image URL:', finalImageUrl)
+      } else {
+        console.warn('Image URL too long:', image_url.length, 'chars, using null')
+        finalImageUrl = null
+      }
     }
 
     // Ensure required fields are present
