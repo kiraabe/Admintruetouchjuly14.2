@@ -343,7 +343,6 @@ const Dashboard = () => {
       <Card>
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-lg font-bold">Active Job Requests</h4>
-          <Button variant="default">New Request</Button>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
