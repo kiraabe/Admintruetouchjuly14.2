@@ -132,7 +132,7 @@ const EmployeeRequest = () => {
     }
 
     setFilteredRequests(filtered)
-  }, [requests, searchTerm, filters, sortColumn, sortDirection, activeTab, currentPage])
+  }, [requests, searchTerm, filters, sortColumn, sortDirection, activeTab])
 
   const fetchRequests = async (page: number) => {
     try {
