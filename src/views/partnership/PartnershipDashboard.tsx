@@ -31,75 +31,73 @@ interface PartnershipMetric {
   status: 'success' | 'warning' | 'error'
 }
 
+const kpiIcons = [
+  <svg key="1" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+    <path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"></path>
+    <path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"></path>
+  </svg>,
+  <svg key="2" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+    <path d="M12 3c7.2 0 9 1.8 9 9s-1.8 9 -9 9s-9 -1.8 -9 -9s1.8 -9 9 -9"></path>
+    <path d="M12 9v3l2 1"></path>
+  </svg>,
+  <svg key="3" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path>
+    <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path>
+  </svg>,
+  <svg key="4" stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+    <path d="M9.5 3h5a1.5 1.5 0 0 1 1.5 1.5a3.5 3.5 0 0 1 -3.5 3.5h-1a3.5 3.5 0 0 1 -3.5 -3.5a1.5 1.5 0 0 1 1.5 -1.5z"></path>
+    <path d="M4 17v-1a8 8 0 0 1 16 0v1a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"></path>
+  </svg>,
+]
+
 const PartnershipDashboard = () => {
   const [selectedSegment, setSelectedSegment] = useState('all')
   const [requests, setRequests] = useState<SpecialRequest[]>([])
   const [kpis, setKpis] = useState<KPI[]>([])
   const [loading, setLoading] = useState(true)
 
-  const calculateKPIs = useCallback((requestsData: SpecialRequest[]) => {
-    const totalRequests = requestsData.length
-    const approvedRequests = requestsData.filter((r) => r.status === 'Approved').length
-    const pendingRequests = requestsData.filter((r) => r.status === 'Pending').length
-    const inProgressRequests = requestsData.filter((r) => r.status === 'In Progress').length
-    const totalPositions = requestsData.reduce((sum, r) => sum + r.number_of_employees, 0)
-    const fulfillmentRate = totalRequests > 0 ? Math.round((approvedRequests / totalRequests) * 100) : 0
-
-    const calculatedKpis: KPI[] = [
-      {
-        title: 'Total Requests',
-        value: totalRequests,
-        change: '+8.3%',
-        icon: (
-          <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"></path>
-            <path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"></path>
-          </svg>
-        ),
-        bgColor: 'bg-rose-200',
-      },
-      {
-        title: 'Pending Requests',
-        value: pendingRequests,
-        change: '+2.1%',
-        icon: (
-          <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 3c7.2 0 9 1.8 9 9s-1.8 9 -9 9s-9 -1.8 -9 -9s1.8 -9 9 -9"></path>
-            <path d="M12 9v3l2 1"></path>
-          </svg>
-        ),
-        bgColor: 'bg-yellow-200',
-      },
-      {
-        title: 'Fulfillment Rate',
-        value: `${fulfillmentRate}%`,
-        change: '+5.4%',
-        icon: (
-          <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path>
-            <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path>
-          </svg>
-        ),
-        bgColor: 'bg-emerald-200',
-      },
-      {
-        title: 'Total Positions',
-        value: totalPositions,
-        change: '+11.2%',
-        icon: (
-          <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-            <path d="M9.5 3h5a1.5 1.5 0 0 1 1.5 1.5a3.5 3.5 0 0 1 -3.5 3.5h-1a3.5 3.5 0 0 1 -3.5 -3.5a1.5 1.5 0 0 1 1.5 -1.5z"></path>
-            <path d="M4 17v-1a8 8 0 0 1 16 0v1a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"></path>
-          </svg>
-        ),
-        bgColor: 'bg-purple-200',
-      },
-    ]
-
-    setKpis(calculatedKpis)
-  }, [])
-
   useEffect(() => {
+    const calculateKPIs = (requestsData: SpecialRequest[]) => {
+      const totalRequests = requestsData.length
+      const approvedRequests = requestsData.filter((r) => r.status === 'Approved').length
+      const pendingRequests = requestsData.filter((r) => r.status === 'Pending').length
+      const totalPositions = requestsData.reduce((sum, r) => sum + r.number_of_employees, 0)
+      const fulfillmentRate = totalRequests > 0 ? Math.round((approvedRequests / totalRequests) * 100) : 0
+
+      const calculatedKpis: KPI[] = [
+        {
+          title: 'Total Requests',
+          value: totalRequests,
+          change: '+8.3%',
+          icon: kpiIcons[0],
+          bgColor: 'bg-rose-200',
+        },
+        {
+          title: 'Pending Requests',
+          value: pendingRequests,
+          change: '+2.1%',
+          icon: kpiIcons[1],
+          bgColor: 'bg-yellow-200',
+        },
+        {
+          title: 'Fulfillment Rate',
+          value: `${fulfillmentRate}%`,
+          change: '+5.4%',
+          icon: kpiIcons[2],
+          bgColor: 'bg-emerald-200',
+        },
+        {
+          title: 'Total Positions',
+          value: totalPositions,
+          change: '+11.2%',
+          icon: kpiIcons[3],
+          bgColor: 'bg-purple-200',
+        },
+      ]
+
+      setKpis(calculatedKpis)
+    }
+
     const fetchData = async () => {
       try {
         const response = await fetch('/api/special-requests')
@@ -123,7 +121,8 @@ const PartnershipDashboard = () => {
     }
 
     fetchData()
-  }, [calculateKPIs])
+  }, [])
+
 
   const campaigns: SpecialRequest[] = requests.map((request) => ({
     ...request,
