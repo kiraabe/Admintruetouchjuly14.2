@@ -8,7 +8,7 @@ const { unAuthenticatedEntryPath } = appConfig
 const adminOnlyRoutes = [
     '/users',
     '/candidates',
-    '/partnership',
+    '/partnership/',
     '/job',
     '/employee-request',
     '/license-info',
@@ -34,8 +34,12 @@ const ProtectedRoute = () => {
         )
     }
 
-    const isPartnershipUser = userRole === 'partnership' || userRole === 'partner'
-    const isAdminOnlyRoute = adminOnlyRoutes.some(route => pathName.startsWith(route))
+    const isPartnershipUser =
+        userRole === 'partnership' || userRole === 'partner'
+
+    const isAdminOnlyRoute = adminOnlyRoutes.some(
+        (route) => pathName === route || pathName.startsWith(route + '/')
+    )
 
     if (isPartnershipUser && isAdminOnlyRoute) {
         return <Navigate replace to="/partnership-dashboard" />
