@@ -58,7 +58,7 @@ const _Notification = ({ className }: { className?: string }) => {
 
     useEffect(() => {
         getNotificationCount()
-    }, [getNotificationCount])
+    }, [])
 
     const onNotificationOpen = async () => {
         if (notificationList.length === 0) {
