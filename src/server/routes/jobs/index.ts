@@ -32,6 +32,8 @@ const upload = multer({
       cb(new Error('Only image files are allowed'))
     }
   },
+  // Handle case where no file is provided
+  fileField: 'image',
 })
 
 let pool: any = null
@@ -89,6 +91,9 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
     const { title, description, author, expire_date, status } = req.body
     const imageUrl = req.file ? `/uploads/jobs/${req.file.filename}` : null
 
+    console.log('POST /api/jobs - body:', req.body)
+    console.log('POST /api/jobs - file:', req.file)
+
     if (!title || !description || !expire_date) {
       return res
         .status(400)
@@ -126,10 +131,22 @@ router.put('/:id', upload.single('image'), async (req: Request, res: Response) =
     const dbPool = await initPool()
     const { title, description, author, image_url, expire_date, status } = req.body
 
+    console.log('PUT /api/jobs/:id - body:', req.body)
+    console.log('PUT /api/jobs/:id - file:', req.file)
+    console.log('PUT /api/jobs/:id - title:', title)
+
     // Use new image if provided, otherwise keep existing
     let imageUrlToUse = image_url
     if (req.file) {
       imageUrlToUse = `/uploads/jobs/${req.file.filename}`
+    }
+
+    // Ensure required fields are present
+    if (!title || !description || !expire_date) {
+      return res.status(400).json({
+        success: false,
+        error: 'Title, description, and expire date are required'
+      })
     }
 
     const result = await dbPool.query(
@@ -142,10 +159,10 @@ router.put('/:id', upload.single('image'), async (req: Request, res: Response) =
       [
         title,
         description,
-        author,
+        author || 'admin',
         imageUrlToUse,
         expire_date,
-        status,
+        status || 'active',
         req.params.id,
       ]
     )

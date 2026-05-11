@@ -115,6 +115,9 @@ const Job = () => {
 
       if (imageFile) {
         formDataToSend.append('image', imageFile)
+      } else if (selectedJob && selectedJob.image_url) {
+        // Keep existing image URL when not changing it
+        formDataToSend.append('image_url', selectedJob.image_url)
       }
 
       if (selectedJob) {
