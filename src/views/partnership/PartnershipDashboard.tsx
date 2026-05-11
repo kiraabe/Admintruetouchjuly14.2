@@ -100,7 +100,7 @@ const PartnershipDashboard = () => {
 
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/special-requests')
+        const response = await fetch('/api/employee-requests')
         const text = await response.text()
 
         let requestsData: SpecialRequest[] = []
