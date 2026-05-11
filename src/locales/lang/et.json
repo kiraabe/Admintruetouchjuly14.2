@@ -1,19 +1,19 @@
 {
     "nav": {
-        "home": "Kodu",
-        "singleMenuItem": "Üksik menüüüksus",
+        "home": "ቤት",
+        "singleMenuItem": "ነጠላ ምናሌ ንጥል",
         "collapseMenu": {
-            "collapseMenu": "Kukkuva menüü üksus",
-            "item1": "Kukkuva menüü üksus 1",
-            "item2": "Kukkuva menüü üksus 2"
+            "collapseMenu": "ሚናሌ ንጥል ሰብስብ",
+            "item1": "ሚናሌ ንጥል ሰብስብ 1",
+            "item2": "ሚናሌ ንጥል ሰብስብ 2"
         },
         "groupMenu": {
-            "groupMenu": "Rühma menüü",
-            "single": "Rühma üksik menüü üksus",
+            "groupMenu": "ቡድን ምናሌ",
+            "single": "ቡድን ነጠላ ምናሌ ንጥል",
             "collapse": {
-                "collapse": "Rühma kukkuv menüü",
-                "item1": "Rühma kukkuva menüü üksus 1",
-                "item2": "Rühma kukkuva menüü üksus 2"
+                "collapse": "ቡድን ሚናሌ ሰብስብ",
+                "item1": "ቡድን ሚናሌ ንጥል ሰብስብ 1",
+                "item2": "ቡድን ሚናሌ ንጥል ሰብስብ 2"
             }
         }
     }
