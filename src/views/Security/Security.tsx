@@ -1,41 +1,48 @@
 import { useState } from 'react'
 import Tabs from '@/components/ui/Tabs'
-import ActivityLogs from './components/ActivityLogs'
-import LoginHistory from './components/LoginHistory'
-import RolePermissions from './components/RolePermissions'
 import PasswordSecurity from './components/PasswordSecurity'
-import Sessions from './components/Sessions'
 
-type SecurityTab = 'activity' | 'login' | 'roles' | 'password' | 'sessions'
+type SecurityTab = 'password' | 'activity' | 'login' | 'roles' | 'sessions'
+
+const ComingSoon = () => (
+    <div className="flex items-center justify-center py-12">
+        <div className="text-center">
+            <p className="text-lg font-semibold text-gray-700">Coming Soon</p>
+            <p className="text-sm text-gray-500 mt-2">
+                This feature will be available soon.
+            </p>
+        </div>
+    </div>
+)
 
 const Security = () => {
-    const [activeTab, setActiveTab] = useState<SecurityTab>('activity')
+    const [activeTab, setActiveTab] = useState<SecurityTab>('password')
 
     const tabs = [
-        {
-            value: 'activity',
-            label: 'Activity Logs',
-            component: <ActivityLogs />,
-        },
-        {
-            value: 'login',
-            label: 'Login History',
-            component: <LoginHistory />,
-        },
-        {
-            value: 'roles',
-            label: 'Roles & Permissions',
-            component: <RolePermissions />,
-        },
         {
             value: 'password',
             label: 'Password Security',
             component: <PasswordSecurity />,
         },
         {
+            value: 'activity',
+            label: 'Activity Logs',
+            component: <ComingSoon />,
+        },
+        {
+            value: 'login',
+            label: 'Login History',
+            component: <ComingSoon />,
+        },
+        {
+            value: 'roles',
+            label: 'Roles & Permissions',
+            component: <ComingSoon />,
+        },
+        {
             value: 'sessions',
             label: 'Active Sessions',
-            component: <Sessions />,
+            component: <ComingSoon />,
         },
     ]
 
@@ -53,7 +60,7 @@ const Security = () => {
                     <Tabs
                         value={activeTab}
                         onChange={(val) => setActiveTab(val as SecurityTab)}
-                        defaultValue="activity"
+                        defaultValue="password"
                     >
                         <Tabs.TabList>
                             {tabs.map((tab) => (
