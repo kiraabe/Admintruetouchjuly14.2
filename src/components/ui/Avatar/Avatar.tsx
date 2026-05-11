@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import useMergedRef from '../hooks/useMergeRef'
 import classNames from 'classnames'
 import type { CommonProps, TypeAttributes } from '../@types/common'
@@ -36,7 +36,7 @@ const Avatar = (props: AvatarProps) => {
 
     const avatarMergeRef = useMergedRef(ref, avatarNode)
 
-    const innerScale = () => {
+    const innerScale = useCallback(() => {
         if (!avatarChildren.current || !avatarNode.current) {
             return
         }
@@ -50,11 +50,11 @@ const Avatar = (props: AvatarProps) => {
                 ? (avatarNodeWidth - 8) / avatarChildrenWidth
                 : 1,
         )
-    }
+    }, [])
 
     useEffect(() => {
         innerScale()
-    }, [scale, children])
+    }, [innerScale, children])
 
     const sizeStyle =
         typeof size === 'number'
