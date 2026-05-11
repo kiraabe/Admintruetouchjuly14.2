@@ -108,7 +108,7 @@ const SpecialRequest = () => {
     }
 
     setFilteredRequests(filtered)
-  }, [requests, searchTerm, filters, sortColumn, sortDirection])
+  }, [requests, searchTerm, filters, sortColumn, sortDirection, currentPage])
 
   const fetchRequests = async (page: number) => {
     try {
