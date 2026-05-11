@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Tag from '@/components/ui/Tag'
@@ -26,142 +26,155 @@ interface Campaign {
   icon: React.ReactNode
 }
 
+interface Candidate {
+  candidate_id: string
+  name: string
+  status: string
+}
+
+interface EmployeeRequest {
+  request_id: string
+  request_type: 'Standard' | 'Special'
+  company_name: string
+  position: string
+  number_of_employees: number
+  status: string
+  start_date: string
+  created_at: string
+}
+
 const Dashboard = () => {
   const [selectedSegment, setSelectedSegment] = useState('all')
+  const [candidates, setCandidates] = useState<Candidate[]>([])
+  const [requests, setRequests] = useState<EmployeeRequest[]>([])
+  const [kpis, setKpis] = useState<KPI[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const kpis: KPI[] = [
-    {
-      title: 'Total Candidates',
-      value: '1,245',
-      change: '+12.5%',
-      icon: (
-        <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-          <path d="M9.5 3h5a1.5 1.5 0 0 1 1.5 1.5a3.5 3.5 0 0 1 -3.5 3.5h-1a3.5 3.5 0 0 1 -3.5 -3.5a1.5 1.5 0 0 1 1.5 -1.5z"></path>
-          <path d="M4 17v-1a8 8 0 1 1 16 0v1a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"></path>
-        </svg>
-      ),
-      bgColor: 'bg-rose-200',
-    },
-    {
-      title: 'Open Positions',
-      value: '28',
-      change: '+3.2%',
-      icon: (
-        <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-          <path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"></path>
-          <path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"></path>
-          <path d="M14 11h-2.5a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-2.5"></path>
-          <path d="M12 17v1m0 -8v1"></path>
-        </svg>
-      ),
-      bgColor: 'bg-sky-200',
-    },
-    {
-      title: 'Placement Rate',
-      value: '72%',
-      change: '+8.7%',
-      icon: (
-        <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path>
-          <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path>
-          <path d="M12 9l0 3"></path>
-          <path d="M12 15l.01 0"></path>
-        </svg>
-      ),
-      bgColor: 'bg-emerald-200',
-    },
-    {
-      title: 'Active Requests',
-      value: '42',
-      change: '+6.1%',
-      icon: (
-        <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 13v-8a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v8a2 2 0 0 0 6 0v-8a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v8a8 8 0 0 1 -16 0"></path>
-          <path d="M4 8l5 0"></path>
-          <path d="M15 8l4 0"></path>
-        </svg>
-      ),
-      bgColor: 'bg-purple-200',
-    },
-  ]
+  useEffect(() => {
+    fetchData()
+  }, [])
 
-  const campaigns: Campaign[] = [
-    {
-      id: '1',
-      name: 'Senior Software Engineer',
-      type: 'Standard',
-      status: 'Completed',
-      budget: '5 positions',
-      conversions: '80%',
-      startDate: '15 Apr 2026',
-      endDate: '01 May 2026',
-      icon: (
-        <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-          <path d="M9.5 3h5a1.5 1.5 0 0 1 1.5 1.5a3.5 3.5 0 0 1 -3.5 3.5h-1a3.5 3.5 0 0 1 -3.5 -3.5a1.5 1.5 0 0 1 1.5 -1.5z"></path>
-        </svg>
-      ),
-    },
-    {
-      id: '2',
-      name: 'Product Manager',
-      type: 'Standard',
-      status: 'Active',
-      budget: '3 positions',
-      conversions: '65%',
-      startDate: '08 May 2026',
-      endDate: '20 May 2026',
-      icon: (
-        <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-          <path d="M5 21c.5 -4.5 2.5 -8 7 -10"></path>
-        </svg>
-      ),
-    },
-    {
-      id: '3',
-      name: 'UX/UI Designer',
-      type: 'Standard',
-      status: 'Active',
-      budget: '2 positions',
-      conversions: '75%',
-      startDate: '10 May 2026',
-      endDate: '25 May 2026',
-      icon: (
-        <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-          <path d="M5 21c.5 -4.5 2.5 -8 7 -10"></path>
-        </svg>
-      ),
-    },
-    {
-      id: '4',
-      name: 'Data Scientist',
-      type: 'Special',
-      status: 'Scheduled',
-      budget: '4 positions',
-      conversions: '0%',
-      startDate: '15 May 2026',
-      endDate: '31 May 2026',
-      icon: (
-        <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-          <path d="M4 13a8 8 0 0 1 7 7a6 6 0 0 0 3 -5a9 9 0 0 0 6 -8a3 3 0 0 0 -3 -3a9 9 0 0 0 -8 6a6 6 0 0 0 -5 3"></path>
-        </svg>
-      ),
-    },
-    {
-      id: '5',
-      name: 'DevOps Engineer',
-      type: 'Standard',
-      status: 'Active',
-      budget: '2 positions',
-      conversions: '55%',
-      startDate: '05 May 2026',
-      endDate: '18 May 2026',
-      icon: (
-        <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
-          <path d="M9.5 3h5a1.5 1.5 0 0 1 1.5 1.5a3.5 3.5 0 0 1 -3.5 3.5h-1a3.5 3.5 0 0 1 -3.5 -3.5a1.5 1.5 0 0 1 1.5 -1.5z"></path>
-        </svg>
-      ),
-    },
-  ]
+  const fetchData = async () => {
+    try {
+      const [candidatesRes, requestsRes] = await Promise.all([
+        fetch('/api/candidates'),
+        fetch('/api/employee-requests'),
+      ])
+
+      const candidatesText = await candidatesRes.text()
+      const requestsText = await requestsRes.text()
+
+      let candidatesData: Candidate[] = []
+      let requestsData: EmployeeRequest[] = []
+
+      if (candidatesText) {
+        const parsed = JSON.parse(candidatesText)
+        if (parsed.success) {
+          candidatesData = parsed.data || []
+        }
+      }
+
+      if (requestsText) {
+        const parsed = JSON.parse(requestsText)
+        if (parsed.success) {
+          requestsData = parsed.data || []
+        }
+      }
+
+      setCandidates(candidatesData)
+      setRequests(requestsData)
+      calculateKPIs(candidatesData, requestsData)
+    } catch (error) {
+      console.error('Error fetching data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const calculateKPIs = (candidatesData: Candidate[], requestsData: EmployeeRequest[]) => {
+    const totalCandidates = candidatesData.length
+    const openPositions = requestsData.filter((r) => r.status === 'Pending').length
+    const approvedRequests = requestsData.filter((r) => r.status === 'Approved').length
+    const totalRequests = requestsData.length
+    const placementRate = totalRequests > 0 ? Math.round((approvedRequests / totalRequests) * 100) : 0
+    const activeRequests = requestsData.filter((r) => r.status === 'In Progress' || r.status === 'Approved').length
+
+    const calculatedKpis: KPI[] = [
+      {
+        title: 'Total Candidates',
+        value: totalCandidates.toLocaleString(),
+        change: '+12.5%',
+        icon: (
+          <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9.5 3h5a1.5 1.5 0 0 1 1.5 1.5a3.5 3.5 0 0 1 -3.5 3.5h-1a3.5 3.5 0 0 1 -3.5 -3.5a1.5 1.5 0 0 1 1.5 -1.5z"></path>
+            <path d="M4 17v-1a8 8 0 1 1 16 0v1a4 4 0 0 1 -4 4h-8a4 4 0 0 1 -4 -4z"></path>
+          </svg>
+        ),
+        bgColor: 'bg-rose-200',
+      },
+      {
+        title: 'Open Positions',
+        value: openPositions,
+        change: '+3.2%',
+        icon: (
+          <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+            <path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"></path>
+            <path d="M9 3m0 2a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v0a2 2 0 0 1 -2 2h-2a2 2 0 0 1 -2 -2z"></path>
+            <path d="M14 11h-2.5a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-2.5"></path>
+            <path d="M12 17v1m0 -8v1"></path>
+          </svg>
+        ),
+        bgColor: 'bg-sky-200',
+      },
+      {
+        title: 'Placement Rate',
+        value: `${placementRate}%`,
+        change: '+8.7%',
+        icon: (
+          <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path>
+            <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path>
+            <path d="M12 9l0 3"></path>
+            <path d="M12 15l.01 0"></path>
+          </svg>
+        ),
+        bgColor: 'bg-emerald-200',
+      },
+      {
+        title: 'Active Requests',
+        value: activeRequests,
+        change: '+6.1%',
+        icon: (
+          <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 13v-8a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v8a2 2 0 0 0 6 0v-8a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v8a8 8 0 0 1 -16 0"></path>
+            <path d="M4 8l5 0"></path>
+            <path d="M15 8l4 0"></path>
+          </svg>
+        ),
+        bgColor: 'bg-purple-200',
+      },
+    ]
+
+    setKpis(calculatedKpis)
+  }
+
+  const getIconSvg = () => (
+    <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
+      <path d="M9.5 3h5a1.5 1.5 0 0 1 1.5 1.5a3.5 3.5 0 0 1 -3.5 3.5h-1a3.5 3.5 0 0 1 -3.5 -3.5a1.5 1.5 0 0 1 1.5 -1.5z"></path>
+    </svg>
+  )
+
+  const campaigns: Campaign[] = requests.map((request, index) => ({
+    id: request.request_id,
+    name: request.position,
+    type: request.request_type,
+    status: request.status as 'Active' | 'Completed' | 'Scheduled',
+    budget: `${request.number_of_employees} position${request.number_of_employees !== 1 ? 's' : ''}`,
+    conversions: '0%',
+    startDate: new Date(request.start_date || request.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
+    endDate: new Date(request.start_date || request.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
+    icon: getIconSvg(),
+  }))
 
   const chartSeries = [
     {
@@ -187,11 +200,17 @@ const Dashboard = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Active':
+      case 'In Progress':
         return 'bg-sky-200'
       case 'Completed':
+      case 'Approved':
         return 'bg-emerald-200'
       case 'Scheduled':
         return 'bg-orange-200'
+      case 'Pending':
+        return 'bg-yellow-200'
+      case 'Rejected':
+        return 'bg-red-200'
       default:
         return 'bg-gray-200'
     }
@@ -231,6 +250,14 @@ const Dashboard = () => {
     ],
     [],
   )
+
+  if (loading) {
+    return (
+      <Card>
+        <div className="py-8 text-center text-gray-500">Loading recruitment data...</div>
+      </Card>
+    )
+  }
 
   return (
     <div className="flex flex-col gap-4">
