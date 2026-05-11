@@ -53,9 +53,17 @@ function AuthProvider({ children }: AuthProviderProps) {
         const params = new URLSearchParams(search)
         const redirectUrl = params.get(REDIRECT_URL_KEY)
 
-        navigatorRef.current?.navigate(
-            redirectUrl ? redirectUrl : appConfig.authenticatedEntryPath,
-        )
+        if (redirectUrl) {
+            navigatorRef.current?.navigate(redirectUrl)
+            return
+        }
+
+        const userAuthority = user.authority?.[0] || ''
+        const defaultPath = userAuthority === 'partnership'
+            ? '/partnership-dashboard'
+            : appConfig.authenticatedEntryPath
+
+        navigatorRef.current?.navigate(defaultPath)
     }
 
     const handleSignIn = (tokens: Token, user?: User) => {
