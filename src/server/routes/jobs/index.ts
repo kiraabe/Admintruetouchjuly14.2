@@ -100,20 +100,28 @@ router.get('/:id', async (req: Request, res: Response) => {
 // Helper to save data URL image to disk
 function saveDataUrlImage(dataUrl: string): string | null {
   try {
-    if (!dataUrl.startsWith('data:image/')) {
+    if (!dataUrl || !dataUrl.startsWith('data:image/')) {
+      console.log('Invalid data URL format')
       return null
     }
 
-    const matches = dataUrl.match(/^data:image\/(\w+);base64,(.+)$/)
-    if (!matches) return null
+    // More flexible regex to handle different MIME types
+    const matches = dataUrl.match(/^data:image\/([a-z]+);base64,(.+)$/i)
+    if (!matches || !matches[2]) {
+      console.log('Failed to parse data URL')
+      return null
+    }
 
     const [, ext, base64Data] = matches
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
     const filename = `job-${uniqueSuffix}.${ext}`
     const filepath = path.join(jobsDir, filename)
 
+    console.log('Saving image to:', filepath, 'size:', base64Data.length)
     fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'))
-    return `/uploads/jobs/${filename}`
+    const finalPath = `/uploads/jobs/${filename}`
+    console.log('Image saved successfully, returning path:', finalPath)
+    return finalPath
   } catch (error) {
     console.error('Error saving image:', error)
     return null
@@ -137,9 +145,12 @@ router.post('/', async (req: Request, res: Response) => {
     // Handle data URL images
     let finalImageUrl: string | null = null
     if (image_url && image_url.startsWith('data:image/')) {
+      console.log('Converting data URL image (length:', image_url.length, ')')
       finalImageUrl = saveDataUrlImage(image_url)
+      console.log('Converted to:', finalImageUrl)
     } else if (image_url) {
       finalImageUrl = image_url
+      console.log('Using existing image URL:', finalImageUrl)
     }
 
     if (!title || !description || !expire_date) {
@@ -190,7 +201,11 @@ router.put('/:id', async (req: Request, res: Response) => {
     // Handle data URL images
     let finalImageUrl: string | null = image_url || null
     if (image_url && image_url.startsWith('data:image/')) {
+      console.log('Converting data URL image (length:', image_url.length, ')')
       finalImageUrl = saveDataUrlImage(image_url)
+      console.log('Converted to:', finalImageUrl)
+    } else if (image_url) {
+      console.log('Using existing image URL:', image_url)
     }
 
     // Ensure required fields are present
