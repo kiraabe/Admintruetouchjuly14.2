@@ -84,5 +84,23 @@ export const protectedRoutes: Routes = [
         component: lazy(() => import('@/views/Settings')),
         authority: [],
     },
+    {
+        key: 'partnershipDashboard',
+        path: '/partnership-dashboard',
+        component: lazy(() => import('@/views/partnership/PartnershipDashboard')),
+        authority: [],
+    },
+    {
+        key: 'partnershipCandidates',
+        path: '/partnership-candidates',
+        component: lazy(() => import('@/views/partnership/PartnershipCandidates')),
+        authority: [],
+    },
+    {
+        key: 'specialRequest',
+        path: '/special-request',
+        component: lazy(() => import('@/views/partnership/SpecialRequest')),
+        authority: [],
+    },
     ...othersRoute,
 ]
