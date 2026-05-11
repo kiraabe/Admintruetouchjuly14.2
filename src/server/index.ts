@@ -11,6 +11,7 @@ import candidatesRouter from './routes/candidates/index.ts'
 import usersRouter from './routes/users/index.ts'
 import partnershipsRouter from './routes/partnerships/index.ts'
 import employeeRequestsRouter from './routes/employeeRequests/index.ts'
+import licensesRouter from './routes/licenses/index.ts'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
@@ -332,6 +333,7 @@ app.use('/api/candidates', candidatesRouter)
 app.use('/api/partnerships', partnershipsRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/employee-requests', employeeRequestsRouter)
+app.use('/api/licenses', licensesRouter)
 
 // Auth routes
 app.post('/api/sign-in', async (req: Request, res: Response) => {
@@ -614,6 +616,29 @@ async function startServer() {
       }
     } catch (tableError) {
       console.error('Error creating employee_requests table:', tableError)
+    }
+
+    try {
+      console.log('Creating licenses table...')
+      await dbPool.query(`
+        CREATE TABLE IF NOT EXISTS licenses (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          license_number VARCHAR(255) UNIQUE NOT NULL,
+          company_name VARCHAR(255) NOT NULL,
+          business_type VARCHAR(255),
+          issue_date DATE,
+          expiry_date DATE,
+          status VARCHAR(50) DEFAULT 'pending',
+          document_url VARCHAR(255),
+          issued_by VARCHAR(255),
+          notes TEXT,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `)
+      console.log('✓ Licenses table ready')
+    } catch (tableError) {
+      console.error('Error creating licenses table:', tableError)
     }
 
     console.log('✓ Database initialized')
