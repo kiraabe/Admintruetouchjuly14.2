@@ -1,6 +1,7 @@
-import { Router, Request, Response } from 'express'
+import pkg from 'express'
 import { v4 as uuidv4 } from 'uuid'
 
+const { Router } = pkg
 const router = Router()
 
 let pool: any = null
@@ -19,7 +20,7 @@ async function initPool() {
 }
 
 // GET all licenses
-router.get('/', async (req: Request, res: Response) => {
+router.get('/', async (req: pkg.Request, res: pkg.Response) => {
   try {
     const dbPool = await initPool()
     const result = await dbPool.query(
@@ -34,7 +35,7 @@ router.get('/', async (req: Request, res: Response) => {
 })
 
 // GET single license
-router.get('/:id', async (req: Request, res: Response) => {
+router.get('/:id', async (req: pkg.Request, res: pkg.Response) => {
   try {
     const dbPool = await initPool()
     const result = await dbPool.query(
@@ -52,7 +53,7 @@ router.get('/:id', async (req: Request, res: Response) => {
 })
 
 // POST create license
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', async (req: pkg.Request, res: pkg.Response) => {
   try {
     const dbPool = await initPool()
     const {
@@ -101,7 +102,7 @@ router.post('/', async (req: Request, res: Response) => {
 })
 
 // PUT update license
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', async (req: pkg.Request, res: pkg.Response) => {
   try {
     const dbPool = await initPool()
     const {
@@ -148,7 +149,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 })
 
 // DELETE license
-router.delete('/:id', async (req: Request, res: Response) => {
+router.delete('/:id', async (req: pkg.Request, res: pkg.Response) => {
   try {
     const dbPool = await initPool()
     const result = await dbPool.query(
