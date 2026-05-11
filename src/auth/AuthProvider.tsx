@@ -1,4 +1,4 @@
-import { useRef, useImperativeHandle, useState } from 'react'
+import { useRef, useImperativeHandle, useState, useEffect } from 'react'
 import AuthContext from './AuthContext'
 import appConfig from '@/configs/app.config'
 import { useSessionUser, useToken } from '@/store/authStore'
@@ -47,23 +47,30 @@ function AuthProvider({ children }: AuthProviderProps) {
     const authenticated = Boolean(tokenState && signedIn)
 
     const navigatorRef = useRef<IsolatedNavigatorRef>(null)
+    const [shouldRedirect, setShouldRedirect] = useState(false)
+
+    useEffect(() => {
+        if (shouldRedirect && signedIn) {
+            const search = window.location.search
+            const params = new URLSearchParams(search)
+            const redirectUrl = params.get(REDIRECT_URL_KEY)
+
+            if (redirectUrl) {
+                navigatorRef.current?.navigate(redirectUrl)
+            } else {
+                const userAuthority = user.authority?.[0] || ''
+                const defaultPath = userAuthority === 'partnership'
+                    ? '/partnership-dashboard'
+                    : appConfig.authenticatedEntryPath
+                navigatorRef.current?.navigate(defaultPath)
+            }
+
+            setShouldRedirect(false)
+        }
+    }, [shouldRedirect, signedIn, user.authority])
 
     const redirect = () => {
-        const search = window.location.search
-        const params = new URLSearchParams(search)
-        const redirectUrl = params.get(REDIRECT_URL_KEY)
-
-        if (redirectUrl) {
-            navigatorRef.current?.navigate(redirectUrl)
-            return
-        }
-
-        const userAuthority = user.authority?.[0] || ''
-        const defaultPath = userAuthority === 'partnership'
-            ? '/partnership-dashboard'
-            : appConfig.authenticatedEntryPath
-
-        navigatorRef.current?.navigate(defaultPath)
+        setShouldRedirect(true)
     }
 
     const handleSignIn = (tokens: Token, user?: User) => {

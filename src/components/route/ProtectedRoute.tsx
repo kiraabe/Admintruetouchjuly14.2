@@ -2,7 +2,6 @@ import appConfig from '@/configs/app.config'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { Navigate, Outlet } from 'react-router'
 import { useAuth } from '@/auth'
-import { useSessionUser } from '@/store/authStore'
 
 const { unAuthenticatedEntryPath } = appConfig
 
@@ -18,9 +17,8 @@ const adminOnlyRoutes = [
 ]
 
 const ProtectedRoute = () => {
-    const { authenticated } = useAuth()
-    const user = useSessionUser((state) => state.user)
-    const userRole = user.authority?.[0]
+    const { authenticated, user } = useAuth()
+    const userRole = user?.authority?.[0]
 
     const pathName = location.pathname
 
