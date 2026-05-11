@@ -32,8 +32,6 @@ const upload = multer({
       cb(new Error('Only image files are allowed'))
     }
   },
-  // Handle case where no file is provided
-  fileField: 'image',
 })
 
 let pool: any = null
@@ -88,11 +86,18 @@ router.get('/:id', async (req: Request, res: Response) => {
 router.post('/', upload.single('image'), async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
-    const { title, description, author, expire_date, status } = req.body
+    let { title, description, author, expire_date, status } = req.body
+
+    // Trim whitespace from string values
+    title = title?.toString().trim()
+    description = description?.toString().trim()
+    author = author?.toString().trim() || 'admin'
+    expire_date = expire_date?.toString().trim()
+    status = status?.toString().trim() || 'active'
+
     const imageUrl = req.file ? `/uploads/jobs/${req.file.filename}` : null
 
-    console.log('POST /api/jobs - body:', req.body)
-    console.log('POST /api/jobs - file:', req.file)
+    console.log('POST /api/jobs - received:', { title, description, author, expire_date, status, imageUrl })
 
     if (!title || !description || !expire_date) {
       return res
@@ -110,10 +115,10 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
         id,
         title,
         description,
-        author || 'admin',
+        author,
         imageUrl,
         expire_date,
-        status || 'active',
+        status,
       ]
     )
 
@@ -129,11 +134,17 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
 router.put('/:id', upload.single('image'), async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
-    const { title, description, author, image_url, expire_date, status } = req.body
+    let { title, description, author, image_url, expire_date, status } = req.body
 
-    console.log('PUT /api/jobs/:id - body:', req.body)
+    // Trim whitespace from string values
+    title = title?.toString().trim()
+    description = description?.toString().trim()
+    author = author?.toString().trim() || 'admin'
+    expire_date = expire_date?.toString().trim()
+    status = status?.toString().trim() || 'active'
+
+    console.log('PUT /api/jobs/:id - received:', { title, description, author, expire_date, status, imageUrl: image_url })
     console.log('PUT /api/jobs/:id - file:', req.file)
-    console.log('PUT /api/jobs/:id - title:', title)
 
     // Use new image if provided, otherwise keep existing
     let imageUrlToUse = image_url
@@ -159,10 +170,10 @@ router.put('/:id', upload.single('image'), async (req: Request, res: Response) =
       [
         title,
         description,
-        author || 'admin',
+        author,
         imageUrlToUse,
         expire_date,
-        status || 'active',
+        status,
         req.params.id,
       ]
     )
