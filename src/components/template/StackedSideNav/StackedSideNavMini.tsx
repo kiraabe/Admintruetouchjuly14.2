@@ -85,8 +85,7 @@ const StackedSideNavMini = (props: StackedSideNavMiniProps) => {
                 translateKey: includedRouteTree.translateKey,
             })
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [includedRouteTree.key])
+    }, [includedRouteTree, onChange])
 
     const defaultActiveKeys =
         activeKeys && activeKeys.length > 0

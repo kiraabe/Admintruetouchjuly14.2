@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import classNames from 'classnames'
 import { useConfig } from '../ConfigProvider'
 import { useForm, useFormItem } from '../Form/context'
@@ -98,7 +98,7 @@ const Input = (props: InputProps) => {
     const prefixNode = useRef<HTMLDivElement>(null)
     const suffixNode = useRef<HTMLDivElement>(null)
 
-    const getAffixSize = () => {
+    const getAffixSize = useCallback(() => {
         if (!prefixNode.current && !suffixNode.current) {
             return
         }
@@ -116,11 +116,11 @@ const Input = (props: InputProps) => {
         if (suffixNodeWidth) {
             setSuffixGutter(suffixNodeWidth)
         }
-    }
+    }, [])
 
     useEffect(() => {
         getAffixSize()
-    }, [prefix, suffix])
+    }, [getAffixSize, prefix, suffix])
 
     const remToPxConvertion = (pixel: number) => 0.0625 * pixel
 
