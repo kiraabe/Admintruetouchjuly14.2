@@ -11,6 +11,9 @@ export interface DialogProps extends ReactModal.Props {
     contentClassName?: string
     height?: string | number
     onClose?: (e: MouseEvent<HTMLSpanElement>) => void
+    title?: string
+    confirmText?: string
+    onConfirm?: () => void
     width?: number
 }
 
@@ -30,7 +33,10 @@ const Dialog = (props: DialogProps) => {
         overlayClassName,
         portalClassName,
         style,
-        width = 520,
+        title,
+        confirmText,
+        onConfirm,
+        width = 720,
         ...rest
     } = props
 
@@ -100,7 +106,26 @@ const Dialog = (props: DialogProps) => {
                 }}
             >
                 {closable && renderCloseButton}
-                {children}
+                {title && <h2 className="text-lg font-bold mb-4">{title}</h2>}
+                <div className="dialog-body">
+                    {children}
+                </div>
+                {(confirmText || onConfirm) && (
+                    <div className="mt-6 flex gap-3 justify-end">
+                        <button
+                            onClick={() => onClose?.(null as any)}
+                            className="px-4 py-2 rounded border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={onConfirm}
+                            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                        >
+                            {confirmText || 'Confirm'}
+                        </button>
+                    </div>
+                )}
             </motion.div>
         </Modal>
     )

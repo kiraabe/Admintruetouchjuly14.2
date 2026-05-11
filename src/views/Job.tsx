@@ -252,6 +252,7 @@ const Job = () => {
         onConfirm={handleSave}
         title="Add New Job Post"
         confirmText="Add Job"
+        width={720}
       >
         <div className="space-y-4">
           <div>
@@ -344,6 +345,7 @@ const Job = () => {
         onConfirm={handleSave}
         title="Edit Job Post"
         confirmText="Update Job"
+        width={720}
       >
         <div className="space-y-4">
           <div>
