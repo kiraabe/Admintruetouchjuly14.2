@@ -106,40 +106,53 @@ const Job = () => {
     }
 
     try {
-      const formDataToSend = new FormData()
-      formDataToSend.append('title', formData.title)
-      formDataToSend.append('description', formData.description)
-      formDataToSend.append('author', formData.author)
-      formDataToSend.append('expire_date', formData.expire_date)
-      formDataToSend.append('status', formData.status)
+      const payload: any = {
+        title: formData.title,
+        description: formData.description,
+        author: formData.author,
+        expire_date: formData.expire_date,
+        status: formData.status,
+      }
 
+      // If there's a new image file, convert to data URL
       if (imageFile) {
-        formDataToSend.append('image', imageFile)
+        const reader = new FileReader()
+        const imageDataUrl = await new Promise<string>((resolve, reject) => {
+          reader.onloadend = () => {
+            resolve(reader.result as string)
+          }
+          reader.onerror = reject
+          reader.readAsDataURL(imageFile)
+        })
+        payload.image_url = imageDataUrl
       } else if (selectedJob && selectedJob.image_url) {
         // Keep existing image URL when not changing it
-        formDataToSend.append('image_url', selectedJob.image_url)
+        payload.image_url = selectedJob.image_url
       }
 
-      if (selectedJob) {
-        const response = await fetch(`/api/jobs/${selectedJob.id}`, {
-          method: 'PUT',
-          body: formDataToSend,
-        })
-        if (!response.ok) throw new Error('Failed to update job')
-        toast.success('Job updated successfully')
-        setShowEditModal(false)
-      } else {
-        const response = await fetch('/api/jobs', {
-          method: 'POST',
-          body: formDataToSend,
-        })
-        if (!response.ok) throw new Error('Failed to create job')
-        toast.success('Job added successfully')
-        setShowAddModal(false)
+      const response = selectedJob
+        ? await fetch(`/api/jobs/${selectedJob.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+        : await fetch('/api/jobs', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+          })
+
+      const responseData = await response.json()
+      if (!response.ok) {
+        throw new Error(responseData.error || 'Failed to save job')
       }
+
+      toast.success(selectedJob ? 'Job updated successfully' : 'Job added successfully')
+      setShowEditModal(false)
+      setShowAddModal(false)
       await fetchJobs()
     } catch (error) {
-      toast.error('Failed to save job')
+      toast.error(error instanceof Error ? error.message : 'Failed to save job')
     }
   }
 

@@ -6,7 +6,7 @@ import fs from 'fs'
 
 const router = Router()
 
-// Configure multer for job images
+// Configure multer for job images - allow missing files
 const jobsDir = path.join(process.cwd(), 'uploads', 'jobs')
 if (!fs.existsSync(jobsDir)) {
   fs.mkdirSync(jobsDir, { recursive: true })
@@ -22,6 +22,7 @@ const storage = multer.diskStorage({
   },
 })
 
+// Custom multer to handle both with and without files
 const upload = multer({
   storage,
   limits: { fileSize: 5 * 1024 * 1024 },
@@ -33,6 +34,20 @@ const upload = multer({
     }
   },
 })
+
+// Middleware to handle optional file upload
+const uploadMiddleware = (req: Request, res: Response, next: Function) => {
+  upload.single('image')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      if (err.code === 'LIMIT_FILE_SIZE') {
+        return res.status(400).json({ success: false, error: 'File size too large' })
+      }
+    } else if (err) {
+      return res.status(400).json({ success: false, error: err.message })
+    }
+    next()
+  })
+}
 
 let pool: any = null
 
@@ -82,22 +97,50 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 })
 
+// Helper to save data URL image to disk
+function saveDataUrlImage(dataUrl: string): string | null {
+  try {
+    if (!dataUrl.startsWith('data:image/')) {
+      return null
+    }
+
+    const matches = dataUrl.match(/^data:image\/(\w+);base64,(.+)$/)
+    if (!matches) return null
+
+    const [, ext, base64Data] = matches
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
+    const filename = `job-${uniqueSuffix}.${ext}`
+    const filepath = path.join(jobsDir, filename)
+
+    fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'))
+    return `/uploads/jobs/${filename}`
+  } catch (error) {
+    console.error('Error saving image:', error)
+    return null
+  }
+}
+
 // POST create job
-router.post('/', upload.single('image'), async (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
-    let { title, description, author, expire_date, status } = req.body
 
-    // Trim whitespace from string values
-    title = title?.toString().trim()
-    description = description?.toString().trim()
-    author = author?.toString().trim() || 'admin'
-    expire_date = expire_date?.toString().trim()
-    status = status?.toString().trim() || 'active'
+    let { title, description, author, expire_date, status, image_url } = req.body
 
-    const imageUrl = req.file ? `/uploads/jobs/${req.file.filename}` : null
+    // Ensure values are strings and trim them
+    title = (title && typeof title === 'string') ? title.trim() : title
+    description = (description && typeof description === 'string') ? description.trim() : description
+    author = (author && typeof author === 'string') ? author.trim() : 'admin'
+    expire_date = (expire_date && typeof expire_date === 'string') ? expire_date.trim() : expire_date
+    status = (status && typeof status === 'string') ? status.trim() : 'active'
 
-    console.log('POST /api/jobs - received:', { title, description, author, expire_date, status, imageUrl })
+    // Handle data URL images
+    let finalImageUrl: string | null = null
+    if (image_url && image_url.startsWith('data:image/')) {
+      finalImageUrl = saveDataUrlImage(image_url)
+    } else if (image_url) {
+      finalImageUrl = image_url
+    }
 
     if (!title || !description || !expire_date) {
       return res
@@ -116,7 +159,7 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
         title,
         description,
         author,
-        imageUrl,
+        finalImageUrl,
         expire_date,
         status,
       ]
@@ -131,25 +174,23 @@ router.post('/', upload.single('image'), async (req: Request, res: Response) => 
 })
 
 // PUT update job
-router.put('/:id', upload.single('image'), async (req: Request, res: Response) => {
+router.put('/:id', async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
+
     let { title, description, author, image_url, expire_date, status } = req.body
 
-    // Trim whitespace from string values
-    title = title?.toString().trim()
-    description = description?.toString().trim()
-    author = author?.toString().trim() || 'admin'
-    expire_date = expire_date?.toString().trim()
-    status = status?.toString().trim() || 'active'
+    // Ensure values are strings and trim them
+    title = (title && typeof title === 'string') ? title.trim() : title
+    description = (description && typeof description === 'string') ? description.trim() : description
+    author = (author && typeof author === 'string') ? author.trim() : 'admin'
+    expire_date = (expire_date && typeof expire_date === 'string') ? expire_date.trim() : expire_date
+    status = (status && typeof status === 'string') ? status.trim() : 'active'
 
-    console.log('PUT /api/jobs/:id - received:', { title, description, author, expire_date, status, imageUrl: image_url })
-    console.log('PUT /api/jobs/:id - file:', req.file)
-
-    // Use new image if provided, otherwise keep existing
-    let imageUrlToUse = image_url
-    if (req.file) {
-      imageUrlToUse = `/uploads/jobs/${req.file.filename}`
+    // Handle data URL images
+    let finalImageUrl: string | null = image_url || null
+    if (image_url && image_url.startsWith('data:image/')) {
+      finalImageUrl = saveDataUrlImage(image_url)
     }
 
     // Ensure required fields are present
@@ -171,7 +212,7 @@ router.put('/:id', upload.single('image'), async (req: Request, res: Response) =
         title,
         description,
         author,
-        imageUrlToUse,
+        finalImageUrl,
         expire_date,
         status,
         req.params.id,
