@@ -2,11 +2,25 @@ import appConfig from '@/configs/app.config'
 import { REDIRECT_URL_KEY } from '@/constants/app.constant'
 import { Navigate, Outlet } from 'react-router'
 import { useAuth } from '@/auth'
+import { useSessionUser } from '@/store/authStore'
 
 const { unAuthenticatedEntryPath } = appConfig
 
+const adminOnlyRoutes = [
+    '/users',
+    '/candidates',
+    '/partnership',
+    '/job',
+    '/employee-request',
+    '/license-info',
+    '/setting',
+    '/dashboard',
+]
+
 const ProtectedRoute = () => {
     const { authenticated } = useAuth()
+    const user = useSessionUser((state) => state.user)
+    const userRole = user.authority?.[0]
 
     const pathName = location.pathname
 
@@ -20,6 +34,13 @@ const ProtectedRoute = () => {
                 to={`${unAuthenticatedEntryPath}${getPathName}`}
             />
         )
+    }
+
+    const isPartnershipUser = userRole === 'partnership' || userRole === 'partner'
+    const isAdminOnlyRoute = adminOnlyRoutes.some(route => pathName.startsWith(route))
+
+    if (isPartnershipUser && isAdminOnlyRoute) {
+        return <Navigate replace to="/partnership-dashboard" />
     }
 
     return <Outlet />

@@ -265,7 +265,7 @@ const partnershipNavigation: NavigationTree[] = [
 ]
 
 export const getNavigationConfig = (userRole?: string): NavigationTree[] => {
-    if (userRole === 'partner') {
+    if (userRole === 'partnership' || userRole === 'partner') {
         return partnershipNavigation
     }
     return adminNavigation
