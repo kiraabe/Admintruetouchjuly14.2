@@ -6,7 +6,7 @@ import {
 
 import type { NavigationTree } from '@/@types/navigation'
 
-const navigationConfig: NavigationTree[] = [
+const adminNavigation: NavigationTree[] = [
     {
         key: 'dashboardGroup',
         path: '',
@@ -176,5 +176,101 @@ const navigationConfig: NavigationTree[] = [
         ],
     },
 ]
+
+const partnershipNavigation: NavigationTree[] = [
+    {
+        key: 'dashboardGroup',
+        path: '',
+        title: 'Dashboard',
+        translateKey: 'nav.dashboard',
+        icon: '',
+        type: NAV_ITEM_TYPE_TITLE,
+        authority: [],
+        subMenu: [
+            {
+                key: 'partnershipDashboard',
+                path: '/partnership-dashboard',
+                title: 'Dashboard',
+                translateKey: 'nav.dashboard',
+                icon: 'home',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [],
+                subMenu: [],
+            },
+        ],
+    },
+    {
+        key: 'candidatesGroup',
+        path: '',
+        title: 'Candidates',
+        translateKey: 'nav.candidates',
+        icon: '',
+        type: NAV_ITEM_TYPE_TITLE,
+        authority: [],
+        subMenu: [
+            {
+                key: 'partnershipCandidates',
+                path: '/partnership-candidates',
+                title: 'Candidates',
+                translateKey: 'nav.candidates',
+                icon: 'collapseMenu',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [],
+                subMenu: [],
+            },
+        ],
+    },
+    {
+        key: 'specialRequestGroup',
+        path: '',
+        title: 'Special Request',
+        translateKey: 'nav.specialRequest',
+        icon: '',
+        type: NAV_ITEM_TYPE_TITLE,
+        authority: [],
+        subMenu: [
+            {
+                key: 'specialRequest',
+                path: '/special-request',
+                title: 'Special Request',
+                translateKey: 'nav.specialRequest',
+                icon: 'briefcase',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [],
+                subMenu: [],
+            },
+        ],
+    },
+    {
+        key: 'settingGroup',
+        path: '',
+        title: 'Setting',
+        translateKey: 'nav.setting',
+        icon: '',
+        type: NAV_ITEM_TYPE_TITLE,
+        authority: [],
+        subMenu: [
+            {
+                key: 'setting',
+                path: '/setting',
+                title: 'Setting',
+                translateKey: 'nav.setting',
+                icon: 'groupMenu',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [],
+                subMenu: [],
+            },
+        ],
+    },
+]
+
+export const getNavigationConfig = (userRole?: string): NavigationTree[] => {
+    if (userRole === 'partner') {
+        return partnershipNavigation
+    }
+    return adminNavigation
+}
+
+const navigationConfig: NavigationTree[] = adminNavigation
 
 export default navigationConfig
