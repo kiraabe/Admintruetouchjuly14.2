@@ -1,17 +1,17 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import PageContainer from '@/components/template/PageContainer'
+import useAuth from '@/auth/useAuth'
+import ApiService from '@/services/ApiService'
 
-type SettingsTab = 'profile' | 'security' | 'notification' | 'billing' | 'integration'
+type SettingsTab = 'profile' | 'security'
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
+  const { user } = useAuth()
 
   const menuItems = [
     { id: 'profile', label: 'Profile', icon: 'user' },
     { id: 'security', label: 'Security', icon: 'lock' },
-    { id: 'notification', label: 'Notification', icon: 'bell' },
-    { id: 'billing', label: 'Billing', icon: 'file' },
-    { id: 'integration', label: 'Integration', icon: 'refresh' },
   ]
 
   return (
@@ -55,11 +55,8 @@ const Settings = () => {
 
               {/* Content Area */}
               <div className="xl:ltr:pl-6 xl:rtl:pr-6 flex-1 py-2">
-                {activeTab === 'profile' && <ProfileSettings />}
-                {activeTab === 'security' && <SecuritySettings />}
-                {activeTab === 'notification' && <NotificationSettings />}
-                {activeTab === 'billing' && <BillingSettings />}
-                {activeTab === 'integration' && <IntegrationSettings />}
+                {activeTab === 'profile' && <ProfileSettings user={user} />}
+                {activeTab === 'security' && <SecuritySettings userId={user?.userId} />}
               </div>
             </div>
           </div>
@@ -69,187 +66,356 @@ const Settings = () => {
   )
 }
 
-const ProfileSettings = () => (
-  <div>
-    <h4 className="mb-8">Personal information</h4>
-    <form>
-      <div className="form-container vertical">
-        <div className="mb-8">
-          <div className="flex items-center gap-4">
-            <span
-              className="avatar avatar-circle border-4 border-white bg-gray-100 text-gray-300 shadow-lg"
-              style={{
-                width: '90px',
-                height: '90px',
-                minWidth: '90px',
-                lineHeight: '90px',
-                fontSize: '45px',
-              }}
-            >
-              <img
-                className="avatar-img avatar-circle"
-                loading="lazy"
-                src="/img/avatars/thumb-1.jpg"
-                alt="Avatar"
-              />
-            </span>
-            <div className="flex items-center gap-2">
-              <div className="upload">
-                <input className="upload-input" type="file" />
+interface UserData {
+  userId?: string | null
+  avatar?: string | null
+  userName?: string | null
+  email?: string | null
+  authority?: string[]
+}
+
+const ProfileSettings = ({ user }: { user?: UserData }) => {
+  const [formData, setFormData] = useState({
+    firstName: user?.userName?.split(' ')[0] || '',
+    lastName: user?.userName?.split(' ').slice(1).join(' ') || '',
+    email: user?.email || '',
+    phone: '',
+    country: 'United States',
+    address: '123 Main St',
+    city: 'New York',
+    postcode: '10001',
+  })
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage(null)
+
+    try {
+      const fullName = `${formData.firstName} ${formData.lastName}`.trim()
+      const response = await ApiService.fetchDataWithAxios({
+        url: `/users/${user?.userId}`,
+        method: 'PUT',
+        data: {
+          user_name: fullName,
+          email: formData.email,
+        },
+      })
+
+      setMessage({ type: 'success', text: 'Profile updated successfully!' })
+    } catch (error: any) {
+      setMessage({ 
+        type: 'error', 
+        text: error.response?.data?.message || 'Failed to update profile' 
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div>
+      <h4 className="mb-8">Personal information</h4>
+      {message && (
+        <div className={`mb-4 p-4 rounded ${message.type === 'success' ? 'bg-green-100' : 'bg-red-100'}`}>
+          <p className={message.type === 'success' ? 'text-green-700' : 'text-red-700'}>
+            {message.text}
+          </p>
+        </div>
+      )}
+      <form onSubmit={handleSubmit}>
+        <div className="form-container vertical">
+          <div className="mb-8">
+            <div className="flex items-center gap-4">
+              <span
+                className="avatar avatar-circle border-4 border-white bg-gray-100 text-gray-300 shadow-lg"
+                style={{
+                  width: '90px',
+                  height: '90px',
+                  minWidth: '90px',
+                  lineHeight: '90px',
+                  fontSize: '45px',
+                }}
+              >
+                <img
+                  className="avatar-img avatar-circle"
+                  loading="lazy"
+                  src={user?.avatar || '/img/avatars/thumb-1.jpg'}
+                  alt="Avatar"
+                />
+              </span>
+              <div className="flex items-center gap-2">
+                <div className="upload">
+                  <input className="upload-input" type="file" />
+                  <button
+                    className="button bg-primary hover:bg-primary-mild text-neutral h-10 rounded-xl px-3 py-2 text-sm button-press-feedback"
+                    type="button"
+                  >
+                    <span className="flex gap-1 items-center justify-center">
+                      <span className="text-lg">+</span>
+                      <span>Upload Image</span>
+                    </span>
+                  </button>
+                </div>
                 <button
-                  className="button bg-primary hover:bg-primary-mild text-neutral h-10 rounded-xl px-3 py-2 text-sm button-press-feedback"
+                  className="button bg-white border border-gray-300 dark:bg-gray-700 dark:border-gray-700 text-gray-600 dark:text-gray-100 h-10 rounded-xl px-3 py-2 text-sm button-press-feedback"
                   type="button"
                 >
-                  <span className="flex gap-1 items-center justify-center">
-                    <span className="text-lg">+</span>
-                    <span>Upload Image</span>
-                  </span>
+                  Remove
                 </button>
               </div>
+            </div>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="form-item vertical">
+              <label className="form-label mb-2">First name</label>
+              <input
+                className="input input-md h-12"
+                placeholder="First Name"
+                type="text"
+                name="firstName"
+                value={formData.firstName}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="form-item vertical">
+              <label className="form-label mb-2">Last name</label>
+              <input
+                className="input input-md h-12"
+                placeholder="Last Name"
+                type="text"
+                name="lastName"
+                value={formData.lastName}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="form-item vertical">
+            <label className="form-label mb-2">Email</label>
+            <input
+              className="input input-md h-12"
+              placeholder="Email"
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="flex items-end gap-4 w-full mb-6">
+            <div className="form-item vertical">
+              <label className="form-label mb-2">Phone number</label>
+              <input
+                className="input input-md h-12"
+                placeholder="Phone Number"
+                type="text"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                inputMode="numeric"
+              />
+            </div>
+          </div>
+
+          <h4 className="mb-6">Address information</h4>
+
+          <div className="form-item vertical">
+            <label className="form-label mb-2">Country</label>
+            <input
+              className="input input-md h-12"
+              placeholder="Country"
+              type="text"
+              name="country"
+              value={formData.country}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="form-item vertical">
+            <label className="form-label mb-2">Address</label>
+            <input
+              className="input input-md h-12"
+              placeholder="Address"
+              type="text"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="form-item vertical">
+              <label className="form-label mb-2">City</label>
+              <input
+                className="input input-md h-12"
+                placeholder="City"
+                type="text"
+                name="city"
+                value={formData.city}
+                onChange={handleChange}
+              />
+            </div>
+            <div className="form-item vertical">
+              <label className="form-label mb-2">Postal Code</label>
+              <input
+                className="input input-md h-12"
+                placeholder="Postal Code"
+                type="text"
+                name="postcode"
+                value={formData.postcode}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="flex justify-end">
+            <button
+              className="button bg-primary hover:bg-primary-mild text-neutral h-12 rounded-xl px-5 py-2 button-press-feedback disabled:opacity-50"
+              type="submit"
+              disabled={loading}
+            >
+              {loading ? 'Saving...' : 'Save'}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  )
+}
+
+const SecuritySettings = ({ userId }: { userId?: string | null }) => {
+  const [passwords, setPasswords] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+  })
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setPasswords(prev => ({ ...prev, [name]: value }))
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setMessage(null)
+
+    if (passwords.newPassword !== passwords.confirmPassword) {
+      setMessage({ type: 'error', text: 'Passwords do not match' })
+      return
+    }
+
+    if (passwords.newPassword.length < 6) {
+      setMessage({ type: 'error', text: 'Password must be at least 6 characters' })
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      await ApiService.fetchDataWithAxios({
+        url: `/users/change-password`,
+        method: 'POST',
+        data: {
+          userId: userId,
+          currentPassword: passwords.currentPassword,
+          newPassword: passwords.newPassword,
+        },
+      })
+
+      setPasswords({ currentPassword: '', newPassword: '', confirmPassword: '' })
+      setMessage({ type: 'success', text: 'Password changed successfully!' })
+    } catch (error: any) {
+      setMessage({
+        type: 'error',
+        text: error.response?.data?.message || 'Failed to change password',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div>
+      <h4 className="mb-8">Security Settings</h4>
+      {message && (
+        <div className={`mb-4 p-4 rounded ${message.type === 'success' ? 'bg-green-100' : 'bg-red-100'}`}>
+          <p className={message.type === 'success' ? 'text-green-700' : 'text-red-700'}>
+            {message.text}
+          </p>
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className="max-w-md">
+        <div className="form-container vertical">
+          <div className="mb-6">
+            <h5 className="font-semibold mb-4">Change Password</h5>
+
+            <div className="form-item vertical mb-4">
+              <label className="form-label mb-2">Current Password</label>
+              <input
+                className="input input-md h-12"
+                placeholder="Enter current password"
+                type="password"
+                name="currentPassword"
+                value={passwords.currentPassword}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="form-item vertical mb-4">
+              <label className="form-label mb-2">New Password</label>
+              <input
+                className="input input-md h-12"
+                placeholder="Enter new password"
+                type="password"
+                name="newPassword"
+                value={passwords.newPassword}
+                onChange={handleChange}
+                required
+              />
+              <small className="text-gray-500 mt-1">Must be at least 6 characters</small>
+            </div>
+
+            <div className="form-item vertical mb-4">
+              <label className="form-label mb-2">Confirm Password</label>
+              <input
+                className="input input-md h-12"
+                placeholder="Confirm new password"
+                type="password"
+                name="confirmPassword"
+                value={passwords.confirmPassword}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className="flex justify-end">
               <button
-                className="button bg-white border border-gray-300 dark:bg-gray-700 dark:border-gray-700 text-gray-600 dark:text-gray-100 h-10 rounded-xl px-3 py-2 text-sm button-press-feedback"
-                type="button"
+                className="button bg-primary hover:bg-primary-mild text-neutral h-12 rounded-xl px-5 py-2 button-press-feedback disabled:opacity-50"
+                type="submit"
+                disabled={loading}
               >
-                Remove
+                {loading ? 'Updating...' : 'Update Password'}
               </button>
             </div>
           </div>
         </div>
-
-        <div className="grid md:grid-cols-2 gap-4">
-          <div className="form-item vertical">
-            <label className="form-label mb-2">First name</label>
-            <input
-              className="input input-md h-12"
-              placeholder="First Name"
-              type="text"
-              defaultValue="Angelina"
-              name="firstName"
-            />
-          </div>
-          <div className="form-item vertical">
-            <label className="form-label mb-2">User name</label>
-            <input
-              className="input input-md h-12"
-              placeholder="Last Name"
-              type="text"
-              defaultValue="Gotelli"
-              name="lastName"
-            />
-          </div>
-        </div>
-
-        <div className="form-item vertical">
-          <label className="form-label mb-2">Email</label>
-          <input
-            className="input input-md h-12"
-            placeholder="Email"
-            type="email"
-            defaultValue="carolyn_h@hotmail.com"
-            name="email"
-          />
-        </div>
-
-        <div className="flex items-end gap-4 w-full mb-6">
-          <div className="form-item vertical">
-            <label className="form-label mb-2">Phone number</label>
-            <input
-              className="input input-md h-12"
-              placeholder="Phone Number"
-              type="text"
-              defaultValue="121231234"
-              inputMode="numeric"
-            />
-          </div>
-        </div>
-
-        <h4 className="mb-6">Address information</h4>
-
-        <div className="form-item vertical">
-          <label className="form-label mb-2">Country</label>
-          <input
-            className="input input-md h-12"
-            placeholder="Country"
-            type="text"
-            defaultValue="United States"
-            name="country"
-          />
-        </div>
-
-        <div className="form-item vertical">
-          <label className="form-label mb-2">Address</label>
-          <input
-            className="input input-md h-12"
-            placeholder="Address"
-            type="text"
-            defaultValue="123 Main St"
-            name="address"
-          />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="form-item vertical">
-            <label className="form-label mb-2">City</label>
-            <input
-              className="input input-md h-12"
-              placeholder="City"
-              type="text"
-              defaultValue="New York"
-              name="city"
-            />
-          </div>
-          <div className="form-item vertical">
-            <label className="form-label mb-2">Postal Code</label>
-            <input
-              className="input input-md h-12"
-              placeholder="Postal Code"
-              type="text"
-              defaultValue="10001"
-              name="postcode"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end">
-          <button
-            className="button bg-primary hover:bg-primary-mild text-neutral h-12 rounded-xl px-5 py-2 button-press-feedback"
-            type="submit"
-          >
-            Save
-          </button>
-        </div>
-      </div>
-    </form>
-  </div>
-)
-
-const SecuritySettings = () => (
-  <div>
-    <h4 className="mb-8">Security Settings</h4>
-    <p className="text-gray-600 dark:text-gray-400">Security settings coming soon...</p>
-  </div>
-)
-
-const NotificationSettings = () => (
-  <div>
-    <h4 className="mb-8">Notification Settings</h4>
-    <p className="text-gray-600 dark:text-gray-400">Notification settings coming soon...</p>
-  </div>
-)
-
-const BillingSettings = () => (
-  <div>
-    <h4 className="mb-8">Billing Settings</h4>
-    <p className="text-gray-600 dark:text-gray-400">Billing settings coming soon...</p>
-  </div>
-)
-
-const IntegrationSettings = () => (
-  <div>
-    <h4 className="mb-8">Integration Settings</h4>
-    <p className="text-gray-600 dark:text-gray-400">Integration settings coming soon...</p>
-  </div>
-)
+      </form>
+    </div>
+  )
+}
 
 function getIconSVG(icon: string) {
   const icons: Record<string, JSX.Element> = {
@@ -285,57 +451,6 @@ function getIconSVG(icon: string) {
         <path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6z"></path>
         <path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0"></path>
         <path d="M8 11v-4a4 4 0 1 1 8 0v4"></path>
-      </svg>
-    ),
-    bell: (
-      <svg
-        stroke="currentColor"
-        fill="none"
-        strokeWidth="2"
-        viewBox="0 0 24 24"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        height="1em"
-        width="1em"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"></path>
-        <path d="M9 17v1a3 3 0 0 0 6 0v-1"></path>
-      </svg>
-    ),
-    file: (
-      <svg
-        stroke="currentColor"
-        fill="none"
-        strokeWidth="2"
-        viewBox="0 0 24 24"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        height="1em"
-        width="1em"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="M14 3v4a1 1 0 0 0 1 1h4"></path>
-        <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"></path>
-        <path d="M14 11h-2.5a1.5 1.5 0 0 0 0 3h1a1.5 1.5 0 0 1 0 3h-2.5"></path>
-        <path d="M12 17v1m0 -8v1"></path>
-      </svg>
-    ),
-    refresh: (
-      <svg
-        stroke="currentColor"
-        fill="none"
-        strokeWidth="2"
-        viewBox="0 0 24 24"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        height="1em"
-        width="1em"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path>
-        <path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"></path>
-        <path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"></path>
       </svg>
     ),
   }
