@@ -48,9 +48,9 @@ const VerticalMenuContent = (props: VerticalMenuContentProps) => {
 
     useEffect(() => {
         if (activedRoute?.parentKey) {
-            setDefaulExpandKey([activedRoute?.parentKey])
+            setDefaulExpandKey([activedRoute.parentKey])
         }
-    }, [activedRoute?.parentKey])
+    }, [activedRoute])
 
     const handleLinkClick = () => {
         onMenuItemClick?.()

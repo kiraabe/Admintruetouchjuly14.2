@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import classNames from 'classnames'
 import withHeaderItem from '@/utils/hoc/withHeaderItem'
 import Dropdown from '@/components/ui/Dropdown'
@@ -46,7 +46,7 @@ const _Notification = ({ className }: { className?: string }) => {
 
     const navigate = useNavigate()
 
-    const getNotificationCount = async () => {
+    const getNotificationCount = useCallback(async () => {
         const resp = await apiGetNotificationCount()
         if (resp.count > 0) {
             setNoResult(false)
@@ -54,11 +54,11 @@ const _Notification = ({ className }: { className?: string }) => {
         } else {
             setNoResult(true)
         }
-    }
+    }, [])
 
     useEffect(() => {
         getNotificationCount()
-    }, [])
+    }, [getNotificationCount])
 
     const onNotificationOpen = async () => {
         if (notificationList.length === 0) {

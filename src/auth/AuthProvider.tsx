@@ -67,7 +67,7 @@ function AuthProvider({ children }: AuthProviderProps) {
 
             setShouldRedirect(false)
         }
-    }, [shouldRedirect, signedIn, user.authority])
+    }, [shouldRedirect, signedIn, user])
 
     const redirect = () => {
         setShouldRedirect(true)
