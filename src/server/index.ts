@@ -12,6 +12,7 @@ import usersRouter from './routes/users/index.ts'
 import partnershipsRouter from './routes/partnerships/index.ts'
 import employeeRequestsRouter from './routes/employeeRequests/index.ts'
 import licensesRouter from './routes/licenses/index.ts'
+import jobsRouter from './routes/jobs/index.ts'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
@@ -334,6 +335,7 @@ app.use('/api/partnerships', partnershipsRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/employee-requests', employeeRequestsRouter)
 app.use('/api/licenses', licensesRouter)
+app.use('/api/jobs', jobsRouter)
 
 // Auth routes
 app.post('/api/sign-in', async (req: Request, res: Response) => {
@@ -385,7 +387,7 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
 })
 
 // Error handling
-app.use((err: any, req: express.Request, res: express.Response) => {
+app.use((err: any, req: any, res: any, next: any) => {
   console.error('Server error:', err)
   res.status(500).json({ error: err.message || 'Internal server error' })
 })
@@ -639,6 +641,26 @@ async function startServer() {
       console.log('✓ Licenses table ready')
     } catch (tableError) {
       console.error('Error creating licenses table:', tableError)
+    }
+
+    try {
+      console.log('Creating jobs table...')
+      await dbPool.query(`
+        CREATE TABLE IF NOT EXISTS jobs (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          title VARCHAR(56) NOT NULL,
+          description VARCHAR(78) NOT NULL,
+          author VARCHAR(15) DEFAULT 'admin',
+          image_url VARCHAR(255),
+          expire_date DATE NOT NULL,
+          status VARCHAR(20) DEFAULT 'active',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `)
+      console.log('✓ Jobs table ready')
+    } catch (tableError) {
+      console.error('Error creating jobs table:', tableError)
     }
 
     console.log('✓ Database initialized')

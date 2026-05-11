@@ -18,31 +18,31 @@ async function initPool() {
   return pool
 }
 
-// GET all licenses
+// GET all jobs
 router.get('/', async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
     const result = await dbPool.query(
-      'SELECT * FROM licenses ORDER BY created_at DESC'
+      'SELECT * FROM jobs ORDER BY created_at DESC'
     )
     res.json({ success: true, data: result.rows })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
-    console.error('Error fetching licenses:', errorMsg)
+    console.error('Error fetching jobs:', errorMsg)
     res.status(500).json({ success: false, error: errorMsg })
   }
 })
 
-// GET single license
+// GET single job
 router.get('/:id', async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
     const result = await dbPool.query(
-      'SELECT * FROM licenses WHERE id = $1',
+      'SELECT * FROM jobs WHERE id = $1',
       [req.params.id]
     )
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'License not found' })
+      return res.status(404).json({ success: false, error: 'Job not found' })
     }
     res.json({ success: true, data: result.rows[0] })
   } catch (error) {
@@ -51,119 +51,96 @@ router.get('/:id', async (req: Request, res: Response) => {
   }
 })
 
-// POST create license
+// POST create job
 router.post('/', async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
-    const {
-      license_number,
-      company_name,
-      business_type,
-      issue_date,
-      expiry_date,
-      status,
-      issued_by,
-      notes,
-    } = req.body
+    const { title, description, author, image_url, expire_date, status } = req.body
 
-    if (!license_number || !company_name) {
+    if (!title || !description || !expire_date) {
       return res
         .status(400)
-        .json({ success: false, error: 'License number and company name are required' })
+        .json({ success: false, error: 'Title, description, and expire date are required' })
     }
 
     const id = uuidv4()
     const result = await dbPool.query(
-      `INSERT INTO licenses (
-        id, license_number, company_name, business_type, issue_date,
-        expiry_date, status, issued_by, notes
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `INSERT INTO jobs (
+        id, title, description, author, image_url, expire_date, status
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
       RETURNING *`,
       [
         id,
-        license_number,
-        company_name,
-        business_type || null,
-        issue_date || null,
-        expiry_date || null,
-        status || 'pending',
-        issued_by || null,
-        notes || null,
+        title,
+        description,
+        author || 'admin',
+        image_url || null,
+        expire_date,
+        status || 'active',
       ]
     )
 
     res.status(201).json({ success: true, data: result.rows[0] })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
-    console.error('Error creating license:', errorMsg)
+    console.error('Error creating job:', errorMsg)
     res.status(500).json({ success: false, error: errorMsg })
   }
 })
 
-// PUT update license
+// PUT update job
 router.put('/:id', async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
-    const {
-      license_number,
-      company_name,
-      business_type,
-      issue_date,
-      expiry_date,
-      status,
-      issued_by,
-      notes,
-    } = req.body
+    const { title, description, author, image_url, expire_date, status } = req.body
 
     const result = await dbPool.query(
-      `UPDATE licenses SET
-        license_number = $1, company_name = $2, business_type = $3,
-        issue_date = $4, expiry_date = $5, status = $6, issued_by = $7,
-        notes = $8, updated_at = CURRENT_TIMESTAMP
-      WHERE id = $9
+      `UPDATE jobs SET
+        title = $1, description = $2, author = $3,
+        image_url = $4, expire_date = $5, status = $6,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $7
       RETURNING *`,
       [
-        license_number,
-        company_name,
-        business_type,
-        issue_date || null,
-        expiry_date || null,
+        title,
+        description,
+        author,
+        image_url,
+        expire_date,
         status,
-        issued_by,
-        notes,
         req.params.id,
       ]
     )
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'License not found' })
+      return res.status(404).json({ success: false, error: 'Job not found' })
     }
 
     res.json({ success: true, data: result.rows[0] })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
-    console.error('Error updating license:', errorMsg)
+    console.error('Error updating job:', errorMsg)
     res.status(500).json({ success: false, error: errorMsg })
   }
 })
 
-// DELETE license
+// DELETE job
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
     const result = await dbPool.query(
-      'DELETE FROM licenses WHERE id = $1 RETURNING *',
+      'DELETE FROM jobs WHERE id = $1 RETURNING *',
       [req.params.id]
     )
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, error: 'License not found' })
+      return res.status(404).json({ success: false, error: 'Job not found' })
     }
 
-    res.json({ success: true, message: 'License deleted', data: result.rows[0] })
+    res.json({ success: true, message: 'Job deleted', data: result.rows[0] })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
-    console.error('Error deleting license:', errorMsg)
+    console.error('Error deleting job:', errorMsg)
     res.status(500).json({ success: false, error: errorMsg })
   }
 })
