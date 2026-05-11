@@ -9,7 +9,7 @@ import { apiGetSearchResult } from '@/services/CommonService'
 import debounce from 'lodash/debounce'
 import { HiOutlineSearch, HiChevronRight } from 'react-icons/hi'
 import { PiMagnifyingGlassDuotone } from 'react-icons/pi'
-import { Link } from 'react-router'
+import { Link, useLocation } from 'react-router'
 import Highlighter from 'react-highlight-words'
 
 type SearchData = {
@@ -78,16 +78,20 @@ const ListItem = (props: {
 }
 
 const _Search = ({ className }: { className?: string }) => {
+    const location = useLocation()
     const [searchDialogOpen, setSearchDialogOpen] = useState(false)
     const [searchResult, setSearchResult] =
         useState<SearchResult[]>(recommendedSearch)
     const [noResult, setNoResult] = useState(false)
+    const [searchQuery, setSearchQuery] = useState('')
 
     const inputRef = useRef<HTMLInputElement>(null)
+    const isOnCandidatesPage = location.pathname === '/candidates'
 
     const handleReset = () => {
         setNoResult(false)
         setSearchResult(recommendedSearch)
+        setSearchQuery('')
     }
 
     const handleSearchOpen = () => {
@@ -122,7 +126,21 @@ const _Search = ({ className }: { className?: string }) => {
     }
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
-        debounceFn(e.target.value)
+        const value = e.target.value
+        setSearchQuery(value)
+
+        if (isOnCandidatesPage) {
+            const candidatesInput = document.querySelector(
+                'input[placeholder="Quick search..."]'
+            ) as HTMLInputElement
+            if (candidatesInput) {
+                candidatesInput.value = value
+                candidatesInput.dispatchEvent(new Event('input', { bubbles: true }))
+                candidatesInput.dispatchEvent(new Event('change', { bubbles: true }))
+            }
+        } else {
+            debounceFn(value)
+        }
     }
 
     useEffect(() => {
