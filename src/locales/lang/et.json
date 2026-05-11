@@ -1,0 +1,20 @@
+{
+    "nav": {
+        "home": "Kodu",
+        "singleMenuItem": "Üksik menüüüksus",
+        "collapseMenu": {
+            "collapseMenu": "Kukkuva menüü üksus",
+            "item1": "Kukkuva menüü üksus 1",
+            "item2": "Kukkuva menüü üksus 2"
+        },
+        "groupMenu": {
+            "groupMenu": "Rühma menüü",
+            "single": "Rühma üksik menüü üksus",
+            "collapse": {
+                "collapse": "Rühma kukkuv menüü",
+                "item1": "Rühma kukkuva menüü üksus 1",
+                "item2": "Rühma kukkuva menüü üksus 2"
+            }
+        }
+    }
+}
