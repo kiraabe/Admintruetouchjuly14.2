@@ -95,6 +95,15 @@ const _Search = ({ className }: { className?: string }) => {
     }
 
     const handleSearchOpen = () => {
+        if (isOnCandidatesPage) {
+            const candidatesInput = document.querySelector(
+                'input[placeholder="Quick search..."]'
+            ) as HTMLInputElement
+            if (candidatesInput) {
+                candidatesInput.focus()
+                return
+            }
+        }
         setSearchDialogOpen(true)
     }
 
@@ -128,19 +137,7 @@ const _Search = ({ className }: { className?: string }) => {
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = e.target.value
         setSearchQuery(value)
-
-        if (isOnCandidatesPage) {
-            const candidatesInput = document.querySelector(
-                'input[placeholder="Quick search..."]'
-            ) as HTMLInputElement
-            if (candidatesInput) {
-                candidatesInput.value = value
-                candidatesInput.dispatchEvent(new Event('input', { bubbles: true }))
-                candidatesInput.dispatchEvent(new Event('change', { bubbles: true }))
-            }
-        } else {
-            debounceFn(value)
-        }
+        debounceFn(value)
     }
 
     useEffect(() => {
