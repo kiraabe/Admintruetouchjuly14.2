@@ -78,5 +78,11 @@ export const protectedRoutes: Routes = [
         component: lazy(() => import('@/views/Job')),
         authority: [],
     },
+    {
+        key: 'setting',
+        path: '/setting',
+        component: lazy(() => import('@/views/Settings')),
+        authority: [],
+    },
     ...othersRoute,
 ]
