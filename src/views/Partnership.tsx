@@ -150,12 +150,16 @@ const Partnership = () => {
     }
   }
 
-  const filteredPartnerships = partnerships.filter(
-    (partner) =>
-      partner.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      partner.business_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      partner.service_city.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+  const filteredPartnerships = searchTerm.trim() === ''
+    ? partnerships
+    : partnerships.filter(
+        (partner) =>
+          partner.company_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          partner.business_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          partner.contact_person_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          partner.service_city.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          partner.business_category.toLowerCase().includes(searchTerm.toLowerCase()),
+      )
 
   return (
     <Card>
