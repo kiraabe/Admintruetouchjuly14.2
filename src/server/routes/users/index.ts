@@ -69,7 +69,7 @@ router.get('/:id', async (req: Request, res: Response) => {
     const { id } = req.params
     const result = await pool.query(
       'SELECT id, user_id, email, user_name, authority, is_active, avatar, partnership_id, created_at FROM users WHERE user_id = $1 OR id = $2',
-      [id, id]
+      [id, parseInt(id, 10) || 0]
     )
     if (result.rows.length === 0) {
       return res.status(404).json({ error: 'User not found' })
@@ -91,8 +91,8 @@ router.put('/:id', async (req: Request, res: Response) => {
     const { email, user_name, authority, is_active, partnership_id } = req.body
 
     const result = await pool.query(
-      'UPDATE users SET email = COALESCE($1, email), user_name = COALESCE($2, user_name), authority = COALESCE($3, authority), is_active = COALESCE($4, is_active), partnership_id = COALESCE($5, partnership_id), updated_at = CURRENT_TIMESTAMP WHERE user_id = $6 OR id = $6 RETURNING *',
-      [email, user_name, authority, is_active, partnership_id, id]
+      'UPDATE users SET email = COALESCE($1, email), user_name = COALESCE($2, user_name), authority = COALESCE($3, authority), is_active = COALESCE($4, is_active), partnership_id = COALESCE($5, partnership_id), updated_at = CURRENT_TIMESTAMP WHERE user_id = $6 OR id = $7 RETURNING *',
+      [email, user_name, authority, is_active, partnership_id, id, parseInt(id, 10) || 0]
     )
 
     if (result.rows.length === 0) {
@@ -116,8 +116,8 @@ router.patch('/:id/deactivate', async (req: Request, res: Response) => {
     const { id } = req.params
 
     const result = await pool.query(
-      'UPDATE users SET is_active = false, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1 OR id = $1 RETURNING *',
-      [id]
+      'UPDATE users SET is_active = false, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1 OR id = $2 RETURNING *',
+      [id, parseInt(id, 10) || 0]
     )
 
     if (result.rows.length === 0) {
@@ -141,8 +141,8 @@ router.patch('/:id/activate', async (req: Request, res: Response) => {
     const { id } = req.params
 
     const result = await pool.query(
-      'UPDATE users SET is_active = true, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1 OR id = $1 RETURNING *',
-      [id]
+      'UPDATE users SET is_active = true, updated_at = CURRENT_TIMESTAMP WHERE user_id = $1 OR id = $2 RETURNING *',
+      [id, parseInt(id, 10) || 0]
     )
 
     if (result.rows.length === 0) {
@@ -173,8 +173,8 @@ router.patch('/:id/reset-password', async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, 10)
 
     const result = await pool.query(
-      'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2 OR id = $2 RETURNING *',
-      [hashedPassword, id]
+      'UPDATE users SET password_hash = $1, updated_at = CURRENT_TIMESTAMP WHERE user_id = $2 OR id = $3 RETURNING *',
+      [hashedPassword, id, parseInt(id, 10) || 0]
     )
 
     if (result.rows.length === 0) {
@@ -197,8 +197,8 @@ router.delete('/:id', async (req: Request, res: Response) => {
     const { id } = req.params
 
     const result = await pool.query(
-      'DELETE FROM users WHERE user_id = $1 OR id = $1 RETURNING *',
-      [id]
+      'DELETE FROM users WHERE user_id = $1 OR id = $2 RETURNING *',
+      [id, parseInt(id, 10) || 0]
     )
 
     if (result.rows.length === 0) {
