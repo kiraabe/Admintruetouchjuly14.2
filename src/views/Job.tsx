@@ -106,13 +106,21 @@ const Job = () => {
     }
 
     try {
-      const submitData = { ...formData }
+      const formDataToSend = new FormData()
+      formDataToSend.append('title', formData.title)
+      formDataToSend.append('description', formData.description)
+      formDataToSend.append('author', formData.author)
+      formDataToSend.append('expire_date', formData.expire_date)
+      formDataToSend.append('status', formData.status)
+
+      if (imageFile) {
+        formDataToSend.append('image', imageFile)
+      }
 
       if (selectedJob) {
         const response = await fetch(`/api/jobs/${selectedJob.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(submitData),
+          body: formDataToSend,
         })
         if (!response.ok) throw new Error('Failed to update job')
         toast.success('Job updated successfully')
@@ -120,8 +128,7 @@ const Job = () => {
       } else {
         const response = await fetch('/api/jobs', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(submitData),
+          body: formDataToSend,
         })
         if (!response.ok) throw new Error('Failed to create job')
         toast.success('Job added successfully')
