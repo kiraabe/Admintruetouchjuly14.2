@@ -159,15 +159,17 @@ const Users = () => {
         body: JSON.stringify({ password }),
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error('Failed to reset password')
+        throw new Error(data.error || 'Failed to reset password')
       }
 
       downloadCredentials(resetPasswordUser, password)
       notify.success('Success', 'Password reset and credentials downloaded')
       setShowResetPasswordModal(false)
       setNewPassword('')
-      fetchUsers()
+      await fetchUsers()
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to reset password'
       console.error('Error resetting password:', error)
@@ -184,12 +186,14 @@ const Users = () => {
         headers: { 'Content-Type': 'application/json' },
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error('Failed to deactivate user')
+        throw new Error(data.error || 'Failed to deactivate user')
       }
 
       notify.success('Success', 'User deactivated successfully')
-      fetchUsers()
+      await fetchUsers()
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to deactivate user'
       console.error('Error deactivating user:', error)
@@ -204,12 +208,14 @@ const Users = () => {
         headers: { 'Content-Type': 'application/json' },
       })
 
+      const data = await response.json()
+
       if (!response.ok) {
-        throw new Error('Failed to activate user')
+        throw new Error(data.error || 'Failed to activate user')
       }
 
       notify.success('Success', 'User activated successfully')
-      fetchUsers()
+      await fetchUsers()
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to activate user'
       console.error('Error activating user:', error)
@@ -256,8 +262,8 @@ const Users = () => {
       setShowAddModal(false)
       setNewUser({ email: '', user_name: '', authority: 'user', password: '', partnership_id: null })
       setShowNewPassword(false)
-      fetchUsers()
-      fetchPartnerships()
+      await fetchUsers()
+      await fetchPartnerships()
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Failed to create user'
       console.error('Error creating user:', error)
