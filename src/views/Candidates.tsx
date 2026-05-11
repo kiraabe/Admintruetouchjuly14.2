@@ -141,7 +141,7 @@ const Candidates = () => {
     }
 
     setFilteredCandidates(filtered)
-  }, [candidates, searchTerm, filters, activeTab, sortColumn, sortDirection])
+  }, [candidates, searchTerm, filters, activeTab, sortColumn, sortDirection, currentPage])
 
   const fetchCandidates = async (page: number) => {
     try {
