@@ -86,6 +86,7 @@ const upload = multer({
   },
 })
 
+
 // Middleware
 app.use(helmet())
 app.use(
@@ -98,9 +99,11 @@ app.use(express.json({ limit: '5mb' }))
 app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 
 // Serve uploaded files
+const jobsDir = path.join(process.cwd(), 'uploads', 'jobs')
 app.use('/uploads/profiles', express.static(profilesDir))
 app.use('/uploads/candidates', express.static(candidatesDir))
 app.use('/uploads/partnerships', express.static(partnershipsDir))
+app.use('/uploads/jobs', express.static(jobsDir))
 
 // Health check
 app.get('/health', (req, res) => {

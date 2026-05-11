@@ -1,7 +1,38 @@
 import { Router, type Request, type Response } from 'express'
 import { v4 as uuidv4 } from 'uuid'
+import multer from 'multer'
+import path from 'path'
+import fs from 'fs'
 
 const router = Router()
+
+// Configure multer for job images
+const jobsDir = path.join(process.cwd(), 'uploads', 'jobs')
+if (!fs.existsSync(jobsDir)) {
+  fs.mkdirSync(jobsDir, { recursive: true })
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, jobsDir)
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
+    cb(null, 'job-' + uniqueSuffix + path.extname(file.originalname))
+  },
+})
+
+const upload = multer({
+  storage,
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true)
+    } else {
+      cb(new Error('Only image files are allowed'))
+    }
+  },
+})
 
 let pool: any = null
 
@@ -52,10 +83,11 @@ router.get('/:id', async (req: Request, res: Response) => {
 })
 
 // POST create job
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', upload.single('image'), async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
-    const { title, description, author, image_url, expire_date, status } = req.body
+    const { title, description, author, expire_date, status } = req.body
+    const imageUrl = req.file ? `/uploads/jobs/${req.file.filename}` : null
 
     if (!title || !description || !expire_date) {
       return res
@@ -74,7 +106,7 @@ router.post('/', async (req: Request, res: Response) => {
         title,
         description,
         author || 'admin',
-        image_url || null,
+        imageUrl,
         expire_date,
         status || 'active',
       ]
@@ -89,10 +121,16 @@ router.post('/', async (req: Request, res: Response) => {
 })
 
 // PUT update job
-router.put('/:id', async (req: Request, res: Response) => {
+router.put('/:id', upload.single('image'), async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
     const { title, description, author, image_url, expire_date, status } = req.body
+
+    // Use new image if provided, otherwise keep existing
+    let imageUrlToUse = image_url
+    if (req.file) {
+      imageUrlToUse = `/uploads/jobs/${req.file.filename}`
+    }
 
     const result = await dbPool.query(
       `UPDATE jobs SET
@@ -105,7 +143,7 @@ router.put('/:id', async (req: Request, res: Response) => {
         title,
         description,
         author,
-        image_url,
+        imageUrlToUse,
         expire_date,
         status,
         req.params.id,
