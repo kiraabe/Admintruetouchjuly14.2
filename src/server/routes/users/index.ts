@@ -34,13 +34,24 @@ router.post('/', async (req: Request, res: Response) => {
 router.get('/', async (req: Request, res: Response) => {
   try {
     console.log('Fetching users from database...')
+    const page = Math.max(1, parseInt(req.query.page as string) || 1)
+    const limit = Math.min(100, parseInt(req.query.limit as string) || 10)
+    const offset = (page - 1) * limit
+
+    const countResult = await pool.query('SELECT COUNT(*) FROM users')
+    const total = parseInt(countResult.rows[0].count, 10)
+
     const result = await pool.query(
-      'SELECT id, user_id, email, user_name, authority, is_active, avatar, partnership_id, created_at FROM users ORDER BY created_at DESC'
+      'SELECT id, user_id, email, user_name, authority, is_active, avatar, partnership_id, created_at FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2',
+      [limit, offset]
     )
     console.log('Users fetched successfully:', result.rows.length)
     res.json({
       success: true,
       data: result.rows,
+      total,
+      page,
+      limit,
     })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Failed to fetch users'

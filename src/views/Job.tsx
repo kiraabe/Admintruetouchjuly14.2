@@ -3,6 +3,7 @@ import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Dialog from '@/components/ui/Dialog'
+import Pagination from '@/components/ui/Pagination'
 import { toast } from 'sonner'
 
 interface Job {
@@ -20,6 +21,9 @@ interface Job {
 const Job = () => {
   const [jobs, setJobs] = useState<Job[]>([])
   const [loading, setLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalJobs, setTotalJobs] = useState(0)
+  const pageSize = 10
   const [showAddModal, setShowAddModal] = useState(false)
   const [showEditModal, setShowEditModal] = useState(false)
   const [selectedJob, setSelectedJob] = useState<Job | null>(null)
@@ -34,19 +38,20 @@ const Job = () => {
   })
 
   useEffect(() => {
-    fetchJobs()
-  }, [])
+    fetchJobs(currentPage)
+  }, [currentPage])
 
-  const fetchJobs = async () => {
+  const fetchJobs = async (page: number) => {
     try {
       setLoading(true)
-      const response = await fetch('/api/jobs')
+      const response = await fetch(`/api/jobs?page=${page}&limit=${pageSize}`)
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
       const data = await response.json()
       if (data.success) {
         setJobs(data.data || [])
+        setTotalJobs(data.total || 0)
       } else {
         toast.error(data.error || 'Failed to load jobs')
       }
@@ -154,7 +159,7 @@ const Job = () => {
       toast.success(selectedJob ? 'Job updated successfully' : 'Job added successfully')
       setShowEditModal(false)
       setShowAddModal(false)
-      await fetchJobs()
+      await fetchJobs(currentPage)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to save job')
     }
@@ -169,7 +174,8 @@ const Job = () => {
       })
       if (!response.ok) throw new Error('Failed to delete job')
       toast.success('Job deleted successfully')
-      await fetchJobs()
+      setCurrentPage(1)
+      await fetchJobs(1)
     } catch (error) {
       toast.error('Failed to delete job')
     }
@@ -188,7 +194,7 @@ const Job = () => {
       })
       if (!response.ok) throw new Error('Failed to update job status')
       toast.success(`Job ${newStatus}`)
-      await fetchJobs()
+      await fetchJobs(currentPage)
     } catch (error) {
       toast.error('Failed to update job status')
     }
@@ -269,6 +275,17 @@ const Job = () => {
               </div>
             </Card>
           ))}
+        </div>
+      )}
+
+      {!loading && jobs.length > 0 && (
+        <div className="mt-6 flex justify-center">
+          <Pagination
+            currentPage={currentPage}
+            pageSize={pageSize}
+            total={totalJobs}
+            onChange={(page) => setCurrentPage(page)}
+          />
         </div>
       )}
 

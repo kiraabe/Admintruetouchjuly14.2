@@ -57,7 +57,10 @@ const upload = multer({
 
 router.get('/', async (req, res) => {
   try {
-    const { search, ...filters } = req.query
+    const { search, page: pageStr, limit: limitStr, ...filters } = req.query
+    const page = Math.max(1, parseInt(pageStr as string) || 1)
+    const limit = Math.min(100, parseInt(limitStr as string) || 10)
+    const offset = (page - 1) * limit
 
     let candidates
 
@@ -69,7 +72,10 @@ router.get('/', async (req, res) => {
       candidates = await getAllCandidates()
     }
 
-    res.json({ success: true, data: candidates || [] })
+    const total = candidates?.length || 0
+    const paginatedData = candidates?.slice(offset, offset + limit) || []
+
+    res.json({ success: true, data: paginatedData, total, page, limit })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
     console.error('Error fetching candidates:', errorMsg, error)

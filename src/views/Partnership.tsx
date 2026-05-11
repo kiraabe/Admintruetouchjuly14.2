@@ -31,15 +31,18 @@ const Partnership = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedPartnerships, setSelectedPartnerships] = useState<string[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPartnerships, setTotalPartnerships] = useState(0)
+  const pageSize = 10
 
   useEffect(() => {
-    fetchPartnerships()
-  }, [])
+    fetchPartnerships(currentPage)
+  }, [currentPage])
 
-  const fetchPartnerships = async () => {
+  const fetchPartnerships = async (page: number) => {
     try {
       setIsLoading(true)
-      const response = await fetch('/api/partnerships')
+      const response = await fetch(`/api/partnerships?page=${page}&limit=${pageSize}`)
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
@@ -48,6 +51,7 @@ const Partnership = () => {
       const result = await response.json()
       if (result.success) {
         setPartnerships(result.data || [])
+        setTotalPartnerships(result.total || 0)
       } else {
         toast.error(result.error || 'Failed to load partnerships')
       }
@@ -96,7 +100,8 @@ const Partnership = () => {
       const result = await response.json()
       if (result.success) {
         toast.success('Partnership deleted')
-        await fetchPartnerships()
+        setCurrentPage(1)
+        await fetchPartnerships(1)
       } else {
         toast.error(result.error || 'Failed to delete partnership')
       }
@@ -393,11 +398,18 @@ const Partnership = () => {
             </div>
 
             {/* Pagination */}
-            <div className="flex items-center justify-between mt-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div className="text-sm text-gray-600 dark:text-gray-400">
-                Showing {filteredPartnerships.length} of {partnerships.length} results
+                Showing {partnerships.length} of {totalPartnerships} results
               </div>
-              <Pagination />
+              {totalPartnerships > 0 && (
+                <Pagination
+                  currentPage={currentPage}
+                  pageSize={pageSize}
+                  total={totalPartnerships}
+                  onChange={(page) => setCurrentPage(page)}
+                />
+              )}
             </div>
           </>
         )}

@@ -5,6 +5,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Dialog from '@/components/ui/Dialog'
 import Checkbox from '@/components/ui/Checkbox'
+import Pagination from '@/components/ui/Pagination'
 import { notify } from '@/utils/notification'
 
 interface Candidate {
@@ -72,10 +73,13 @@ const Candidates = () => {
   const [activeTab, setActiveTab] = useState('available')
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalCandidates, setTotalCandidates] = useState(0)
+  const pageSize = 10
 
   useEffect(() => {
-    fetchCandidates()
-  }, [])
+    fetchCandidates(currentPage)
+  }, [currentPage])
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -139,10 +143,10 @@ const Candidates = () => {
     setFilteredCandidates(filtered)
   }, [candidates, searchTerm, filters, activeTab, sortColumn, sortDirection])
 
-  const fetchCandidates = async () => {
+  const fetchCandidates = async (page: number) => {
     try {
       setLoading(true)
-      const response = await fetch('/api/candidates')
+      const response = await fetch(`/api/candidates?page=${page}&limit=${pageSize}`)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
@@ -156,6 +160,7 @@ const Candidates = () => {
       const data = JSON.parse(text)
       if (data.success) {
         setCandidates(data.data || [])
+        setTotalCandidates(data.total || 0)
       } else {
         console.error('API returned success: false', data)
         setCandidates([])
@@ -614,9 +619,19 @@ const Candidates = () => {
           </table>
         </div>
 
-        {/* Results count */}
-        <div className="text-sm text-gray-600 dark:text-gray-400">
-          Showing {filteredCandidates.length} of {candidates.length} results
+        {/* Results count and pagination */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            Showing {filteredCandidates.length} of {totalCandidates} results
+          </div>
+          {totalCandidates > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              pageSize={pageSize}
+              total={totalCandidates}
+              onChange={(page) => setCurrentPage(page)}
+            />
+          )}
         </div>
       </div>
 

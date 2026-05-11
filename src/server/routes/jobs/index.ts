@@ -68,10 +68,18 @@ async function initPool() {
 router.get('/', async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
+    const page = Math.max(1, parseInt(req.query.page as string) || 1)
+    const limit = Math.min(100, parseInt(req.query.limit as string) || 10)
+    const offset = (page - 1) * limit
+
+    const countResult = await dbPool.query('SELECT COUNT(*) FROM jobs')
+    const total = parseInt(countResult.rows[0].count, 10)
+
     const result = await dbPool.query(
-      'SELECT * FROM jobs ORDER BY created_at DESC'
+      'SELECT * FROM jobs ORDER BY created_at DESC LIMIT $1 OFFSET $2',
+      [limit, offset]
     )
-    res.json({ success: true, data: result.rows })
+    res.json({ success: true, data: result.rows, total, page, limit })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
     console.error('Error fetching jobs:', errorMsg)

@@ -28,6 +28,8 @@ interface Partnership {
 const Users = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [totalUsers, setTotalUsers] = useState(0)
+  const pageSize = 10
   const [selectedUsers, setSelectedUsers] = useState<string[]>([])
   const [users, setUsers] = useState<User[]>([])
   const [partnerships, setPartnerships] = useState<Partnership[]>([])
@@ -49,8 +51,11 @@ const Users = () => {
 
   useEffect(() => {
     fetchPartnerships()
-    fetchUsers()
   }, [])
+
+  useEffect(() => {
+    fetchUsers(currentPage)
+  }, [currentPage])
 
   const fetchPartnerships = async () => {
     try {
@@ -64,10 +69,10 @@ const Users = () => {
     }
   }
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (page: number) => {
     try {
       setLoading(true)
-      const response = await fetch('/api/users')
+      const response = await fetch(`/api/users?page=${page}&limit=${pageSize}`)
       const data = await response.json()
 
       if (!response.ok) {
@@ -77,6 +82,7 @@ const Users = () => {
 
       if (data.success && Array.isArray(data.data)) {
         setUsers(data.data)
+        setTotalUsers(data.total || 0)
       } else {
         setUsers([])
       }
@@ -584,11 +590,18 @@ const Users = () => {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between mt-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            Showing 1 to {filteredUsers.length} of {users.length} results
+            Showing {users.length} of {totalUsers} results
           </div>
-          <Pagination />
+          {totalUsers > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              pageSize={pageSize}
+              total={totalUsers}
+              onChange={(page) => setCurrentPage(page)}
+            />
+          )}
         </div>
       </div>
 

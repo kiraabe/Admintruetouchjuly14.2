@@ -68,8 +68,11 @@ const upload = multer({
 router.get('/', async (req, res) => {
   try {
     console.log('GET /api/partnerships - start')
-    const { search, ...filters } = req.query
-    console.log('Query params:', { search, filters })
+    const { search, page: pageStr, limit: limitStr, ...filters } = req.query
+    const page = Math.max(1, parseInt(pageStr as string) || 1)
+    const limit = Math.min(100, parseInt(limitStr as string) || 10)
+    const offset = (page - 1) * limit
+    console.log('Query params:', { search, filters, page, limit })
 
     let partnerships
 
@@ -84,8 +87,11 @@ router.get('/', async (req, res) => {
       partnerships = await getAllPartnerships()
     }
 
-    console.log('Got partnerships:', partnerships?.length)
-    res.json({ success: true, data: partnerships || [] })
+    const total = partnerships?.length || 0
+    const paginatedData = partnerships?.slice(offset, offset + limit) || []
+
+    console.log('Got partnerships:', paginatedData?.length)
+    res.json({ success: true, data: paginatedData, total, page, limit })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
     console.error('Error fetching partnerships:', errorMsg)

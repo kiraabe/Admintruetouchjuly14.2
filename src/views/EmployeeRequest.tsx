@@ -4,6 +4,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Dialog from '@/components/ui/Dialog'
 import Checkbox from '@/components/ui/Checkbox'
+import Pagination from '@/components/ui/Pagination'
 import { notify } from '@/utils/notification'
 
 interface EmployeeRequest {
@@ -60,10 +61,13 @@ const EmployeeRequest = () => {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([])
   const [candidateSearchTerm, setCandidateSearchTerm] = useState('')
   const [currentStandardRequest, setCurrentStandardRequest] = useState<EmployeeRequest | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalRequests, setTotalRequests] = useState(0)
+  const pageSize = 10
 
   useEffect(() => {
-    fetchRequests()
-  }, [])
+    fetchRequests(currentPage)
+  }, [currentPage])
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -130,10 +134,10 @@ const EmployeeRequest = () => {
     setFilteredRequests(filtered)
   }, [requests, searchTerm, filters, sortColumn, sortDirection, activeTab])
 
-  const fetchRequests = async () => {
+  const fetchRequests = async (page: number) => {
     try {
       setLoading(true)
-      const response = await fetch('/api/employee-requests')
+      const response = await fetch(`/api/employee-requests?page=${page}&limit=${pageSize}`)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
@@ -146,6 +150,7 @@ const EmployeeRequest = () => {
       const data = JSON.parse(text)
       if (data.success) {
         setRequests(data.data || [])
+        setTotalRequests(data.total || 0)
       } else {
         console.error('API returned success: false', data)
         setRequests([])
@@ -730,9 +735,19 @@ const EmployeeRequest = () => {
           </div>
         )}
 
-        {/* Results count */}
-        <div className="text-sm text-gray-600 dark:text-gray-400">
-          Showing {filteredRequests.length} of {requests.length} results
+        {/* Results count and pagination */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="text-sm text-gray-600 dark:text-gray-400">
+            Showing {filteredRequests.length} of {totalRequests} results
+          </div>
+          {totalRequests > 0 && (
+            <Pagination
+              currentPage={currentPage}
+              pageSize={pageSize}
+              total={totalRequests}
+              onChange={(page) => setCurrentPage(page)}
+            />
+          )}
         </div>
       </div>
 

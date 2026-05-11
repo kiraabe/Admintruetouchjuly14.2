@@ -51,7 +51,10 @@ router.get('/', async (req, res) => {
     // Ensure table exists before querying
     await ensureTableExists()
 
-    const { search, ...filters } = req.query
+    const { search, page: pageStr, limit: limitStr, ...filters } = req.query
+    const page = Math.max(1, parseInt(pageStr as string) || 1)
+    const limit = Math.min(100, parseInt(limitStr as string) || 10)
+    const offset = (page - 1) * limit
 
     let requests
 
@@ -72,7 +75,10 @@ router.get('/', async (req, res) => {
       throw new Error(`Database error: ${queryError instanceof Error ? queryError.message : String(queryError)}`)
     }
 
-    res.json({ success: true, data: requests || [] })
+    const total = requests?.length || 0
+    const paginatedData = requests?.slice(offset, offset + limit) || []
+
+    res.json({ success: true, data: paginatedData, total, page, limit })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
     console.error('Error fetching employee requests:', errorMsg, error)
