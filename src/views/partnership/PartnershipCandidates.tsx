@@ -6,6 +6,7 @@ import Input from '@/components/ui/Input'
 import Dialog from '@/components/ui/Dialog'
 import Checkbox from '@/components/ui/Checkbox'
 import Pagination from '@/components/ui/Pagination'
+import Dropdown from '@/components/ui/Dropdown'
 import { notify } from '@/utils/notification'
 
 interface Candidate {
@@ -70,7 +71,6 @@ const PartnershipCandidates = () => {
   const [showFilterModal, setShowFilterModal] = useState(false)
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
-  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [filters, setFilters] = useState<Partial<Candidate>>({})
   const [activeTab, setActiveTab] = useState('available')
@@ -468,12 +468,8 @@ const PartnershipCandidates = () => {
                       </span>
                     </td>
                     <td className="py-3 px-4">
-                      <div className="relative">
-                        <button
-                          onClick={() => setOpenMenuId(openMenuId === candidate.candidate_id ? null : candidate.candidate_id)}
-                          className="inline-flex items-center justify-center px-2 py-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded transition-colors"
-                          title="Actions"
-                        >
+                      <Dropdown
+                        title={
                           <svg
                             stroke="currentColor"
                             fill="currentColor"
@@ -485,62 +481,59 @@ const PartnershipCandidates = () => {
                           >
                             <path d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 14c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-7c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path>
                           </svg>
+                        }
+                        toggleClassName="inline-flex items-center justify-center px-2 py-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded transition-colors"
+                        menuClass="w-48"
+                        placement="bottom-end"
+                      >
+                        <button
+                          onClick={() => {
+                            setSelectedCandidate(candidate)
+                            setShowInfoModal(true)
+                          }}
+                          className="w-full flex items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        >
+                          <svg
+                            stroke="currentColor"
+                            fill="none"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            height="1em"
+                            width="1em"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                          </svg>
+                          <span>View Info</span>
                         </button>
-
-                        {openMenuId === candidate.candidate_id && (
-                          <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10">
-                            <button
-                              onClick={() => {
-                                setSelectedCandidate(candidate)
-                                setShowInfoModal(true)
-                                setOpenMenuId(null)
-                              }}
-                              className="w-full flex items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 first:rounded-t-lg transition-colors"
+                        {candidate.resume_url && (
+                          <a
+                            href={candidate.resume_url}
+                            download
+                            className="w-full flex items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                          >
+                            <svg
+                              stroke="currentColor"
+                              fill="none"
+                              strokeWidth="2"
+                              viewBox="0 0 24 24"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              height="1em"
+                              width="1em"
+                              xmlns="http://www.w3.org/2000/svg"
                             >
-                              <svg
-                                stroke="currentColor"
-                                fill="none"
-                                strokeWidth="2"
-                                viewBox="0 0 24 24"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                height="1em"
-                                width="1em"
-                                xmlns="http://www.w3.org/2000/svg"
-                              >
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                              </svg>
-                              <span>View Info</span>
-                            </button>
-                            {candidate.resume_url && (
-                              <a
-                                href={candidate.resume_url}
-                                download
-                                onClick={() => setOpenMenuId(null)}
-                                className="w-full flex items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 last:rounded-b-lg transition-colors"
-                              >
-                                <svg
-                                  stroke="currentColor"
-                                  fill="none"
-                                  strokeWidth="2"
-                                  viewBox="0 0 24 24"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  height="1em"
-                                  width="1em"
-                                  xmlns="http://www.w3.org/2000/svg"
-                                >
-                                  <path d="M19 18a3.5 3.5 0 0 0 0 -7h-1a5 4.5 0 0 0 -11 -2a4.6 4.4 0 0 0 -2.1 8.4"></path>
-                                  <path d="M12 13l0 9"></path>
-                                  <path d="M9 19l3 3l3 -3"></path>
-                                </svg>
-                                <span>Download Resume</span>
-                              </a>
-                            )}
-                          </div>
+                              <path d="M19 18a3.5 3.5 0 0 0 0 -7h-1a5 4.5 0 0 0 -11 -2a4.6 4.4 0 0 0 -2.1 8.4"></path>
+                              <path d="M12 13l0 9"></path>
+                              <path d="M9 19l3 3l3 -3"></path>
+                            </svg>
+                            <span>Download Resume</span>
+                          </a>
                         )}
-                      </div>
+                      </Dropdown>
                     </td>
                   </tr>
                 ))
