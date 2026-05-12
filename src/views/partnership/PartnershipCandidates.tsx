@@ -8,6 +8,7 @@ import Checkbox from '@/components/ui/Checkbox'
 import Pagination from '@/components/ui/Pagination'
 import Dropdown from '@/components/ui/Dropdown'
 import { notify } from '@/utils/notification'
+import { useSessionUser } from '@/store/authStore'
 
 interface Candidate {
   id: number
@@ -64,6 +65,7 @@ const MEDICAL_STATUS = ['Fit', 'Fit with restrictions', 'Unfit', 'Under review',
 
 const PartnershipCandidates = () => {
   const navigate = useNavigate()
+  const user = useSessionUser((state) => state.user)
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>([])
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([])
@@ -179,30 +181,25 @@ const PartnershipCandidates = () => {
 
   const handleRequest = async () => {
     try {
-      const selectedCandidateObjects = filteredCandidates.filter((c) =>
-        selectedCandidates.includes(c.candidate_id)
-      )
+      if (!user.partnershipId) {
+        notify.error('Error', 'Partnership ID not found. Please sign in again.')
+        return
+      }
 
-      const candidatesData = selectedCandidateObjects.map((c) => ({
-        id: c.id,
-        candidate_id: c.candidate_id,
-        name: c.name,
-        job_category: c.job_category,
-        skill_level: c.skill_level,
-        phone_number: c.phone_number,
-        nationality: c.nationality,
-      }))
+      const selectedCandidateIds = selectedCandidates
 
-      const response = await fetch('/api/employee-requests', {
+      const response = await fetch('/api/standard-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          request_type: 'Standard',
+          partnership_id: user.partnershipId,
           company_name: 'Partnership Candidates Request',
+          contact_person: user.userName || 'User',
+          email: user.email || '',
           position: 'Partnership Candidates',
           number_of_employees: selectedCandidates.length,
-          candidates_data: candidatesData,
           status: 'Pending',
+          candidateIds: selectedCandidateIds,
         }),
       })
 

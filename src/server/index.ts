@@ -11,6 +11,8 @@ import candidatesRouter from './routes/candidates/index.ts'
 import usersRouter from './routes/users/index.ts'
 import partnershipsRouter from './routes/partnerships/index.ts'
 import employeeRequestsRouter from './routes/employeeRequests/index.ts'
+import standardRequestsRouter from './routes/standardRequests/index.ts'
+import specialRequestsRouter from './routes/specialRequests/index.ts'
 import licensesRouter from './routes/licenses/index.ts'
 import jobsRouter from './routes/jobs/index.ts'
 
@@ -337,6 +339,8 @@ app.use('/api/candidates', candidatesRouter)
 app.use('/api/partnerships', partnershipsRouter)
 app.use('/api/users', usersRouter)
 app.use('/api/employee-requests', employeeRequestsRouter)
+app.use('/api/standard-requests', standardRequestsRouter)
+app.use('/api/special-requests', specialRequestsRouter)
 app.use('/api/licenses', licensesRouter)
 app.use('/api/jobs', jobsRouter)
 
@@ -351,7 +355,7 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
 
     const dbPool = await initPool()
     const result = await dbPool.query(
-      'SELECT id, user_id, email, password_hash, user_name, is_active, avatar, authority FROM users WHERE email = $1',
+      'SELECT id, user_id, email, password_hash, user_name, is_active, avatar, authority, partnership_id FROM users WHERE email = $1',
       [email]
     )
 
@@ -380,6 +384,7 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
         authority: [user.authority],
         avatar: user.avatar || '',
         email: user.email,
+        partnershipId: user.partnership_id || null,
       },
     })
   } catch (error) {

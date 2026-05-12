@@ -43,6 +43,7 @@ export type User = {
     userName?: string | null
     email?: string | null
     authority?: string[]
+    partnershipId?: string | null
 }
 
 export type Token = {
