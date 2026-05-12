@@ -3,15 +3,15 @@ import pool from '../../db/config.ts'
 
 const router = Router()
 
-// Get unread notification count from employee requests
+// Get unread notification count from notifications table
 router.get('/count', async (req: Request, res: Response) => {
   try {
     const result = await pool.query(`
-      SELECT COUNT(*) as count 
-      FROM employee_requests 
-      WHERE status IN ('Pending', 'In Progress')
+      SELECT COUNT(*) as count
+      FROM notifications
+      WHERE readed = false
     `)
-    
+
     res.json({
       count: parseInt(result.rows[0].count, 10)
     })
@@ -22,26 +22,26 @@ router.get('/count', async (req: Request, res: Response) => {
   }
 })
 
-// Get notification list from employee requests
+// Get notification list from notifications table
 router.get('/list', async (req: Request, res: Response) => {
   try {
     const result = await pool.query(`
-      SELECT 
-        request_id as id,
-        company_name as target,
-        CONCAT(position, ' - ', request_type) as description,
+      SELECT
+        notification_id as id,
+        target,
+        description,
         TO_CHAR(created_at, 'YYYY-MM-DD HH24:MI') as date,
-        '' as image,
-        1 as type,
-        location as location,
-        request_type as locationLabel,
-        status as status,
-        false as readed
-      FROM employee_requests
+        image_url as image,
+        type,
+        location,
+        location_label as locationLabel,
+        status,
+        readed
+      FROM notifications
       ORDER BY created_at DESC
       LIMIT 50
     `)
-    
+
     res.json(result.rows)
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
@@ -50,12 +50,23 @@ router.get('/list', async (req: Request, res: Response) => {
   }
 })
 
-// Mark notification as read (optional - for future enhancement)
+// Mark notification as read
 router.put('/mark-read/:notificationId', async (req: Request, res: Response) => {
   try {
     const { notificationId } = req.params
-    // This could be extended to persist read status in database
-    res.json({ success: true, message: 'Marked as read' })
+
+    const result = await pool.query(`
+      UPDATE notifications
+      SET readed = true, updated_at = CURRENT_TIMESTAMP
+      WHERE notification_id = $1
+      RETURNING *
+    `, [notificationId])
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Notification not found' })
+    }
+
+    res.json({ success: true, notification: result.rows[0] })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
     console.error('Error marking notification as read:', errorMsg)
@@ -63,14 +74,63 @@ router.put('/mark-read/:notificationId', async (req: Request, res: Response) => 
   }
 })
 
-// Clear all notifications (optional - could be archive instead of delete)
+// Mark all notifications as read
+router.put('/mark-all-read', async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`
+      UPDATE notifications
+      SET readed = true, updated_at = CURRENT_TIMESTAMP
+      WHERE readed = false
+      RETURNING COUNT(*) as updated
+    `)
+
+    res.json({ success: true, updated: result.rows[0]?.updated || 0 })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error('Error marking all as read:', errorMsg)
+    res.status(500).json({ error: errorMsg })
+  }
+})
+
+// Clear all notifications (soft delete by marking as read or hard delete)
 router.delete('/clear', async (req: Request, res: Response) => {
   try {
-    // This endpoint is more of a UI operation, actual deletion depends on business logic
-    res.json({ success: true, message: 'Notifications cleared' })
+    // Delete old notifications (older than 30 days) or all unread ones
+    const result = await pool.query(`
+      DELETE FROM notifications
+      WHERE created_at < NOW() - INTERVAL '30 days'
+      OR readed = true
+      RETURNING COUNT(*) as deleted
+    `)
+
+    res.json({ success: true, deleted: result.rows[0]?.deleted || 0 })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
     console.error('Error clearing notifications:', errorMsg)
+    res.status(500).json({ error: errorMsg })
+  }
+})
+
+// Create a new notification
+router.post('/create', async (req: Request, res: Response) => {
+  try {
+    const { target, description, type = 1, status = 'Pending', location, location_label, image_url, user_id, related_entity_id, related_entity_type } = req.body
+
+    if (!target || !description) {
+      return res.status(400).json({ error: 'target and description are required' })
+    }
+
+    const result = await pool.query(`
+      INSERT INTO notifications (
+        target, description, type, status, location, location_label, image_url, user_id, related_entity_id, related_entity_type
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      RETURNING *
+    `, [target, description, type, status, location, location_label, image_url, user_id, related_entity_id, related_entity_type])
+
+    res.status(201).json({ success: true, notification: result.rows[0] })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error('Error creating notification:', errorMsg)
     res.status(500).json({ error: errorMsg })
   }
 })

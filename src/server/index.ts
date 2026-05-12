@@ -675,6 +675,56 @@ async function startServer() {
       console.error('Error creating jobs table:', tableError)
     }
 
+    try {
+      console.log('Creating notifications table...')
+      await dbPool.query(`
+        CREATE TABLE IF NOT EXISTS notifications (
+          id SERIAL PRIMARY KEY,
+          notification_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+          user_id UUID,
+          target VARCHAR(255) NOT NULL,
+          description TEXT,
+          type INT DEFAULT 1,
+          status VARCHAR(50) DEFAULT 'Pending',
+          location VARCHAR(255),
+          location_label VARCHAR(255),
+          image_url VARCHAR(255),
+          readed BOOLEAN DEFAULT false,
+          related_entity_id UUID,
+          related_entity_type VARCHAR(100),
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `)
+      console.log('✓ Notifications table ready')
+
+      // Seed initial notification data if table is empty
+      const notificationCount = await dbPool.query('SELECT COUNT(*) as count FROM notifications')
+      if (notificationCount.rows[0].count === 0) {
+        console.log('Seeding notifications with test data...')
+        await dbPool.query(`
+          INSERT INTO notifications (
+            target, description, type, status, location, location_label, readed
+          ) VALUES
+          (
+            'Tech Solutions Inc.', 'New employee request for Software Engineer position',
+            1, 'Pending', 'New York, NY', 'Standard Request', false
+          ),
+          (
+            'Global Services Ltd.', 'Employee request requires review - 10 positions needed',
+            1, 'Pending', 'London, UK', 'Special Request', false
+          ),
+          (
+            'Innovation Labs', 'New candidate application received',
+            1, 'Processing', 'San Francisco, CA', 'Candidate', false
+          )
+        `)
+        console.log('✓ Notifications seeded')
+      }
+    } catch (tableError) {
+      console.error('Error creating notifications table:', tableError)
+    }
+
     console.log('✓ Database initialized')
 
     const server = app.listen(PORT, () => {
