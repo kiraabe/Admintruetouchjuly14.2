@@ -328,9 +328,9 @@ const EmployeeRequest = () => {
       return
     }
 
-    try {
-      notify.loading('Assigning candidates...')
+    const toastId = notify.loading('Assigning candidates...')
 
+    try {
       const endpoint = currentStandardRequest?.request_type === 'Standard'
         ? `/api/standard-requests/${currentStandardRequest.request_id}`
         : `/api/employee-requests/${currentStandardRequest.request_id}`
