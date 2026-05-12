@@ -3,17 +3,42 @@ import pool from '../../db/config.ts'
 
 const router = Router()
 
+// Health check for notifications API
+router.get('/health', async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query('SELECT 1')
+    const tableCheck = await pool.query(`
+      SELECT EXISTS (
+        SELECT FROM information_schema.tables
+        WHERE table_name = 'notifications'
+      ) as exists
+    `)
+
+    res.json({
+      status: 'ok',
+      database: 'connected',
+      notifications_table_exists: tableCheck.rows[0]?.exists || false
+    })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    res.status(500).json({
+      status: 'error',
+      error: errorMsg
+    })
+  }
+})
+
 // Get unread notification count from notifications table
 router.get('/count', async (req: Request, res: Response) => {
   try {
     const result = await pool.query(`
-      SELECT COUNT(*) as count
+      SELECT COUNT(*)::INTEGER as count
       FROM notifications
       WHERE readed = false
     `)
 
     res.json({
-      count: parseInt(result.rows[0].count, 10)
+      count: result.rows[0]?.count || 0
     })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)

@@ -699,27 +699,24 @@ async function startServer() {
       console.log('✓ Notifications table ready')
 
       // Seed initial notification data if table is empty
-      const notificationCount = await dbPool.query('SELECT COUNT(*) as count FROM notifications')
-      if (notificationCount.rows[0].count === 0) {
-        console.log('Seeding notifications with test data...')
-        await dbPool.query(`
-          INSERT INTO notifications (
-            target, description, type, status, location, location_label, readed
-          ) VALUES
-          (
-            'Tech Solutions Inc.', 'New employee request for Software Engineer position',
-            1, 'Pending', 'New York, NY', 'Standard Request', false
-          ),
-          (
-            'Global Services Ltd.', 'Employee request requires review - 10 positions needed',
-            1, 'Pending', 'London, UK', 'Special Request', false
-          ),
-          (
-            'Innovation Labs', 'New candidate application received',
-            1, 'Processing', 'San Francisco, CA', 'Candidate', false
-          )
-        `)
-        console.log('✓ Notifications seeded')
+      try {
+        const notificationCount = await dbPool.query('SELECT COUNT(*) as count FROM notifications')
+        const count = parseInt(notificationCount.rows[0].count, 10)
+        if (count === 0) {
+          console.log('Seeding notifications with test data...')
+          await dbPool.query(`
+            INSERT INTO notifications (
+              target, description, type, status, location, location_label, readed
+            ) VALUES
+            ('Tech Solutions Inc.', 'New employee request for Software Engineer position', 1, 'Pending', 'New York, NY', 'Standard Request', false),
+            ('Global Services Ltd.', 'Employee request requires review - 10 positions needed', 1, 'Pending', 'London, UK', 'Special Request', false),
+            ('Innovation Labs', 'New candidate application received', 1, 'Processing', 'San Francisco, CA', 'Candidate', false),
+            ('DataFlow Systems', 'Pending approval for 5 new positions', 1, 'Pending', 'Singapore', 'Standard Request', false)
+          `)
+          console.log('✓ Notifications seeded with 4 records')
+        }
+      } catch (seedError) {
+        console.error('Error seeding notifications:', seedError instanceof Error ? seedError.message : seedError)
       }
     } catch (tableError) {
       console.error('Error creating notifications table:', tableError)
