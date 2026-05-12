@@ -59,7 +59,7 @@ const EmployeeRequest = () => {
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [activeTab, setActiveTab] = useState<'all' | 'standard' | 'special'>('standard')
-  const [activeStatus, setActiveStatus] = useState<string | null>(null)
+  const [activeStatus, setActiveStatus] = useState<string | null>('All')
   const [showCandidateModal, setShowCandidateModal] = useState(false)
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([])
@@ -91,7 +91,7 @@ const EmployeeRequest = () => {
   useEffect(() => {
     let filtered = requests
 
-    if (activeStatus) {
+    if (activeStatus && activeStatus !== 'All') {
       filtered = filtered.filter((r) => r.status === activeStatus)
     }
 
@@ -480,10 +480,13 @@ const EmployeeRequest = () => {
           </button>
         </div>
 
-        {/* Tabs */}
+        {/* Main Tabs */}
         <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
           <button
-            onClick={() => setActiveTab('standard')}
+            onClick={() => {
+              setActiveTab('standard')
+              setActiveStatus('All')
+            }}
             className={`px-4 py-3 font-medium border-b-2 transition-colors ${
               activeTab === 'standard'
                 ? 'border-primary text-primary dark:text-primary'
@@ -493,7 +496,10 @@ const EmployeeRequest = () => {
             Standard ({requests.filter((r) => r.request_type === 'Standard').length})
           </button>
           <button
-            onClick={() => setActiveTab('special')}
+            onClick={() => {
+              setActiveTab('special')
+              setActiveStatus('All')
+            }}
             className={`px-4 py-3 font-medium border-b-2 transition-colors ${
               activeTab === 'special'
                 ? 'border-primary text-primary dark:text-primary'
@@ -502,6 +508,32 @@ const EmployeeRequest = () => {
           >
             Special ({requests.filter((r) => r.request_type === 'Special').length})
           </button>
+        </div>
+
+        {/* Sub Tabs for Status Filter */}
+        <div className="flex gap-2 border-b border-gray-100 dark:border-gray-600 bg-gray-50 dark:bg-gray-900/50 rounded-t-lg -mx-6 px-6 pt-2">
+          {['All', 'Approved', 'Rejected', 'Pending', 'In Progress'].map((status) => {
+            const count = filteredRequests.filter((r) =>
+              status === 'All' ? true : r.status === status
+            ).length
+            const totalCount = requests.filter((r) =>
+              status === 'All' ? true : r.status === status
+            ).length
+
+            return (
+              <button
+                key={status}
+                onClick={() => setActiveStatus(status)}
+                className={`px-3 py-2 text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${
+                  activeStatus === status
+                    ? 'border-primary text-primary dark:text-primary'
+                    : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
+                }`}
+              >
+                {status} ({totalCount})
+              </button>
+            )
+          })}
         </div>
 
         {/* Search and Filter */}
