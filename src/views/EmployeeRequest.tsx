@@ -642,7 +642,7 @@ const EmployeeRequest = () => {
                 </div>
 
                 <div className="flex gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
-                  {request.request_type === 'Standard' && (
+                  {request.request_type === 'Standard' && request.status === 'Pending' && (
                     <button
                       onClick={() => handleOpenCandidateModal(request)}
                       className="flex-1 py-2 px-3 rounded-lg bg-green-600 text-white text-sm font-medium hover:opacity-90 transition"
