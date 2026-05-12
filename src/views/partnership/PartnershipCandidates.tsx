@@ -68,6 +68,8 @@ const PartnershipCandidates = () => {
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [showFilterModal, setShowFilterModal] = useState(false)
+  const [showInfoModal, setShowInfoModal] = useState(false)
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
   const [loading, setLoading] = useState(false)
   const [filters, setFilters] = useState<Partial<Candidate>>({})
   const [activeTab, setActiveTab] = useState('available')
@@ -465,11 +467,14 @@ const PartnershipCandidates = () => {
                       </span>
                     </td>
                     <td className="py-3 px-4">
-                      {candidate.resume_url ? (
-                        <a
-                          href={candidate.resume_url}
-                          download
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedCandidate(candidate)
+                            setShowInfoModal(true)
+                          }}
                           className="inline-flex items-center justify-center gap-1 px-3 py-1 text-sm text-primary hover:bg-primary hover:text-white rounded transition-colors"
+                          title="View Info"
                         >
                           <svg
                             stroke="currentColor"
@@ -482,15 +487,34 @@ const PartnershipCandidates = () => {
                             width="1em"
                             xmlns="http://www.w3.org/2000/svg"
                           >
-                            <path d="M19 18a3.5 3.5 0 0 0 0 -7h-1a5 4.5 0 0 0 -11 -2a4.6 4.4 0 0 0 -2.1 8.4"></path>
-                            <path d="M12 13l0 9"></path>
-                            <path d="M9 19l3 3l3 -3"></path>
+                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"></path>
                           </svg>
-                          Download
-                        </a>
-                      ) : (
-                        <span className="text-sm text-gray-400 dark:text-gray-600">No resume</span>
-                      )}
+                        </button>
+                        {candidate.resume_url ? (
+                          <a
+                            href={candidate.resume_url}
+                            download
+                            className="inline-flex items-center justify-center gap-1 px-3 py-1 text-sm text-primary hover:bg-primary hover:text-white rounded transition-colors"
+                            title="Download Resume"
+                          >
+                            <svg
+                              stroke="currentColor"
+                              fill="none"
+                              strokeWidth="2"
+                              viewBox="0 0 24 24"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              height="1em"
+                              width="1em"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M19 18a3.5 3.5 0 0 0 0 -7h-1a5 4.5 0 0 0 -11 -2a4.6 4.4 0 0 0 -2.1 8.4"></path>
+                              <path d="M12 13l0 9"></path>
+                              <path d="M9 19l3 3l3 -3"></path>
+                            </svg>
+                          </a>
+                        ) : null}
+                      </div>
                     </td>
                   </tr>
                 ))
@@ -514,6 +538,94 @@ const PartnershipCandidates = () => {
           )}
         </div>
       </div>
+
+      {/* Info Modal */}
+      <Dialog isOpen={showInfoModal} onClose={() => setShowInfoModal(false)}>
+        {selectedCandidate && (
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            <div>
+              <h2 className="text-lg font-bold mb-4">{selectedCandidate.name}</h2>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Phone</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.phone_number || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Passport</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.passport_number || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Gender</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.gender || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Age</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.age || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Date of Birth</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.date_of_birth || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Nationality</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.nationality || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Religion</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.religion || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Marital Status</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.marital_status || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Occupation</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.occupation || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Job Category</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.job_category || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Skill Level</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.skill_level || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Education Level</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.education_level || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Language Skills</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.language_skills || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Country</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.country || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">City</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.city || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Current Location</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.current_location || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Medical Status</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.medical_status || '-'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Status</label>
+                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.status || '-'}</p>
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-2 pt-4">
+              <Button onClick={() => setShowInfoModal(false)}>Close</Button>
+            </div>
+          </div>
+        )}
+      </Dialog>
 
       {/* Filter Modal */}
       <Dialog isOpen={showFilterModal} onClose={() => setShowFilterModal(false)}>
