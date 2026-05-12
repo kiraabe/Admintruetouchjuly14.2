@@ -279,32 +279,7 @@ const EmployeeRequest = () => {
       const data = await response.json()
       if (data.success) {
         const allCandidates = data.data || []
-
-        let filteredCandidates = allCandidates
-
-        if (request.partnership_id) {
-          filteredCandidates = allCandidates.filter((candidate: Candidate) => {
-            if (!candidate.job_category) return false
-            return candidate.job_category === 'Partnership' || candidate.job_category?.toLowerCase().includes('partnership')
-          })
-        } else if (request.request_type === 'Special') {
-          filteredCandidates = allCandidates.filter((candidate: Candidate) => {
-            if (!candidate.job_category) return false
-            return candidate.job_category === 'Special' || candidate.job_category?.toLowerCase().includes('special')
-          })
-        } else {
-          filteredCandidates = allCandidates.filter((candidate: Candidate) => {
-            if (!candidate.job_category) return false
-            return candidate.job_category !== 'Partnership' && !candidate.job_category?.toLowerCase().includes('partnership') &&
-                   candidate.job_category !== 'Special' && !candidate.job_category?.toLowerCase().includes('special')
-          })
-        }
-
-        if (filteredCandidates.length === 0) {
-          notify.error('No Candidates', 'No matching candidates found for this request type')
-        }
-
-        setCandidates(filteredCandidates)
+        setCandidates(allCandidates)
       }
     } catch (error) {
       console.error('Error fetching candidates:', error)
