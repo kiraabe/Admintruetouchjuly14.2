@@ -11,6 +11,7 @@ interface StandardRequest {
   number_of_employees: number
   start_date?: string | null
   location?: string | null
+  request_type?: string
   status?: string
   requirements?: string | null
   notes?: string | null
@@ -35,6 +36,7 @@ export async function ensureStandardRequestTableExists() {
         number_of_employees INT NOT NULL,
         start_date DATE,
         location VARCHAR(255),
+        request_type VARCHAR(50) DEFAULT 'Standard',
         status VARCHAR(50) DEFAULT 'Pending',
         requirements TEXT,
         notes TEXT,
@@ -151,6 +153,7 @@ export async function createStandardRequest(data: StandardRequest, candidateIds:
     number_of_employees,
     start_date,
     location,
+    request_type = 'Standard',
     status = 'Pending',
     requirements,
     notes,
@@ -170,10 +173,10 @@ export async function createStandardRequest(data: StandardRequest, candidateIds:
 
     const result = await client.query(
       `INSERT INTO standard_requests
-      (partnership_id, company_name, contact_person, email, phone_number, position, number_of_employees, start_date, location, status, requirements, notes, salary_range, required_skills, work_city, urgency)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      (partnership_id, company_name, contact_person, email, phone_number, position, number_of_employees, start_date, location, request_type, status, requirements, notes, salary_range, required_skills, work_city, urgency)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
       RETURNING *`,
-      [partnership_id, company_name, contact_person, email, phone_number, position, number_of_employees, start_date, location, status, requirements, notes, salary_range, required_skills, work_city, urgency]
+      [partnership_id, company_name, contact_person, email, phone_number, position, number_of_employees, start_date, location, request_type, status, requirements, notes, salary_range, required_skills, work_city, urgency]
     )
 
     const request = result.rows[0]
@@ -238,6 +241,7 @@ export async function updateStandardRequest(requestId: string, data: Partial<Sta
     'number_of_employees',
     'start_date',
     'location',
+    'request_type',
     'status',
     'requirements',
     'notes',
