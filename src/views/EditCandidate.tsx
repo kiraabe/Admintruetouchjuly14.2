@@ -268,7 +268,6 @@ const EditCandidate = () => {
     }
 
     try {
-      notify.loading(isNewCandidate ? 'Creating candidate...' : 'Updating candidate...')
       const formDataToSend = new FormData()
 
       Object.entries(formData).forEach(([key, value]) => {
@@ -282,33 +281,45 @@ const EditCandidate = () => {
       }
 
       if (isNewCandidate) {
-        const response = await fetch('/api/candidates', {
-          method: 'POST',
-          body: formDataToSend,
-        })
-
-        const data = await response.json()
-        if (response.ok) {
-          notify.success('Success', 'Candidate created successfully')
-          setTimeout(() => navigate('/candidates'), 500)
-        } else {
-          const errorMsg = data.error || 'Failed to create candidate'
-          notify.error('Create Failed', errorMsg)
-        }
+        notify.promise(
+          fetch('/api/candidates', {
+            method: 'POST',
+            body: formDataToSend,
+          }).then(async (response) => {
+            const data = await response.json()
+            if (response.ok) {
+              setTimeout(() => navigate('/candidates'), 500)
+              return data
+            } else {
+              throw new Error(data.error || 'Failed to create candidate')
+            }
+          }),
+          {
+            loading: 'Creating candidate...',
+            success: 'Candidate created successfully',
+            error: (err) => `${err.message}`,
+          },
+        )
       } else {
-        const response = await fetch(`/api/candidates/${candidate?.candidate_id}`, {
-          method: 'PUT',
-          body: formDataToSend,
-        })
-
-        const data = await response.json()
-        if (response.ok) {
-          notify.success('Success', 'Candidate updated successfully')
-          setTimeout(() => navigate('/candidates'), 500)
-        } else {
-          const errorMsg = data.error || 'Failed to update candidate'
-          notify.error('Update Failed', errorMsg)
-        }
+        notify.promise(
+          fetch(`/api/candidates/${candidate?.candidate_id}`, {
+            method: 'PUT',
+            body: formDataToSend,
+          }).then(async (response) => {
+            const data = await response.json()
+            if (response.ok) {
+              setTimeout(() => navigate('/candidates'), 500)
+              return data
+            } else {
+              throw new Error(data.error || 'Failed to update candidate')
+            }
+          }),
+          {
+            loading: 'Updating candidate...',
+            success: 'Candidate updated successfully',
+            error: (err) => `${err.message}`,
+          },
+        )
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
@@ -320,24 +331,21 @@ const EditCandidate = () => {
   const handleDelete = async () => {
     if (!window.confirm('Are you sure you want to delete this candidate?')) return
 
-    try {
-      notify.loading('Deleting candidate...')
-      const response = await fetch(`/api/candidates/${candidate?.candidate_id}`, { method: 'DELETE' })
-
-      if (!response.ok) {
+    notify.promise(
+      fetch(`/api/candidates/${candidate?.candidate_id}`, { method: 'DELETE' }).then(async (response) => {
         const data = await response.json()
-        const errorMsg = data.error || 'Failed to delete candidate'
-        notify.error('Delete Failed', errorMsg)
-        return
-      }
-
-      notify.success('Success', 'Candidate deleted successfully')
-      setTimeout(() => navigate('/candidates'), 500)
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
-      console.error('Error deleting candidate:', error)
-      notify.error('Delete Error', errorMsg)
-    }
+        if (!response.ok) {
+          throw new Error(data.error || 'Failed to delete candidate')
+        }
+        setTimeout(() => navigate('/candidates'), 500)
+        return data
+      }),
+      {
+        loading: 'Deleting candidate...',
+        success: 'Candidate deleted successfully',
+        error: (err) => `${err.message}`,
+      },
+    )
   }
 
   if (loading) {
