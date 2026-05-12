@@ -177,23 +177,45 @@ const PartnershipCandidates = () => {
     }
   }
 
-  const handleRequest = () => {
-    const selectedCandidateObjects = filteredCandidates.filter((c) =>
-      selectedCandidates.includes(c.candidate_id)
-    )
+  const handleRequest = async () => {
+    try {
+      const selectedCandidateObjects = filteredCandidates.filter((c) =>
+        selectedCandidates.includes(c.candidate_id)
+      )
 
-    const candidatesData = selectedCandidateObjects.map((c) => ({
-      id: c.id,
-      candidate_id: c.candidate_id,
-      name: c.name,
-      job_category: c.job_category,
-      skill_level: c.skill_level,
-      phone_number: c.phone_number,
-      nationality: c.nationality,
-    }))
+      const candidatesData = selectedCandidateObjects.map((c) => ({
+        id: c.id,
+        candidate_id: c.candidate_id,
+        name: c.name,
+        job_category: c.job_category,
+        skill_level: c.skill_level,
+        phone_number: c.phone_number,
+        nationality: c.nationality,
+      }))
 
-    sessionStorage.setItem('selectedCandidates', JSON.stringify(candidatesData))
-    navigate('/special-request')
+      const response = await fetch('/api/employee-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          request_type: 'Standard',
+          company_name: 'Partnership Candidates Request',
+          position: 'Partnership Candidates',
+          number_of_employees: selectedCandidates.length,
+          candidates_data: candidatesData,
+          status: 'Pending',
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create request')
+      }
+
+      notify.success('Success', `Standard request created for ${selectedCandidates.length} candidate(s)`)
+      setSelectedCandidates([])
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
+      notify.error('Error', errorMsg)
+    }
   }
 
   const handleDownload = () => {
