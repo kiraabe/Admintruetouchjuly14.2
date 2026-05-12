@@ -1,5 +1,4 @@
 import classNames from '@/utils/classNames'
-import Badge from '@/components/ui/Badge'
 import { PiBellDuotone } from 'react-icons/pi'
 
 const NotificationToggle = ({
@@ -12,17 +11,15 @@ const NotificationToggle = ({
     count?: number
 }) => {
     return (
-        <div className={classNames('text-2xl', className)}>
-            {dot && count > 0 ? (
-                <Badge badgeStyle={{ top: '3px', right: '6px' }} content={count}>
-                    <PiBellDuotone />
-                </Badge>
-            ) : dot ? (
-                <Badge badgeStyle={{ top: '3px', right: '6px' }}>
-                    <PiBellDuotone />
-                </Badge>
-            ) : (
-                <PiBellDuotone />
+        <div className={classNames('text-2xl relative', className)}>
+            <PiBellDuotone />
+            {dot && count > 0 && (
+                <span
+                    className="badge px-2 py-1 min-w-6 rounded-full text-xs font-semibold bg-error text-white badge-inner absolute"
+                    style={{ top: '0px', right: '0px' }}
+                >
+                    {count}
+                </span>
             )}
         </div>
     )
