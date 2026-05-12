@@ -109,6 +109,37 @@ async function runMigrations() {
 
     console.log('✓ Partnerships table created')
 
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS notifications (
+        id SERIAL PRIMARY KEY,
+        notification_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+        user_id UUID,
+        target VARCHAR(255) NOT NULL,
+        description TEXT,
+        type INT DEFAULT 1,
+        status VARCHAR(50) DEFAULT 'Pending',
+        location VARCHAR(255),
+        location_label VARCHAR(255),
+        image_url VARCHAR(255),
+        readed BOOLEAN DEFAULT false,
+        related_entity_id UUID,
+        related_entity_type VARCHAR(100),
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+
+    console.log('✓ Notifications table created')
+
+    // Create indexes for notifications table
+    try {
+      await pool.query(`CREATE INDEX IF NOT EXISTS idx_notifications_readed ON notifications(readed)`)
+      await pool.query(`CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC)`)
+      console.log('✓ Notification indexes created')
+    } catch (indexError) {
+      console.log('Note: Notification indexes may already exist')
+    }
+
     console.log('Migrations completed successfully')
     process.exit(0)
   } catch (error) {

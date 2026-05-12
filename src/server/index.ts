@@ -677,7 +677,7 @@ async function startServer() {
 
     try {
       console.log('Creating notifications table...')
-      await dbPool.query(`
+      const createTableResult = await dbPool.query(`
         CREATE TABLE IF NOT EXISTS notifications (
           id SERIAL PRIMARY KEY,
           notification_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
@@ -698,8 +698,27 @@ async function startServer() {
       `)
       console.log('✓ Notifications table ready')
 
+      // Create indexes for better query performance
+      try {
+        await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_notifications_readed ON notifications(readed)`)
+        await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC)`)
+        console.log('✓ Notification indexes created')
+      } catch (indexError) {
+        console.log('Note: Indexes may already exist')
+      }
+
+      // Verify table exists
+      const tableCheck = await dbPool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables
+          WHERE table_name = 'notifications'
+        )
+      `)
+      console.log('✓ Notifications table verified:', tableCheck.rows[0].exists)
+
     } catch (tableError) {
-      console.error('Error creating notifications table:', tableError)
+      console.error('Error creating notifications table:', tableError instanceof Error ? tableError.message : tableError)
+      throw tableError
     }
 
     console.log('✓ Database initialized')
