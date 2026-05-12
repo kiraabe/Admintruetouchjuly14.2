@@ -8,7 +8,7 @@ import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import NotificationAvatar from './NotificationAvatar'
 import NotificationToggle from './NotificationToggle'
-import { HiOutlineMailOpen } from 'react-icons/hi'
+import { HiOutlineMailOpen, HiOutlineTrash } from 'react-icons/hi'
 import {
     apiGetNotificationList,
     apiGetNotificationCount,
@@ -41,6 +41,7 @@ const _Notification = ({ className }: { className?: string }) => {
     const [unreadNotification, setUnreadNotification] = useState(false)
     const [noResult, setNoResult] = useState(false)
     const [loading, setLoading] = useState(false)
+    const [unreadCount, setUnreadCount] = useState(0)
 
     const { larger } = useResponsive()
 
@@ -51,8 +52,11 @@ const _Notification = ({ className }: { className?: string }) => {
         if (resp.count > 0) {
             setNoResult(false)
             setUnreadNotification(true)
+            setUnreadCount(resp.count)
         } else {
             setNoResult(true)
+            setUnreadCount(0)
+            setUnreadNotification(false)
         }
     }, [])
 
@@ -78,6 +82,7 @@ const _Notification = ({ className }: { className?: string }) => {
         })
         setNotificationList(list)
         setUnreadNotification(false)
+        setUnreadCount(0)
     }
 
     const onMarkAsRead = (id: string) => {
@@ -88,11 +93,19 @@ const _Notification = ({ className }: { className?: string }) => {
             return item
         })
         setNotificationList(list)
-        const hasUnread = notificationList.some((item) => !item.readed)
+        const unread = list.filter((item) => !item.readed).length
+        setUnreadCount(unread)
 
-        if (!hasUnread) {
+        if (unread === 0) {
             setUnreadNotification(false)
         }
+    }
+
+    const onClearNotifications = () => {
+        setNotificationList([])
+        setUnreadNotification(false)
+        setUnreadCount(0)
+        setNoResult(true)
     }
 
     const notificationDropdownRef = useRef<DropdownRef>(null)
@@ -119,15 +132,32 @@ const _Notification = ({ className }: { className?: string }) => {
         >
             <Dropdown.Item variant="header">
                 <div className="dark:border-gray-700 px-2 flex items-center justify-between mb-1">
-                    <h6>Notifications</h6>
-                    <Button
-                        variant="plain"
-                        shape="circle"
-                        size="sm"
-                        icon={<HiOutlineMailOpen className="text-xl" />}
-                        title="Mark all as read"
-                        onClick={onMarkAllAsRead}
-                    />
+                    <div className="flex items-center gap-1">
+                        <h6>Notifications</h6>
+                        {unreadCount > 0 && (
+                            <Badge className="ml-1 text-xs">
+                                {unreadCount}
+                            </Badge>
+                        )}
+                    </div>
+                    <div className="flex gap-1">
+                        <Button
+                            variant="plain"
+                            shape="circle"
+                            size="sm"
+                            icon={<HiOutlineMailOpen className="text-xl" />}
+                            title="Mark all as read"
+                            onClick={onMarkAllAsRead}
+                        />
+                        <Button
+                            variant="plain"
+                            shape="circle"
+                            size="sm"
+                            icon={<HiOutlineTrash className="text-xl" />}
+                            title="Clear all"
+                            onClick={onClearNotifications}
+                        />
+                    </div>
                 </div>
             </Dropdown.Item>
             <ScrollBar
