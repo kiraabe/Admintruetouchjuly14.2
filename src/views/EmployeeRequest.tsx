@@ -271,7 +271,11 @@ const EmployeeRequest = () => {
       notify.loading('Assigning candidates...')
 
       // For now, just update request status to show candidates are matched
-      const response = await fetch(`/api/employee-requests/${currentStandardRequest.request_id}`, {
+      const endpoint = currentStandardRequest?.request_type === 'Standard'
+        ? `/api/standard-requests/${currentStandardRequest.request_id}`
+        : `/api/employee-requests/${currentStandardRequest.request_id}`
+
+      const response = await fetch(endpoint, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
