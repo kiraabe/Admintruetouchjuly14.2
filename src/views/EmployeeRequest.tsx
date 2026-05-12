@@ -275,11 +275,22 @@ const EmployeeRequest = () => {
 
   const fetchCandidates = async (requestType?: string) => {
     try {
-      const type = requestType || currentStandardRequest?.request_type || 'Standard'
-      const response = await fetch(`/api/candidates?type=${encodeURIComponent(type)}`)
+      const response = await fetch('/api/candidates')
       const data = await response.json()
       if (data.success) {
-        setCandidates(data.data || [])
+        const allCandidates = data.data || []
+        const type = requestType || currentStandardRequest?.request_type || 'Standard'
+
+        const filteredCandidates = allCandidates.filter((candidate: Candidate) => {
+          if (!candidate.job_category) return false
+          if (type === 'Partnership') {
+            return candidate.job_category === 'Partnership' || candidate.job_category?.includes('Partnership')
+          } else {
+            return candidate.job_category !== 'Partnership' && !candidate.job_category?.includes('Partnership')
+          }
+        })
+
+        setCandidates(filteredCandidates)
       }
     } catch (error) {
       console.error('Error fetching candidates:', error)
