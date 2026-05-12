@@ -302,7 +302,6 @@ const EmployeeRequest = () => {
     try {
       notify.loading('Assigning candidates...')
 
-      // For now, just update request status to show candidates are matched
       const endpoint = currentStandardRequest?.request_type === 'Standard'
         ? `/api/standard-requests/${currentStandardRequest.request_id}`
         : `/api/employee-requests/${currentStandardRequest.request_id}`
@@ -318,7 +317,18 @@ const EmployeeRequest = () => {
       })
 
       if (response.ok) {
-        notify.success('Success', `${selectedCandidates.length} candidates selected for "${currentStandardRequest.company_name}"`)
+        // Update candidate statuses to 'employee'
+        const updateStatusPromises = selectedCandidates.map((candidateId) =>
+          fetch(`/api/candidates/${candidateId}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'employee' }),
+          })
+        )
+
+        await Promise.all(updateStatusPromises)
+
+        notify.success('Success', `${selectedCandidates.length} candidates selected and status updated to "employee"`)
         setShowCandidateModal(false)
         fetchRequests(currentPage)
       } else {

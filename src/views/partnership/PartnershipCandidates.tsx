@@ -207,8 +207,20 @@ const PartnershipCandidates = () => {
         throw new Error('Failed to create request')
       }
 
-      notify.success('Success', `Standard request created for ${selectedCandidates.length} candidate(s)`)
+      // Update candidate statuses to 'processing' when partnership request is submitted
+      const updateStatusPromises = selectedCandidates.map((candidateId) =>
+        fetch(`/api/candidates/${candidateId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: 'processing' }),
+        })
+      )
+
+      await Promise.all(updateStatusPromises)
+
+      notify.success('Success', `Standard request created for ${selectedCandidates.length} candidate(s) - Status changed to processing`)
       setSelectedCandidates([])
+      fetchCandidates(currentPage)
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
       notify.error('Error', errorMsg)
