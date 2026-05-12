@@ -698,65 +698,6 @@ async function startServer() {
       `)
       console.log('✓ Notifications table ready')
 
-      // Seed initial notification data if table is empty
-      try {
-        const notificationCount = await dbPool.query('SELECT COUNT(*)::INTEGER as count FROM notifications')
-        const count = notificationCount.rows[0]?.count || 0
-        console.log(`Current notification count: ${count}`)
-
-        if (count === 0) {
-          console.log('Seeding notifications with test data...')
-
-          const insertQueries = [
-            {
-              target: 'Tech Solutions Inc.',
-              description: 'New employee request for Software Engineer position',
-              type: 1,
-              status: 'Pending',
-              location: 'New York, NY',
-              location_label: 'Standard Request'
-            },
-            {
-              target: 'Global Services Ltd.',
-              description: 'Employee request requires review - 10 positions needed',
-              type: 1,
-              status: 'Pending',
-              location: 'London, UK',
-              location_label: 'Special Request'
-            },
-            {
-              target: 'Innovation Labs',
-              description: 'New candidate application received',
-              type: 1,
-              status: 'Processing',
-              location: 'San Francisco, CA',
-              location_label: 'Candidate'
-            },
-            {
-              target: 'DataFlow Systems',
-              description: 'Pending approval for 5 new positions',
-              type: 1,
-              status: 'Pending',
-              location: 'Singapore',
-              location_label: 'Standard Request'
-            }
-          ]
-
-          for (const notif of insertQueries) {
-            await dbPool.query(`
-              INSERT INTO notifications (
-                target, description, type, status, location, location_label, readed
-              ) VALUES ($1, $2, $3, $4, $5, $6, false)
-            `, [notif.target, notif.description, notif.type, notif.status, notif.location, notif.location_label])
-          }
-
-          console.log('✓ Notifications seeded with 4 records')
-        } else {
-          console.log(`✓ Notifications table already has ${count} records`)
-        }
-      } catch (seedError) {
-        console.error('Error seeding notifications:', seedError instanceof Error ? seedError.message : seedError)
-      }
     } catch (tableError) {
       console.error('Error creating notifications table:', tableError)
     }
