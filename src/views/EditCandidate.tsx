@@ -67,6 +67,8 @@ const EditCandidate = () => {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [profilePicturePreview, setProfilePicturePreview] = useState('')
   const [profilePicture, setProfilePicture] = useState<File | null>(null)
+  const [resume, setResume] = useState<File | null>(null)
+  const [resumeUrl, setResumeUrl] = useState<string | null>(null)
   const [filteredLocations, setFilteredLocations] = useState<string[]>([])
 
   const [formData, setFormData] = useState({
@@ -228,6 +230,23 @@ const EditCandidate = () => {
         setProfilePicturePreview(reader.result as string)
       }
       reader.readAsDataURL(file)
+    }
+  }
+
+  const handleResumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        notify.error('Invalid File', 'Resume must be less than 10MB')
+        return
+      }
+      const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']
+      if (!validTypes.includes(file.type)) {
+        notify.error('Invalid File', 'Please upload a PDF, DOC, DOCX, or TXT file')
+        return
+      }
+      setResume(file)
+      setResumeUrl(file.name)
     }
   }
 
@@ -684,6 +703,61 @@ const EditCandidate = () => {
                               onClick={() => document.getElementById('profilePictureInput')?.click()}
                             >
                               Upload Image
+                            </Button>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+
+                  {/* Resume Section */}
+                  <Card className="card-border">
+                    <div className="card-body">
+                      <h4 className="mb-6 font-semibold">Resume</h4>
+                      <div className="bg-gray-100 dark:bg-gray-700 rounded-lg text-center p-4">
+                        {resumeUrl ? (
+                          <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-600 rounded mb-4">
+                            <div className="flex items-center gap-2">
+                              <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M8 16.5a1 1 0 11-2 0 1 1 0 012 0zM15 7H4v2h11V7zM4 5h11V3H4v2zm11 8H4v2h11v-2z" />
+                              </svg>
+                              <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{resumeUrl}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setResume(null)
+                                setResumeUrl(null)
+                              }}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                              </svg>
+                            </button>
+                          </div>
+                        ) : (
+                          <div className="mb-4">
+                            <svg className="w-12 h-12 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <p className="text-sm text-gray-600 dark:text-gray-400">No resume uploaded</p>
+                          </div>
+                        )}
+                        <div className="upload">
+                          <input
+                            type="file"
+                            accept=".pdf,.doc,.docx,.txt"
+                            onChange={handleResumeChange}
+                            className="hidden"
+                            id="resumeInput"
+                          />
+                          <label htmlFor="resumeInput">
+                            <Button
+                              type="button"
+                              onClick={() => document.getElementById('resumeInput')?.click()}
+                            >
+                              Upload Resume
                             </Button>
                           </label>
                         </div>
