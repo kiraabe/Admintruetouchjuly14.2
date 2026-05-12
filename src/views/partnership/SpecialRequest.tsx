@@ -113,13 +113,13 @@ const SpecialRequest = () => {
   const fetchRequests = async (page: number) => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/special-requests?page=${page}&limit=${pageSize}`)
+      const response = await fetch(`/api/employee-requests?page=${page}&limit=${pageSize}`)
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
       const text = await response.text()
       if (!text) {
-        console.warn('Empty response from /api/special-requests')
+        console.warn('Empty response from /api/employee-requests')
         setRequests([])
         notify.error('Error', 'Empty response from server')
         return
@@ -150,10 +150,21 @@ const SpecialRequest = () => {
     }
 
     try {
-      const response = await fetch('/api/special-requests', {
+      const response = await fetch('/api/employee-requests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          company_name: formData.company_name,
+          position: formData.position,
+          request_type: formData.request_type,
+          number_of_employees: formData.number_of_employees,
+          requirements: formData.requirements,
+          notes: formData.description,
+          salary_range: formData.budget,
+          contact_person: 'User',
+          email: 'user@example.com',
+          phone_number: '',
+        }),
       })
 
       if (!response.ok) {
