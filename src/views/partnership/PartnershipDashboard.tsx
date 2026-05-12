@@ -131,7 +131,10 @@ const PartnershipDashboard = () => {
   }, [user.partnershipId])
 
 
-  const campaigns: SpecialRequest[] = requests.map((request) => ({
+  // Filter to show only active requests (exclude Rejected status)
+  const activeRequests = requests.filter((request) => request.status !== 'Rejected')
+
+  const campaigns: SpecialRequest[] = activeRequests.map((request) => ({
     ...request,
   }))
 
