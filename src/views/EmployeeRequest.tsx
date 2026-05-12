@@ -6,6 +6,7 @@ import Dialog from '@/components/ui/Dialog'
 import Checkbox from '@/components/ui/Checkbox'
 import Pagination from '@/components/ui/Pagination'
 import { notify } from '@/utils/notification'
+import { apiCreateNotification } from '@/services/CommonService'
 
 interface EmployeeRequest {
   id?: number
@@ -245,6 +246,21 @@ const EmployeeRequest = () => {
         const errorMsg = data.error || 'Failed to update request'
         notify.error('Update Failed', errorMsg)
         return
+      }
+
+      if (newStatus === 'Approved' || newStatus === 'Rejected') {
+        try {
+          await apiCreateNotification({
+            target: request.company_name,
+            description: `Your ${request.request_type} request for ${request.position} position has been ${newStatus.toLowerCase()}`,
+            type: newStatus === 'Approved' ? 1 : 2,
+            location: 'partnership-dashboard',
+            locationLabel: 'Partnership Dashboard',
+            status: newStatus,
+          })
+        } catch (notifError) {
+          console.error('Failed to create notification:', notifError)
+        }
       }
 
       fetchRequests(currentPage)
@@ -1061,7 +1077,61 @@ const EmployeeRequest = () => {
 
             <div>
               <label className="form-label">Status</label>
-              <p className="text-gray-700 dark:text-gray-300 capitalize">{selectedRequest.status}</p>
+              <div className="flex gap-2 items-center">
+                <select
+                  value={selectedRequest.status}
+                  onChange={(e) => {
+                    if (selectedRequest) {
+                      setSelectedRequest({ ...selectedRequest, status: e.target.value })
+                    }
+                  }}
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                >
+                  {STATUS_OPTIONS.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={() => {
+                    if (selectedRequest && selectedRequest.status !== selectedRequest.status) {
+                      handleUpdateStatus(selectedRequest, selectedRequest.status)
+                    }
+                  }}
+                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
+                >
+                  Update
+                </button>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-4">
+              <Button onClick={() => setShowDetailsModal(false)}>Close</Button>
+              {selectedRequest.status !== 'Approved' && (
+                <Button
+                  onClick={() => {
+                    if (selectedRequest) {
+                      handleUpdateStatus(selectedRequest, 'Approved')
+                    }
+                  }}
+                  className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                >
+                  Approve
+                </Button>
+              )}
+              {selectedRequest.status !== 'Rejected' && (
+                <Button
+                  onClick={() => {
+                    if (selectedRequest) {
+                      handleUpdateStatus(selectedRequest, 'Rejected')
+                    }
+                  }}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Reject
+                </Button>
+              )}
             </div>
           </div>
         )}

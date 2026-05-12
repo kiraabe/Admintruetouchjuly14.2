@@ -36,3 +36,18 @@ export async function apiGetSearchResult<T>(params: { query: string }) {
         params,
     })
 }
+
+export async function apiCreateNotification(data: {
+    target: string
+    description: string
+    type: number
+    location: string
+    locationLabel: string
+    status: string
+}) {
+    return ApiService.fetchDataWithAxios({
+        url: '/notification/create',
+        method: 'post',
+        data,
+    })
+}
