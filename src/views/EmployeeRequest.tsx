@@ -70,8 +70,12 @@ const EmployeeRequest = () => {
 
   useEffect(() => {
     setCurrentPage(1)
-    setRequests([])
+    fetchRequests(1)
   }, [activeTab])
+
+  useEffect(() => {
+    fetchRequests(currentPage)
+  }, [currentPage])
 
 
   const handleSort = (column: string) => {
