@@ -37,14 +37,23 @@ router.get('/', async (req: Request, res: Response) => {
     const page = Math.max(1, parseInt(req.query.page as string) || 1)
     const limit = Math.min(100, parseInt(req.query.limit as string) || 10)
     const offset = (page - 1) * limit
+    const { partnership_id } = req.query
 
-    const countResult = await pool.query('SELECT COUNT(*) FROM users')
+    let query = 'SELECT id, user_id, email, user_name, authority, is_active, avatar, partnership_id, created_at FROM users'
+    const params: any[] = []
+
+    if (partnership_id && typeof partnership_id === 'string') {
+      query += ' WHERE partnership_id = $1'
+      params.push(partnership_id)
+    }
+
+    const countResult = await pool.query(`SELECT COUNT(*) FROM users${partnership_id ? ' WHERE partnership_id = $1' : ''}`, partnership_id ? [partnership_id] : [])
     const total = parseInt(countResult.rows[0].count, 10)
 
-    const result = await pool.query(
-      'SELECT id, user_id, email, user_name, authority, is_active, avatar, partnership_id, created_at FROM users ORDER BY created_at DESC LIMIT $1 OFFSET $2',
-      [limit, offset]
-    )
+    query += ' ORDER BY created_at DESC LIMIT $' + (params.length + 1) + ' OFFSET $' + (params.length + 2)
+    params.push(limit, offset)
+
+    const result = await pool.query(query, params)
     console.log('Users fetched successfully:', result.rows.length)
     res.json({
       success: true,

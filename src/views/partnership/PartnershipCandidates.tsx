@@ -9,6 +9,7 @@ import Pagination from '@/components/ui/Pagination'
 import Dropdown from '@/components/ui/Dropdown'
 import { notify } from '@/utils/notification'
 import { useSessionUser } from '@/store/authStore'
+import { apiCreateNotification } from '@/services/CommonService'
 
 interface Candidate {
   id: number
@@ -207,6 +208,9 @@ const PartnershipCandidates = () => {
         throw new Error('Failed to create request')
       }
 
+      const responseData = await response.json()
+      const requestId = responseData.data?.request_id
+
       // Update candidate statuses to 'processing' when partnership request is submitted
       const updateStatusPromises = selectedCandidates.map((candidateId) =>
         fetch(`/api/candidates/${candidateId}`, {
@@ -217,6 +221,22 @@ const PartnershipCandidates = () => {
       )
 
       await Promise.all(updateStatusPromises)
+
+      // Send notification to admin about the partnership request
+      try {
+        await apiCreateNotification({
+          target: 'Admin',
+          description: `New partnership request from ${user.userName || 'Partnership User'} for ${selectedCandidates.length} candidate(s) in Partnership Candidates position`,
+          type: 1,
+          location: 'partnership',
+          locationLabel: 'Partnership Request',
+          status: 'Pending',
+          related_entity_id: requestId,
+          related_entity_type: 'standard_request',
+        })
+      } catch (notifError) {
+        console.error('Failed to create notification:', notifError)
+      }
 
       notify.success('Success', `Standard request created for ${selectedCandidates.length} candidate(s) - Status changed to processing`)
       setSelectedCandidates([])

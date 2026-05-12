@@ -250,13 +250,32 @@ const EmployeeRequest = () => {
 
       if (newStatus === 'Approved' || newStatus === 'Rejected') {
         try {
+          // Get partnership user ID if this is a standard request
+          let userId: string | undefined = undefined
+          if (activeTab === 'standard' && request.partnership_id) {
+            try {
+              const userResponse = await fetch(`/api/users?partnership_id=${request.partnership_id}`)
+              if (userResponse.ok) {
+                const userData = await userResponse.json()
+                if (userData.data && userData.data.length > 0) {
+                  userId = userData.data[0].user_id
+                }
+              }
+            } catch (e) {
+              console.error('Failed to fetch partnership user:', e)
+            }
+          }
+
           await apiCreateNotification({
             target: request.company_name,
             description: `Your ${request.request_type} request for ${request.position} position has been ${newStatus.toLowerCase()}`,
             type: newStatus === 'Approved' ? 1 : 2,
-            location: 'employee-request',
-            locationLabel: 'Employee Request',
+            location: activeTab === 'standard' ? 'partnership' : 'employee-request',
+            locationLabel: activeTab === 'standard' ? 'Partnership Request' : 'Employee Request',
             status: newStatus,
+            user_id: userId,
+            related_entity_id: request.request_id,
+            related_entity_type: activeTab === 'standard' ? 'standard_request' : 'employee_request',
           })
           notify.success('Success', 'Notification sent to partner')
         } catch (notifError) {
@@ -357,6 +376,32 @@ const EmployeeRequest = () => {
         )
 
         await Promise.all(updateStatusPromises)
+
+        // Send notification to partnership user about approval with candidates
+        if (currentStandardRequest.partnership_id) {
+          try {
+            const userResponse = await fetch(`/api/users?partnership_id=${currentStandardRequest.partnership_id}`)
+            if (userResponse.ok) {
+              const userData = await userResponse.json()
+              if (userData.data && userData.data.length > 0) {
+                const userId = userData.data[0].user_id
+                await apiCreateNotification({
+                  target: currentStandardRequest.company_name,
+                  description: `Your request for ${currentStandardRequest.position} has been approved with ${selectedCandidates.length} candidate(s) matched`,
+                  type: 1,
+                  location: 'partnership',
+                  locationLabel: 'Partnership Request',
+                  status: 'Approved',
+                  user_id: userId,
+                  related_entity_id: currentStandardRequest.request_id,
+                  related_entity_type: 'standard_request',
+                })
+              }
+            }
+          } catch (notifError) {
+            console.error('Failed to create notification:', notifError)
+          }
+        }
 
         notify.success('Success', `${selectedCandidates.length} candidates selected and status updated to "employee"`)
         setShowCandidateModal(false)

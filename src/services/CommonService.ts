@@ -44,6 +44,10 @@ export async function apiCreateNotification(data: {
     location: string
     locationLabel: string
     status: string
+    user_id?: string
+    related_entity_id?: string
+    related_entity_type?: string
+    image_url?: string
 }) {
     return ApiService.fetchDataWithAxios({
         url: '/notification/create',
