@@ -58,7 +58,7 @@ const EmployeeRequest = () => {
   const [filters, setFilters] = useState<Partial<EmployeeRequest>>({})
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
-  const [activeTab, setActiveTab] = useState<'all' | 'standard' | 'special'>('all')
+  const [activeTab, setActiveTab] = useState<'all' | 'standard' | 'special'>('standard')
   const [showCandidateModal, setShowCandidateModal] = useState(false)
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([])
@@ -70,12 +70,9 @@ const EmployeeRequest = () => {
 
   useEffect(() => {
     setCurrentPage(1)
-    fetchRequests(1)
+    setRequests([])
   }, [activeTab])
 
-  useEffect(() => {
-    fetchRequests(currentPage)
-  }, [currentPage])
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
