@@ -570,11 +570,13 @@ async function startServer() {
       console.log('✓ Employee Requests table ready')
 
       // Add missing columns to employee_requests if they don't exist
-      const missingColumns = ['request_type', 'salary_range', 'required_skills', 'work_city', 'urgency']
+      const missingColumns = ['request_type', 'salary_range', 'required_skills', 'work_city', 'urgency', 'partnership_id']
       for (const col of missingColumns) {
         try {
           if (col === 'request_type') {
             await dbPool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} VARCHAR(50) DEFAULT 'Standard'`)
+          } else if (col === 'partnership_id') {
+            await dbPool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} UUID`)
           } else if (col === 'salary_range' || col === 'required_skills' || col === 'work_city' || col === 'urgency') {
             await dbPool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} VARCHAR(255)`)
           }

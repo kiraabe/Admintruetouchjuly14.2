@@ -5,6 +5,7 @@ import Tag from '@/components/ui/Tag'
 import Segment from '@/components/ui/Segment'
 import Avatar from '@/components/ui/Avatar'
 import Chart from '@/components/shared/Chart'
+import { useSessionUser } from '@/store/authStore'
 
 interface KPI {
   title: string
@@ -55,6 +56,7 @@ const PartnershipDashboard = () => {
   const [requests, setRequests] = useState<SpecialRequest[]>([])
   const [kpis, setKpis] = useState<KPI[]>([])
   const [loading, setLoading] = useState(true)
+  const { user } = useSessionUser()
 
   useEffect(() => {
     const calculateKPIs = (requestsData: SpecialRequest[]) => {
@@ -100,7 +102,12 @@ const PartnershipDashboard = () => {
 
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/employee-requests')
+        // Build query parameters to filter by special requests
+        const params = new URLSearchParams({
+          request_type: 'Special',
+        })
+
+        const response = await fetch(`/api/employee-requests?${params.toString()}`)
         const text = await response.text()
 
         let requestsData: SpecialRequest[] = []
@@ -121,7 +128,7 @@ const PartnershipDashboard = () => {
     }
 
     fetchData()
-  }, [])
+  }, [user.partnershipId])
 
 
   const campaigns: SpecialRequest[] = requests.map((request) => ({

@@ -55,6 +55,12 @@ export async function filterEmployeeRequests(filters: Record<string, any>) {
   const params: any[] = []
   let paramIndex = 1
 
+  if (filters.request_type) {
+    query += ` AND request_type = $${paramIndex}`
+    params.push(filters.request_type)
+    paramIndex++
+  }
+
   if (filters.status) {
     query += ` AND status = $${paramIndex}`
     params.push(filters.status)
@@ -76,6 +82,12 @@ export async function filterEmployeeRequests(filters: Record<string, any>) {
   if (filters.company_name) {
     query += ` AND company_name ILIKE $${paramIndex}`
     params.push(`%${filters.company_name}%`)
+    paramIndex++
+  }
+
+  if (filters.partnership_id) {
+    query += ` AND partnership_id = $${paramIndex}`
+    params.push(filters.partnership_id)
     paramIndex++
   }
 
