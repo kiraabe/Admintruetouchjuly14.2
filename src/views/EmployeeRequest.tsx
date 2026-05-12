@@ -254,10 +254,11 @@ const EmployeeRequest = () => {
             target: request.company_name,
             description: `Your ${request.request_type} request for ${request.position} position has been ${newStatus.toLowerCase()}`,
             type: newStatus === 'Approved' ? 1 : 2,
-            location: 'partnership-dashboard',
-            locationLabel: 'Partnership Dashboard',
+            location: 'employee-request',
+            locationLabel: 'Employee Request',
             status: newStatus,
           })
+          notify.success('Success', 'Notification sent to partner')
         } catch (notifError) {
           console.error('Failed to create notification:', notifError)
         }
