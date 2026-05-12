@@ -177,6 +177,46 @@ const PartnershipCandidates = () => {
     }
   }
 
+  const handleRequest = async () => {
+    try {
+      const selectedCandidateObjects = filteredCandidates.filter((c) =>
+        selectedCandidates.includes(c.candidate_id)
+      )
+
+      const response = await fetch('/api/employee-requests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          company_name: 'Partnership Request',
+          position: 'Partnership Candidates',
+          request_type: 'Standard',
+          number_of_employees: selectedCandidates.length,
+          candidate_ids: selectedCandidates,
+          candidates_data: selectedCandidateObjects.map((c) => ({
+            id: c.id,
+            candidate_id: c.candidate_id,
+            name: c.name,
+            job_category: c.job_category,
+            skill_level: c.skill_level,
+          })),
+          contact_person: 'User',
+          email: 'user@example.com',
+          phone_number: '',
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to create request')
+      }
+
+      notify.success('Success', `Request created for ${selectedCandidates.length} candidate(s)`)
+      setSelectedCandidates([])
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
+      notify.error('Error', errorMsg)
+    }
+  }
+
   const handleDownload = () => {
     const headers = [
       'Name',
@@ -241,7 +281,7 @@ const PartnershipCandidates = () => {
           <div className="flex flex-col md:flex-row gap-3">
             {selectedCandidates.length > 0 && (
               <button
-                onClick={() => notify.success('Success', `Request sent for ${selectedCandidates.length} candidate(s)`)}
+                onClick={handleRequest}
                 className="button bg-primary text-white hover:bg-primary/90 h-12 rounded-xl px-5 py-2 button-press-feedback"
               >
                 <span className="flex gap-1 items-center justify-center">

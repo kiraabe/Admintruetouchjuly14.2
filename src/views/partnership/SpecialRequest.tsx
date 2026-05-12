@@ -20,6 +20,14 @@ interface SpecialRequest {
   description?: string
   requirements?: string
   budget?: string
+  candidate_ids?: string[]
+  candidates_data?: Array<{
+    id: number
+    candidate_id: string
+    name: string
+    job_category?: string
+    skill_level?: string
+  }>
 }
 
 const REQUEST_TYPES = ['Standard', 'Special', 'Urgent', 'Contract']
@@ -126,8 +134,10 @@ const SpecialRequest = () => {
       }
       const data = JSON.parse(text)
       if (data.success) {
-        setRequests(data.data || [])
-        setTotalRequests(data.total || 0)
+        // Filter to show only requests with candidate_ids (user-initiated from Partnership Candidates)
+        const userRequests = (data.data || []).filter((req: SpecialRequest) => req.candidate_ids && req.candidate_ids.length > 0)
+        setRequests(userRequests)
+        setTotalRequests(userRequests.length)
       } else {
         console.error('API returned success: false', data)
         setRequests([])
