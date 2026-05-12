@@ -469,20 +469,21 @@ const PartnershipCandidates = () => {
                     </td>
                     <td className="py-3 px-4">
                       <Dropdown
-                        title={
-                          <svg
-                            stroke="currentColor"
-                            fill="currentColor"
-                            strokeWidth="0"
-                            viewBox="0 0 24 24"
-                            height="1.2em"
-                            width="1.2em"
-                            xmlns="http://www.w3.org/2000/svg"
-                          >
-                            <path d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 14c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-7c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path>
-                          </svg>
+                        renderTitle={
+                          <button className="inline-flex items-center justify-center px-2 py-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded transition-colors" title="Actions">
+                            <svg
+                              stroke="currentColor"
+                              fill="currentColor"
+                              strokeWidth="0"
+                              viewBox="0 0 24 24"
+                              height="1.2em"
+                              width="1.2em"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 14c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-7c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path>
+                            </svg>
+                          </button>
                         }
-                        toggleClassName="inline-flex items-center justify-center px-2 py-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded transition-colors"
                         menuClass="w-48"
                         placement="bottom-end"
                       >
