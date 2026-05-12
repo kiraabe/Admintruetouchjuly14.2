@@ -273,20 +273,22 @@ const EmployeeRequest = () => {
     }
   }
 
-  const fetchCandidates = async (requestType?: string) => {
+  const fetchCandidates = async (requestType: string) => {
     try {
       const response = await fetch('/api/candidates')
       const data = await response.json()
       if (data.success) {
         const allCandidates = data.data || []
-        const type = requestType || currentStandardRequest?.request_type || 'Standard'
 
         const filteredCandidates = allCandidates.filter((candidate: Candidate) => {
           if (!candidate.job_category) return false
-          if (type === 'Partnership') {
-            return candidate.job_category === 'Partnership' || candidate.job_category?.includes('Partnership')
+          if (requestType === 'Partnership') {
+            return candidate.job_category === 'Partnership' || candidate.job_category?.toLowerCase().includes('partnership')
+          } else if (requestType === 'Special') {
+            return candidate.job_category === 'Special' || candidate.job_category?.toLowerCase().includes('special')
           } else {
-            return candidate.job_category !== 'Partnership' && !candidate.job_category?.includes('Partnership')
+            return candidate.job_category !== 'Partnership' && !candidate.job_category?.toLowerCase().includes('partnership') &&
+                   candidate.job_category !== 'Special' && !candidate.job_category?.toLowerCase().includes('special')
           }
         })
 
@@ -302,7 +304,7 @@ const EmployeeRequest = () => {
     setCurrentStandardRequest(request)
     setSelectedCandidates([])
     setCandidateSearchTerm('')
-    fetchCandidates(request.request_type)
+    fetchCandidates(request.request_type || 'Standard')
     setShowCandidateModal(true)
   }
 
