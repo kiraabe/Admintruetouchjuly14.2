@@ -229,8 +229,6 @@ const EmployeeRequest = () => {
 
   const handleUpdateStatus = async (request: EmployeeRequest, newStatus: string) => {
     try {
-      const toastId = notify.loading('Updating request...')
-
       const endpoint = activeTab === 'standard'
         ? `/api/standard-requests/${request.request_id}`
         : `/api/employee-requests/${request.request_id}`
@@ -277,7 +275,6 @@ const EmployeeRequest = () => {
             related_entity_id: request.request_id,
             related_entity_type: activeTab === 'standard' ? 'standard_request' : 'employee_request',
           })
-          notify.success('Success', 'Notification sent to partner')
         } catch (notifError) {
           console.error('Failed to create notification:', notifError)
         }
@@ -347,8 +344,6 @@ const EmployeeRequest = () => {
       notify.error('Error', 'Please select at least one candidate')
       return
     }
-
-    const toastId = notify.loading('Assigning candidates...')
 
     try {
       const endpoint = currentStandardRequest?.request_type === 'Standard'
