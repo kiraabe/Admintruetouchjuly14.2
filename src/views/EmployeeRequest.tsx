@@ -158,7 +158,7 @@ const EmployeeRequest = () => {
             notify.error('Error', data.message || 'Failed to fetch standard requests')
           }
         }
-      } else {
+      } else if (activeTab === 'special') {
         const response = await fetch(`/api/employee-requests?page=${page}&limit=${pageSize}`)
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`)
@@ -172,6 +172,38 @@ const EmployeeRequest = () => {
           } else {
             notify.error('Error', data.message || 'Failed to fetch employee requests')
           }
+        }
+      } else {
+        try {
+          const standardResponse = await fetch(`/api/standard-requests?page=${page}&limit=${pageSize}`)
+          let standardRequests = []
+          if (standardResponse.ok) {
+            const text = await standardResponse.text()
+            if (text) {
+              const data = JSON.parse(text)
+              if (data.success) {
+                standardRequests = data.data || []
+              }
+            }
+          }
+
+          const specialResponse = await fetch(`/api/employee-requests?page=${page}&limit=${pageSize}`)
+          let specialRequests = []
+          if (specialResponse.ok) {
+            const text = await specialResponse.text()
+            if (text) {
+              const data = JSON.parse(text)
+              if (data.success) {
+                specialRequests = data.data || []
+              }
+            }
+          }
+
+          requests = [...standardRequests, ...specialRequests]
+          total = requests.length
+        } catch (e) {
+          console.error('Error fetching all requests:', e)
+          throw e
         }
       }
 
@@ -512,7 +544,7 @@ const EmployeeRequest = () => {
           <div className="py-8 text-center">Loading...</div>
         ) : filteredRequests.length === 0 ? (
           <div className="py-8 text-center text-gray-500">No requests found</div>
-        ) : activeTab === 'standard' ? (
+        ) : (activeTab === 'standard' || activeTab === 'all') ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {filteredRequests.map((request) => (
               <div
@@ -561,18 +593,22 @@ const EmployeeRequest = () => {
                 </div>
 
                 <div className="flex gap-2 pt-3 border-t border-gray-200 dark:border-gray-700">
-                  <button
-                    onClick={() => handleOpenCandidateModal(request)}
-                    className="flex-1 py-2 px-3 rounded-lg bg-green-600 text-white text-sm font-medium hover:opacity-90 transition"
-                  >
-                    Select Candidates
-                  </button>
+                  {request.request_type === 'Standard' && (
+                    <button
+                      onClick={() => handleOpenCandidateModal(request)}
+                      className="flex-1 py-2 px-3 rounded-lg bg-green-600 text-white text-sm font-medium hover:opacity-90 transition"
+                    >
+                      Select Candidates
+                    </button>
+                  )}
                   <button
                     onClick={() => {
                       setSelectedRequest(request)
                       setShowDetailsModal(true)
                     }}
-                    className="flex-1 py-2 px-3 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm font-medium hover:opacity-90 transition"
+                    className={`py-2 px-3 rounded-lg bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100 text-sm font-medium hover:opacity-90 transition ${
+                      request.request_type === 'Standard' ? 'flex-1' : 'w-full'
+                    }`}
                   >
                     Details
                   </button>
