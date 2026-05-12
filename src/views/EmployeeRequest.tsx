@@ -59,6 +59,7 @@ const EmployeeRequest = () => {
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [activeTab, setActiveTab] = useState<'all' | 'standard' | 'special'>('standard')
+  const [activeStatus, setActiveStatus] = useState<string | null>(null)
   const [showCandidateModal, setShowCandidateModal] = useState(false)
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([])
@@ -89,6 +90,10 @@ const EmployeeRequest = () => {
 
   useEffect(() => {
     let filtered = requests
+
+    if (activeStatus) {
+      filtered = filtered.filter((r) => r.status === activeStatus)
+    }
 
     if (searchTerm) {
       filtered = filtered.filter(
