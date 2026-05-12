@@ -273,9 +273,10 @@ const EmployeeRequest = () => {
     }
   }
 
-  const fetchCandidates = async () => {
+  const fetchCandidates = async (requestType?: string) => {
     try {
-      const response = await fetch('/api/candidates')
+      const type = requestType || currentStandardRequest?.request_type || 'Standard'
+      const response = await fetch(`/api/candidates?type=${encodeURIComponent(type)}`)
       const data = await response.json()
       if (data.success) {
         setCandidates(data.data || [])
@@ -290,7 +291,7 @@ const EmployeeRequest = () => {
     setCurrentStandardRequest(request)
     setSelectedCandidates([])
     setCandidateSearchTerm('')
-    fetchCandidates()
+    fetchCandidates(request.request_type)
     setShowCandidateModal(true)
   }
 
