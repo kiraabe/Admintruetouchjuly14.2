@@ -62,7 +62,14 @@ const _Notification = ({ className }: { className?: string }) => {
 
     useEffect(() => {
         getNotificationCount()
-    }, [])
+
+        // Poll notification count every 30 seconds
+        const interval = setInterval(() => {
+            getNotificationCount()
+        }, 30000)
+
+        return () => clearInterval(interval)
+    }, [getNotificationCount])
 
     const onNotificationOpen = async () => {
         if (notificationList.length === 0) {
@@ -123,6 +130,7 @@ const _Notification = ({ className }: { className?: string }) => {
             renderTitle={
                 <NotificationToggle
                     dot={unreadNotification}
+                    count={unreadCount}
                     className={className}
                 />
             }
