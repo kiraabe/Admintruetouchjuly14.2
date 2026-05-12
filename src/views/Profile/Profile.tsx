@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSessionUser } from '@/store/authStore'
 import ProfileForm from './components/ProfileForm'
 import Button from '@/components/ui/Button'
@@ -6,12 +6,28 @@ import Input from '@/components/ui/Input'
 import { notify } from '@/utils/notification'
 
 const Profile = () => {
-    const { avatar, userName, email, authority } = useSessionUser(
+    const { avatar, userName, email, authority, partnershipId } = useSessionUser(
         (state) => state.user,
     )
     const [showPasswordModal, setShowPasswordModal] = useState(false)
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
+    const [partnershipName, setPartnershipName] = useState<string>('')
+    const [partnershipLogo, setPartnershipLogo] = useState<string>('')
+
+    useEffect(() => {
+        if (partnershipId) {
+            fetch(`/api/partnerships/${partnershipId}`)
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.success && data.data) {
+                        setPartnershipName(data.data.company_name || '')
+                        setPartnershipLogo(data.data.company_logo || '')
+                    }
+                })
+                .catch((err) => console.error('Failed to fetch partnership:', err))
+        }
+    }, [partnershipId])
 
     const generatePassword = (): string => {
         const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%'
@@ -129,9 +145,11 @@ const Profile = () => {
                                 <hr className="my-4" />
                                 <div>
                                     <p className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2">
-                                        Access
+                                        Partnership
                                     </p>
-                                    <p className="text-sm">Partnership Management</p>
+                                    <p className="text-sm font-semibold">
+                                        {partnershipName || (partnershipId ? 'Loading...' : 'Not assigned')}
+                                    </p>
                                 </div>
                             </div>
                         </div>
