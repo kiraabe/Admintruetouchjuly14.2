@@ -556,9 +556,9 @@ const Candidates = () => {
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize ${
                         candidate.status === 'available'
                           ? 'bg-emerald-200 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200'
-                          : candidate.status === 'Processing'
+                          : candidate.status === 'processing'
                           ? 'bg-blue-200 text-blue-900 dark:bg-blue-900 dark:text-blue-200'
-                          : candidate.status === 'Employee'
+                          : candidate.status === 'employee'
                           ? 'bg-purple-200 text-purple-900 dark:bg-purple-900 dark:text-purple-200'
                           : 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-300'
                       }`}>

@@ -329,7 +329,7 @@ const PartnershipCandidates = () => {
 
         {/* Tabs */}
         <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
-          {['available', 'Processing', 'Employee'].map((tab) => (
+          {['available', 'processing', 'employee'].map((tab) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
@@ -339,7 +339,7 @@ const PartnershipCandidates = () => {
                   : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-300'
               }`}
             >
-              {tab}
+              {tab.charAt(0).toUpperCase() + tab.slice(1)}
             </button>
           ))}
         </div>
@@ -518,9 +518,9 @@ const PartnershipCandidates = () => {
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize ${
                         candidate.status === 'available'
                           ? 'bg-emerald-200 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200'
-                          : candidate.status === 'Processing'
+                          : candidate.status === 'processing'
                           ? 'bg-blue-200 text-blue-900 dark:bg-blue-900 dark:text-blue-200'
-                          : candidate.status === 'Employee'
+                          : candidate.status === 'employee'
                           ? 'bg-purple-200 text-purple-900 dark:bg-purple-900 dark:text-purple-200'
                           : 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-300'
                       }`}>
