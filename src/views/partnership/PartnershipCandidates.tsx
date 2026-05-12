@@ -404,18 +404,19 @@ const PartnershipCandidates = () => {
                     Status
                   </div>
                 </th>
+                <th className="text-left py-3 px-4">Action</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-4">
+                  <td colSpan={9} className="text-center py-4">
                     Loading...
                   </td>
                 </tr>
               ) : filteredCandidates.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-4 text-gray-500">
+                  <td colSpan={9} className="text-center py-4 text-gray-500">
                     No candidates found
                   </td>
                 </tr>
@@ -462,6 +463,34 @@ const PartnershipCandidates = () => {
                       }`}>
                         {candidate.status || 'Unknown'}
                       </span>
+                    </td>
+                    <td className="py-3 px-4">
+                      {candidate.resume_url ? (
+                        <a
+                          href={candidate.resume_url}
+                          download
+                          className="inline-flex items-center justify-center gap-1 px-3 py-1 text-sm text-primary hover:bg-primary hover:text-white rounded transition-colors"
+                        >
+                          <svg
+                            stroke="currentColor"
+                            fill="none"
+                            strokeWidth="2"
+                            viewBox="0 0 24 24"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            height="1em"
+                            width="1em"
+                            xmlns="http://www.w3.org/2000/svg"
+                          >
+                            <path d="M19 18a3.5 3.5 0 0 0 0 -7h-1a5 4.5 0 0 0 -11 -2a4.6 4.4 0 0 0 -2.1 8.4"></path>
+                            <path d="M12 13l0 9"></path>
+                            <path d="M9 19l3 3l3 -3"></path>
+                          </svg>
+                          Download
+                        </a>
+                      ) : (
+                        <span className="text-sm text-gray-400 dark:text-gray-600">No resume</span>
+                      )}
                     </td>
                   </tr>
                 ))
