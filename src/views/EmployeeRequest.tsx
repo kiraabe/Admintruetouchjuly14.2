@@ -273,24 +273,32 @@ const EmployeeRequest = () => {
     }
   }
 
-  const fetchCandidates = async (requestType: string) => {
+  const fetchCandidates = async (request: EmployeeRequest) => {
     try {
       const response = await fetch('/api/candidates')
       const data = await response.json()
       if (data.success) {
         const allCandidates = data.data || []
 
-        const filteredCandidates = allCandidates.filter((candidate: Candidate) => {
-          if (!candidate.job_category) return false
-          if (requestType === 'Partnership') {
+        let filteredCandidates = allCandidates
+
+        if (request.partnership_id) {
+          filteredCandidates = allCandidates.filter((candidate: Candidate) => {
+            if (!candidate.job_category) return false
             return candidate.job_category === 'Partnership' || candidate.job_category?.toLowerCase().includes('partnership')
-          } else if (requestType === 'Special') {
+          })
+        } else if (request.request_type === 'Special') {
+          filteredCandidates = allCandidates.filter((candidate: Candidate) => {
+            if (!candidate.job_category) return false
             return candidate.job_category === 'Special' || candidate.job_category?.toLowerCase().includes('special')
-          } else {
+          })
+        } else {
+          filteredCandidates = allCandidates.filter((candidate: Candidate) => {
+            if (!candidate.job_category) return false
             return candidate.job_category !== 'Partnership' && !candidate.job_category?.toLowerCase().includes('partnership') &&
                    candidate.job_category !== 'Special' && !candidate.job_category?.toLowerCase().includes('special')
-          }
-        })
+          })
+        }
 
         setCandidates(filteredCandidates)
       }
@@ -304,7 +312,7 @@ const EmployeeRequest = () => {
     setCurrentStandardRequest(request)
     setSelectedCandidates([])
     setCandidateSearchTerm('')
-    fetchCandidates(request.request_type || 'Standard')
+    fetchCandidates(request)
     setShowCandidateModal(true)
   }
 
