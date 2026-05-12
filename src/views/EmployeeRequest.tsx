@@ -300,6 +300,10 @@ const EmployeeRequest = () => {
           })
         }
 
+        if (filteredCandidates.length === 0) {
+          notify.error('No Candidates', 'No matching candidates found for this request type')
+        }
+
         setCandidates(filteredCandidates)
       }
     } catch (error) {
