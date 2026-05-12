@@ -177,44 +177,23 @@ const PartnershipCandidates = () => {
     }
   }
 
-  const handleRequest = async () => {
-    try {
-      const selectedCandidateObjects = filteredCandidates.filter((c) =>
-        selectedCandidates.includes(c.candidate_id)
-      )
+  const handleRequest = () => {
+    const selectedCandidateObjects = filteredCandidates.filter((c) =>
+      selectedCandidates.includes(c.candidate_id)
+    )
 
-      const response = await fetch('/api/employee-requests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          company_name: 'Partnership Request',
-          position: 'Partnership Candidates',
-          request_type: 'Standard',
-          number_of_employees: selectedCandidates.length,
-          candidate_ids: selectedCandidates,
-          candidates_data: selectedCandidateObjects.map((c) => ({
-            id: c.id,
-            candidate_id: c.candidate_id,
-            name: c.name,
-            job_category: c.job_category,
-            skill_level: c.skill_level,
-          })),
-          contact_person: 'User',
-          email: 'user@example.com',
-          phone_number: '',
-        }),
-      })
+    const candidatesData = selectedCandidateObjects.map((c) => ({
+      id: c.id,
+      candidate_id: c.candidate_id,
+      name: c.name,
+      job_category: c.job_category,
+      skill_level: c.skill_level,
+      phone_number: c.phone_number,
+      nationality: c.nationality,
+    }))
 
-      if (!response.ok) {
-        throw new Error('Failed to create request')
-      }
-
-      notify.success('Success', `Request created for ${selectedCandidates.length} candidate(s)`)
-      setSelectedCandidates([])
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
-      notify.error('Error', errorMsg)
-    }
+    sessionStorage.setItem('selectedCandidates', JSON.stringify(candidatesData))
+    navigate('/special-request')
   }
 
   const handleDownload = () => {

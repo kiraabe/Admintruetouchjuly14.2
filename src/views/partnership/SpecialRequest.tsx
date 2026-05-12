@@ -46,6 +46,7 @@ const SpecialRequest = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalRequests, setTotalRequests] = useState(0)
+  const [selectedCandidatesData, setSelectedCandidatesData] = useState<any[]>([])
   const [formData, setFormData] = useState({
     company_name: '',
     position: '',
@@ -59,6 +60,21 @@ const SpecialRequest = () => {
 
   useEffect(() => {
     fetchRequests(currentPage)
+
+    // Load selected candidates from Partnership Candidates if available
+    const storedCandidates = sessionStorage.getItem('selectedCandidates')
+    if (storedCandidates) {
+      const candidates = JSON.parse(storedCandidates)
+      setSelectedCandidatesData(candidates)
+      setFormData(prev => ({
+        ...prev,
+        number_of_employees: candidates.length
+      }))
+      // Clear from session storage after loading
+      sessionStorage.removeItem('selectedCandidates')
+      // Open the add modal automatically
+      setShowAddModal(true)
+    }
   }, [currentPage])
 
   const handleSort = (column: string) => {
@@ -134,10 +150,8 @@ const SpecialRequest = () => {
       }
       const data = JSON.parse(text)
       if (data.success) {
-        // Filter to show only requests with candidate_ids (user-initiated from Partnership Candidates)
-        const userRequests = (data.data || []).filter((req: SpecialRequest) => req.candidate_ids && req.candidate_ids.length > 0)
-        setRequests(userRequests)
-        setTotalRequests(userRequests.length)
+        setRequests(data.data || [])
+        setTotalRequests(data.total || 0)
       } else {
         console.error('API returned success: false', data)
         setRequests([])
@@ -528,6 +542,21 @@ const SpecialRequest = () => {
           <h2 className="text-lg font-bold">Create New Special Request</h2>
         </div>
         <div className="space-y-4 max-h-96 overflow-y-auto">
+          {selectedCandidatesData.length > 0 && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+              <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">Selected Candidates ({selectedCandidatesData.length})</h3>
+              <div className="space-y-1 text-xs text-blue-800 dark:text-blue-300">
+                {selectedCandidatesData.map((candidate) => (
+                  <div key={candidate.candidate_id} className="flex items-center gap-2">
+                    <span className="inline-block w-1.5 h-1.5 bg-blue-600 rounded-full"></span>
+                    <span>{candidate.name}</span>
+                    {candidate.job_category && <span className="text-blue-600 dark:text-blue-400">({candidate.job_category})</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div>
             <label className="form-label">Company Name *</label>
             <Input
