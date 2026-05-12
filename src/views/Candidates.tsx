@@ -93,8 +93,8 @@ const Candidates = () => {
   useEffect(() => {
     let filtered = candidates
 
-    // Filter by active tab
-    filtered = filtered.filter((c) => c.status === activeTab)
+    // Filter by active tab (case-insensitive match)
+    filtered = filtered.filter((c) => c.status?.toLowerCase() === activeTab.toLowerCase())
 
     if (searchTerm) {
       filtered = filtered.filter(
