@@ -8,9 +8,10 @@ import Pagination from '@/components/ui/Pagination'
 import { notify } from '@/utils/notification'
 
 interface EmployeeRequest {
-  id: number
+  id?: number
   request_id: string
-  request_type: 'Standard' | 'Special'
+  request_type?: 'Standard' | 'Special'
+  partnership_id?: string
   company_name: string
   contact_person: string
   email: string
@@ -28,17 +29,19 @@ interface EmployeeRequest {
   urgency: string | null
   created_at: string
   updated_at: string
+  candidates?: Candidate[]
 }
 
 interface Candidate {
   candidate_id: string
+  id?: number
   name: string
-  job_category: string
-  skill_level: string
-  education_level: string
-  nationality: string
-  phone_number: string
-  status: string
+  job_category?: string
+  skill_level?: string
+  education_level?: string
+  nationality?: string
+  phone_number?: string
+  status?: string
 }
 
 const STATUS_OPTIONS = ['Pending', 'Approved', 'Rejected', 'In Progress', 'Completed']
@@ -66,6 +69,11 @@ const EmployeeRequest = () => {
   const pageSize = 10
 
   useEffect(() => {
+    setCurrentPage(1)
+    fetchRequests(1)
+  }, [activeTab])
+
+  useEffect(() => {
     fetchRequests(currentPage)
   }, [currentPage])
 
@@ -80,12 +88,6 @@ const EmployeeRequest = () => {
 
   useEffect(() => {
     let filtered = requests
-
-    if (activeTab === 'standard') {
-      filtered = filtered.filter((r) => r.request_type === 'Standard')
-    } else if (activeTab === 'special') {
-      filtered = filtered.filter((r) => r.request_type === 'Special')
-    }
 
     if (searchTerm) {
       filtered = filtered.filter(
@@ -137,28 +139,47 @@ const EmployeeRequest = () => {
   const fetchRequests = async (page: number) => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/employee-requests?page=${page}&limit=${pageSize}`)
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-      }
-      const text = await response.text()
-      if (!text) {
-        console.warn('Empty response from /api/employee-requests')
-        setRequests([])
-        return
-      }
-      const data = JSON.parse(text)
-      if (data.success) {
-        setRequests(data.data || [])
-        setTotalRequests(data.total || 0)
+
+      let requests: EmployeeRequest[] = []
+      let total = 0
+
+      if (activeTab === 'standard') {
+        const response = await fetch(`/api/standard-requests?page=${page}&limit=${pageSize}`)
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+        const text = await response.text()
+        if (text) {
+          const data = JSON.parse(text)
+          if (data.success) {
+            requests = data.data || []
+            total = data.total || 0
+          } else {
+            notify.error('Error', data.message || 'Failed to fetch standard requests')
+          }
+        }
       } else {
-        console.error('API returned success: false', data)
-        setRequests([])
-        notify.error('Error', data.message || 'Failed to fetch employee requests')
+        const response = await fetch(`/api/employee-requests?page=${page}&limit=${pageSize}`)
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+        const text = await response.text()
+        if (text) {
+          const data = JSON.parse(text)
+          if (data.success) {
+            requests = data.data || []
+            total = data.total || 0
+          } else {
+            notify.error('Error', data.message || 'Failed to fetch employee requests')
+          }
+        }
       }
+
+      setRequests(requests)
+      setTotalRequests(total)
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
-      console.error('Error fetching employee requests:', error)
+      console.error('Error fetching requests:', error)
       setRequests([])
       notify.error('Fetch Error', errorMsg)
     } finally {
@@ -169,7 +190,12 @@ const EmployeeRequest = () => {
   const handleUpdateStatus = async (request: EmployeeRequest, newStatus: string) => {
     try {
       const toastId = notify.loading('Updating request...')
-      const response = await fetch(`/api/employee-requests/${request.request_id}`, {
+
+      const endpoint = activeTab === 'standard'
+        ? `/api/standard-requests/${request.request_id}`
+        : `/api/employee-requests/${request.request_id}`
+
+      const response = await fetch(endpoint, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...request, status: newStatus }),
@@ -273,7 +299,12 @@ const EmployeeRequest = () => {
 
     try {
       const toastId = notify.loading('Deleting request...')
-      const response = await fetch(`/api/employee-requests/${requestId}`, { method: 'DELETE' })
+
+      const endpoint = activeTab === 'standard'
+        ? `/api/standard-requests/${requestId}`
+        : `/api/employee-requests/${requestId}`
+
+      const response = await fetch(endpoint, { method: 'DELETE' })
 
       if (!response.ok) {
         const data = await response.json()
@@ -908,6 +939,32 @@ const EmployeeRequest = () => {
               <div>
                 <label className="form-label">Notes</label>
                 <p className="text-gray-700 dark:text-gray-300">{selectedRequest.notes}</p>
+              </div>
+            )}
+
+            {activeTab === 'standard' && selectedRequest.candidates && selectedRequest.candidates.length > 0 && (
+              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">Selected Candidates</h3>
+                <div className="space-y-2">
+                  {selectedRequest.candidates.map((candidate) => (
+                    <div key={candidate.candidate_id} className="flex items-center justify-between bg-gray-50 dark:bg-gray-800 p-3 rounded">
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">{candidate.name}</p>
+                        <p className="text-sm text-gray-600 dark:text-gray-400">
+                          {candidate.job_category && `${candidate.job_category}`}
+                          {candidate.skill_level && ` • ${candidate.skill_level}`}
+                        </p>
+                      </div>
+                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                        candidate.status === 'available'
+                          ? 'bg-emerald-200 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200'
+                          : 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-300'
+                      }`}>
+                        {candidate.status || 'Unknown'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
 
