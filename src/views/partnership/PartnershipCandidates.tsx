@@ -70,6 +70,7 @@ const PartnershipCandidates = () => {
   const [showFilterModal, setShowFilterModal] = useState(false)
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [filters, setFilters] = useState<Partial<Candidate>>({})
   const [activeTab, setActiveTab] = useState('available')
@@ -467,53 +468,78 @@ const PartnershipCandidates = () => {
                       </span>
                     </td>
                     <td className="py-3 px-4">
-                      <div className="flex items-center gap-2">
+                      <div className="relative">
                         <button
-                          onClick={() => {
-                            setSelectedCandidate(candidate)
-                            setShowInfoModal(true)
-                          }}
-                          className="inline-flex items-center justify-center gap-1 px-3 py-1 text-sm text-primary hover:bg-primary hover:text-white rounded transition-colors"
-                          title="View Info"
+                          onClick={() => setOpenMenuId(openMenuId === candidate.candidate_id ? null : candidate.candidate_id)}
+                          className="inline-flex items-center justify-center px-2 py-1 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 rounded transition-colors"
+                          title="Actions"
                         >
                           <svg
                             stroke="currentColor"
-                            fill="none"
-                            strokeWidth="2"
+                            fill="currentColor"
+                            strokeWidth="0"
                             viewBox="0 0 24 24"
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            height="1em"
-                            width="1em"
+                            height="1.2em"
+                            width="1.2em"
                             xmlns="http://www.w3.org/2000/svg"
                           >
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm3.5-9c.83 0 1.5-.67 1.5-1.5S16.33 8 15.5 8 14 8.67 14 9.5s.67 1.5 1.5 1.5zm-7 0c.83 0 1.5-.67 1.5-1.5S9.33 8 8.5 8 7 8.67 7 9.5 7.67 11 8.5 11zm3.5 6.5c2.33 0 4.31-1.46 5.11-3.5H6.89c.8 2.04 2.78 3.5 5.11 3.5z"></path>
+                            <path d="M12 3c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 14c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-7c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"></path>
                           </svg>
                         </button>
-                        {candidate.resume_url ? (
-                          <a
-                            href={candidate.resume_url}
-                            download
-                            className="inline-flex items-center justify-center gap-1 px-3 py-1 text-sm text-primary hover:bg-primary hover:text-white rounded transition-colors"
-                            title="Download Resume"
-                          >
-                            <svg
-                              stroke="currentColor"
-                              fill="none"
-                              strokeWidth="2"
-                              viewBox="0 0 24 24"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              height="1em"
-                              width="1em"
-                              xmlns="http://www.w3.org/2000/svg"
+
+                        {openMenuId === candidate.candidate_id && (
+                          <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-10">
+                            <button
+                              onClick={() => {
+                                setSelectedCandidate(candidate)
+                                setShowInfoModal(true)
+                                setOpenMenuId(null)
+                              }}
+                              className="w-full flex items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 first:rounded-t-lg transition-colors"
                             >
-                              <path d="M19 18a3.5 3.5 0 0 0 0 -7h-1a5 4.5 0 0 0 -11 -2a4.6 4.4 0 0 0 -2.1 8.4"></path>
-                              <path d="M12 13l0 9"></path>
-                              <path d="M9 19l3 3l3 -3"></path>
-                            </svg>
-                          </a>
-                        ) : null}
+                              <svg
+                                stroke="currentColor"
+                                fill="none"
+                                strokeWidth="2"
+                                viewBox="0 0 24 24"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                height="1em"
+                                width="1em"
+                                xmlns="http://www.w3.org/2000/svg"
+                              >
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                <circle cx="12" cy="12" r="3"></circle>
+                              </svg>
+                              <span>View Info</span>
+                            </button>
+                            {candidate.resume_url && (
+                              <a
+                                href={candidate.resume_url}
+                                download
+                                onClick={() => setOpenMenuId(null)}
+                                className="w-full flex items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 last:rounded-b-lg transition-colors"
+                              >
+                                <svg
+                                  stroke="currentColor"
+                                  fill="none"
+                                  strokeWidth="2"
+                                  viewBox="0 0 24 24"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  height="1em"
+                                  width="1em"
+                                  xmlns="http://www.w3.org/2000/svg"
+                                >
+                                  <path d="M19 18a3.5 3.5 0 0 0 0 -7h-1a5 4.5 0 0 0 -11 -2a4.6 4.4 0 0 0 -2.1 8.4"></path>
+                                  <path d="M12 13l0 9"></path>
+                                  <path d="M9 19l3 3l3 -3"></path>
+                                </svg>
+                                <span>Download Resume</span>
+                              </a>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </td>
                   </tr>
