@@ -239,6 +239,16 @@ const PartnershipCandidates = () => {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
           <h3 className="text-xl font-bold">Partnership Candidates</h3>
           <div className="flex flex-col md:flex-row gap-3">
+            {selectedCandidates.length > 0 && (
+              <button
+                onClick={() => notify.success('Success', `Request sent for ${selectedCandidates.length} candidate(s)`)}
+                className="button bg-primary text-white hover:bg-primary/90 h-12 rounded-xl px-5 py-2 button-press-feedback"
+              >
+                <span className="flex gap-1 items-center justify-center">
+                  <span>Request ({selectedCandidates.length})</span>
+                </span>
+              </button>
+            )}
             <button
               onClick={handleDownload}
               className="button bg-white border border-gray-300 dark:bg-gray-700 dark:border-gray-700 ring-primary dark:ring-white hover:border-primary dark:hover:border-white hover:ring-1 hover:text-primary dark:hover:text-white dark:hover:bg-transparent text-gray-600 dark:text-gray-100 h-12 rounded-xl px-5 py-2 button-press-feedback"
