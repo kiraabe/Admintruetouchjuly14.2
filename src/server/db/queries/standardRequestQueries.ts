@@ -51,15 +51,25 @@ export async function ensureStandardRequestTableExists() {
     `)
 
     // Add request_type column if it doesn't exist
-    await pool.query(`
-      ALTER TABLE standard_requests
-      ADD COLUMN IF NOT EXISTS request_type VARCHAR(50) DEFAULT 'Standard'
-    `)
+    try {
+      await pool.query(`
+        ALTER TABLE standard_requests
+        ADD COLUMN IF NOT EXISTS request_type VARCHAR(50) DEFAULT 'Standard'
+      `)
+      console.log('request_type column added/verified')
+    } catch (altErr) {
+      console.log('request_type column operation:', altErr)
+    }
 
     // Update existing rows without request_type to have 'Standard'
-    await pool.query(`
-      UPDATE standard_requests SET request_type = 'Standard' WHERE request_type IS NULL
-    `)
+    try {
+      const updateResult = await pool.query(`
+        UPDATE standard_requests SET request_type = 'Standard' WHERE request_type IS NULL
+      `)
+      console.log('Updated rows with null request_type:', updateResult.rowCount)
+    } catch (updateErr) {
+      console.log('Update request_type error:', updateErr)
+    }
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS standard_request_candidates (

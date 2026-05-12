@@ -210,6 +210,7 @@ const EmployeeRequest = () => {
 
       setRequests(requests)
       setTotalRequests(total)
+      console.log('Fetched requests:', requests)
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
       console.error('Error fetching requests:', error)
