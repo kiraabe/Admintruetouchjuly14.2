@@ -50,6 +50,17 @@ export async function ensureStandardRequestTableExists() {
       )
     `)
 
+    // Add request_type column if it doesn't exist
+    await pool.query(`
+      ALTER TABLE standard_requests
+      ADD COLUMN IF NOT EXISTS request_type VARCHAR(50) DEFAULT 'Standard'
+    `)
+
+    // Update existing rows without request_type to have 'Standard'
+    await pool.query(`
+      UPDATE standard_requests SET request_type = 'Standard' WHERE request_type IS NULL
+    `)
+
     await pool.query(`
       CREATE TABLE IF NOT EXISTS standard_request_candidates (
         id SERIAL PRIMARY KEY,
