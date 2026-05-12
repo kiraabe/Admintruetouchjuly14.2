@@ -512,7 +512,7 @@ const EmployeeRequest = () => {
 
         {/* Sub Tabs for Status Filter */}
         <div className="flex gap-2 border-b border-gray-100 dark:border-gray-600 bg-gray-50 dark:bg-gray-900/50 rounded-t-lg -mx-6 px-6 pt-2">
-          {['All', 'Approved', 'Rejected', 'Pending', 'In Progress'].map((status) => {
+          {['All', 'Approved', 'Rejected', 'Pending'].map((status) => {
             const count = filteredRequests.filter((r) =>
               status === 'All' ? true : r.status === status
             ).length
