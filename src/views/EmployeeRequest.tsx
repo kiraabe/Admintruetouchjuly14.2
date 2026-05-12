@@ -286,7 +286,9 @@ const EmployeeRequest = () => {
         setShowCandidateModal(false)
         fetchRequests(currentPage)
       } else {
-        notify.error('Error', 'Failed to update request')
+        const errorData = await response.json()
+        const errorMsg = errorData?.error || 'Failed to update request'
+        notify.error('Error', errorMsg)
       }
     } catch (error) {
       console.error('Error:', error)
