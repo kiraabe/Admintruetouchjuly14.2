@@ -113,13 +113,14 @@ const Profile = () => {
                                     <div
                                         className="w-20 h-20 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white text-2xl font-bold mb-4"
                                         style={{
-                                            backgroundImage: avatar
-                                                ? `url(${avatar})`
+                                            backgroundImage: (avatar || partnershipLogo)
+                                                ? `url(${avatar || partnershipLogo})`
                                                 : undefined,
                                             backgroundSize: 'cover',
+                                            backgroundPosition: 'center',
                                         }}
                                     >
-                                        {!avatar &&
+                                        {!(avatar || partnershipLogo) &&
                                             userName
                                                 ?.charAt(0)
                                                 .toUpperCase()}

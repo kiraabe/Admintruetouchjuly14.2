@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { useSessionUser } from '@/store/authStore'
@@ -16,7 +16,22 @@ interface ProfileFormProps {
 const ProfileForm = ({ data }: ProfileFormProps) => {
     const [formData, setFormData] = useState<ProfileData>(data)
     const [loading, setLoading] = useState(false)
+    const [partnershipLogo, setPartnershipLogo] = useState<string>('')
     const setUser = useSessionUser((state) => state.setUser)
+    const { partnershipId } = useSessionUser((state) => state.user)
+
+    useEffect(() => {
+        if (partnershipId) {
+            fetch(`/api/partnerships/${partnershipId}`)
+                .then((res) => res.json())
+                .then((data) => {
+                    if (data.success && data.data?.company_logo) {
+                        setPartnershipLogo(data.data.company_logo)
+                    }
+                })
+                .catch((err) => console.error('Failed to fetch partnership:', err))
+        }
+    }, [partnershipId])
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target
@@ -89,6 +104,22 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
                     value={formData.avatar}
                     onChange={handleChange}
                 />
+                <div className="mt-3 flex items-center gap-4">
+                    <div className="text-sm text-gray-600 dark:text-gray-400">Preview:</div>
+                    <div
+                        className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm"
+                        style={{
+                            backgroundImage: (formData.avatar || partnershipLogo)
+                                ? `url(${formData.avatar || partnershipLogo})`
+                                : undefined,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                        }}
+                    >
+                        {!(formData.avatar || partnershipLogo) &&
+                            formData.userName?.charAt(0).toUpperCase()}
+                    </div>
+                </div>
             </div>
 
             <div className="pt-4">
