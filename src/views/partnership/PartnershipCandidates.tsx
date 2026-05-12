@@ -268,13 +268,17 @@ const PartnershipCandidates = () => {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedCandidates(filteredCandidates.map((c) => c.candidate_id))
+      setSelectedCandidates(filteredCandidates.filter((c) => c.status?.toLowerCase() === 'available').map((c) => c.candidate_id))
     } else {
       setSelectedCandidates([])
     }
   }
 
   const handleSelectCandidate = (candidateId: string, checked: boolean) => {
+    const candidate = candidates.find((c) => c.candidate_id === candidateId)
+    if (!candidate || candidate.status?.toLowerCase() !== 'available') {
+      return
+    }
     if (checked) {
       setSelectedCandidates([...selectedCandidates, candidateId])
     } else {
@@ -493,6 +497,7 @@ const PartnershipCandidates = () => {
                       <Checkbox
                         checked={selectedCandidates.includes(candidate.candidate_id)}
                         onChange={(checked) => handleSelectCandidate(candidate.candidate_id, checked as boolean)}
+                        disabled={candidate.status?.toLowerCase() !== 'available'}
                       />
                     </td>
                     <td className="py-3 px-4 font-semibold">
