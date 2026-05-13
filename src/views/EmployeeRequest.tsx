@@ -171,10 +171,17 @@ const EmployeeRequest = () => {
         const text = await specialCountResponse.text()
         if (text) {
           const data = JSON.parse(text)
+          console.log('Special count response:', data)
           if (data.success) {
             setSpecialCount(data.total || 0)
+          } else {
+            console.warn('Special count response not successful:', data)
+            setSpecialCount(0)
           }
         }
+      } else {
+        console.error('Special count fetch failed:', specialCountResponse.status)
+        setSpecialCount(0)
       }
 
       if (activeTab === 'standard') {
@@ -200,9 +207,14 @@ const EmployeeRequest = () => {
         const text = await response.text()
         if (text) {
           const data = JSON.parse(text)
+          console.log('Special requests response:', data)
           if (data.success) {
-            requests = data.data || []
+            requests = (data.data || []).map((req: EmployeeRequest) => ({
+              ...req,
+              request_type: 'Special'
+            }))
             total = data.total || 0
+            console.log('Processed special requests:', requests, 'Total:', total)
           } else {
             notify.error('Error', data.message || 'Failed to fetch employee requests')
           }
