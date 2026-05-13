@@ -575,63 +575,67 @@ const SpecialRequest = () => {
         <div className="mb-4">
           <h2 className="text-lg font-bold">Create New Special Request</h2>
         </div>
-        <div className="space-y-4 max-h-96 overflow-y-auto">
-          <div>
-            <label className="form-label">Company Name</label>
-            <div className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100">
-              {companyName || 'Loading...'}
+        <div className="max-h-96 overflow-y-auto">
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="form-label">Company Name</label>
+              <div className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100">
+                {companyName || 'Loading...'}
+              </div>
+            </div>
+
+            <div>
+              <label className="form-label">Position *</label>
+              <Input
+                placeholder="Enter position"
+                value={formData.position}
+                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Number of Positions</label>
+              <Input
+                type="number"
+                placeholder="Enter number of positions"
+                value={formData.number_of_employees}
+                onChange={(e) => setFormData({ ...formData, number_of_employees: parseInt(e.target.value) || 1 })}
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Budget</label>
+              <Input
+                placeholder="Enter budget"
+                value={formData.budget}
+                onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
+              />
             </div>
           </div>
 
-          <div>
-            <label className="form-label">Position *</label>
-            <Input
-              placeholder="Enter position"
-              value={formData.position}
-              onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-            />
+          <div className="space-y-4 mb-4">
+            <div>
+              <label className="form-label">Description</label>
+              <textarea
+                placeholder="Enter job description"
+                value={formData.description}
+                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                rows={3}
+              />
+            </div>
+
+            <div>
+              <label className="form-label">Requirements</label>
+              <Input
+                placeholder="Enter job requirements"
+                value={formData.requirements}
+                onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
+              />
+            </div>
           </div>
 
-          <div>
-            <label className="form-label">Number of Positions</label>
-            <Input
-              type="number"
-              placeholder="Enter number of positions"
-              value={formData.number_of_employees}
-              onChange={(e) => setFormData({ ...formData, number_of_employees: parseInt(e.target.value) || 1 })}
-            />
-          </div>
-
-          <div>
-            <label className="form-label">Description</label>
-            <textarea
-              placeholder="Enter job description"
-              value={formData.description}
-              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-              rows={3}
-            />
-          </div>
-
-          <div>
-            <label className="form-label">Requirements</label>
-            <Input
-              placeholder="Enter job requirements"
-              value={formData.requirements}
-              onChange={(e) => setFormData({ ...formData, requirements: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <label className="form-label">Budget</label>
-            <Input
-              placeholder="Enter budget"
-              value={formData.budget}
-              onChange={(e) => setFormData({ ...formData, budget: e.target.value })}
-            />
-          </div>
-
-          <div className="flex gap-2 pt-4">
+          <div className="flex gap-2">
             <Button onClick={() => setShowAddModal(false)}>Cancel</Button>
             <Button onClick={handleAddRequest}>Create Request</Button>
           </div>
