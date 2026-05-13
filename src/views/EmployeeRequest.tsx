@@ -69,6 +69,8 @@ const EmployeeRequest = () => {
   const [currentStandardRequest, setCurrentStandardRequest] = useState<EmployeeRequest | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [totalRequests, setTotalRequests] = useState(0)
+  const [standardCount, setStandardCount] = useState(0)
+  const [specialCount, setSpecialCount] = useState(0)
   const pageSize = 10
 
   useEffect(() => {
@@ -150,6 +152,30 @@ const EmployeeRequest = () => {
 
       let requests: EmployeeRequest[] = []
       let total = 0
+
+      // Fetch standard count
+      const standardCountResponse = await fetch('/api/standard-requests?page=1&limit=1')
+      if (standardCountResponse.ok) {
+        const text = await standardCountResponse.text()
+        if (text) {
+          const data = JSON.parse(text)
+          if (data.success) {
+            setStandardCount(data.total || 0)
+          }
+        }
+      }
+
+      // Fetch special count
+      const specialCountResponse = await fetch('/api/employee-requests?page=1&limit=1')
+      if (specialCountResponse.ok) {
+        const text = await specialCountResponse.text()
+        if (text) {
+          const data = JSON.parse(text)
+          if (data.success) {
+            setSpecialCount(data.total || 0)
+          }
+        }
+      }
 
       if (activeTab === 'standard') {
         const response = await fetch(`/api/standard-requests?page=${page}&limit=${pageSize}`)
@@ -560,7 +586,7 @@ const EmployeeRequest = () => {
                 : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
             }`}
           >
-            Standard ({requests.filter((r) => r.request_type === 'Standard').length})
+            Standard ({standardCount})
           </button>
           <button
             onClick={() => {
@@ -573,7 +599,7 @@ const EmployeeRequest = () => {
                 : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
             }`}
           >
-            Special ({requests.filter((r) => r.request_type === 'Special').length})
+            Special ({specialCount})
           </button>
         </div>
 
