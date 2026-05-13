@@ -427,15 +427,18 @@ const EmployeeRequest = () => {
       if (!response.ok) {
         const data = await response.json()
         const errorMsg = data.error || 'Failed to delete request'
+        notify.dismiss(toastId)
         notify.error('Delete Failed', errorMsg)
         return
       }
 
+      notify.dismiss(toastId)
       fetchRequests(currentPage)
       notify.success('Success', 'Request deleted successfully')
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
       console.error('Error deleting request:', error)
+      notify.dismiss(toastId)
       notify.error('Delete Error', errorMsg)
     }
   }
