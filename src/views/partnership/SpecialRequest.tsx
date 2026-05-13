@@ -571,7 +571,7 @@ const SpecialRequest = () => {
       </Dialog>
 
       {/* Add Request Modal */}
-      <Dialog isOpen={showAddModal} onClose={() => setShowAddModal(false)}>
+      <Dialog isOpen={showAddModal} onClose={() => setShowAddModal(false)} width={900}>
         <div className="mb-4">
           <h2 className="text-lg font-bold">Create New Special Request</h2>
         </div>
