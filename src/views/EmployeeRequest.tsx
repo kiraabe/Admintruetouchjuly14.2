@@ -6,6 +6,7 @@ import Dialog from '@/components/ui/Dialog'
 import Checkbox from '@/components/ui/Checkbox'
 import Pagination from '@/components/ui/Pagination'
 import { notify } from '@/utils/notification'
+import { toast } from 'sonner'
 import { apiCreateNotification } from '@/services/CommonService'
 
 interface EmployeeRequest {
@@ -427,18 +428,18 @@ const EmployeeRequest = () => {
       if (!response.ok) {
         const data = await response.json()
         const errorMsg = data.error || 'Failed to delete request'
-        notify.dismiss(toastId)
+        toast.dismiss(toastId)
         notify.error('Delete Failed', errorMsg)
         return
       }
 
-      notify.dismiss(toastId)
+      toast.dismiss(toastId)
       fetchRequests(currentPage)
       notify.success('Success', 'Request deleted successfully')
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
       console.error('Error deleting request:', error)
-      notify.dismiss(toastId)
+      toast.dismiss(toastId)
       notify.error('Delete Error', errorMsg)
     }
   }
