@@ -74,9 +74,15 @@ const _Notification = ({ className }: { className?: string }) => {
     const onNotificationOpen = async () => {
         if (notificationList.length === 0) {
             setLoading(true)
-            const resp = await apiGetNotificationList()
-            setLoading(false)
-            setNotificationList(resp)
+            try {
+                const resp = await apiGetNotificationList()
+                setLoading(false)
+                setNotificationList(resp)
+            } catch (error) {
+                console.error('Error fetching notifications:', error)
+                setLoading(false)
+                setNotificationList([])
+            }
         }
     }
 

@@ -1,15 +1,33 @@
 import ApiService from './ApiService'
+import { useSessionUser } from '@/store/authStore'
 
 export async function apiGetNotificationCount() {
+    const { user } = useSessionUser.getState()
+
+    if (!user.userId) {
+        console.warn('User ID not available for notification count')
+        return { count: 0 }
+    }
+
     return ApiService.fetchDataWithAxios<{
         count: number
     }>({
         url: '/notification/count',
         method: 'get',
+        params: {
+            user_id: user.userId
+        }
     })
 }
 
 export async function apiGetNotificationList() {
+    const { user } = useSessionUser.getState()
+
+    if (!user.userId) {
+        console.warn('User ID not available for notification list')
+        return []
+    }
+
     return ApiService.fetchDataWithAxios<
         {
             id: string
@@ -26,6 +44,9 @@ export async function apiGetNotificationList() {
     >({
         url: '/notification/list',
         method: 'get',
+        params: {
+            user_id: user.userId
+        }
     })
 }
 

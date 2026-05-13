@@ -65,3 +65,18 @@ export async function getUserById(userId: string): Promise<User | null> {
     throw error
   }
 }
+
+export async function getAdminUsers(): Promise<User[]> {
+  try {
+    const query = `
+      SELECT id, user_id, email, password_hash, user_name, is_active, avatar, authority
+      FROM users
+      WHERE authority = 'admin'
+    `
+    const result = await pool.query(query)
+    return result.rows as User[]
+  } catch (error) {
+    console.error('Error fetching admin users:', error)
+    throw error
+  }
+}

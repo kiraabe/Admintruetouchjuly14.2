@@ -31,11 +31,17 @@ router.get('/health', async (req: Request, res: Response) => {
 // Get unread notification count from notifications table
 router.get('/count', async (req: Request, res: Response) => {
   try {
+    const { user_id } = req.query
+
+    if (!user_id) {
+      return res.status(400).json({ error: 'user_id query parameter is required' })
+    }
+
     const result = await pool.query(`
       SELECT COUNT(*)::INTEGER as count
       FROM notifications
-      WHERE readed = false
-    `)
+      WHERE readed = false AND (user_id = $1 OR user_id IS NULL)
+    `, [user_id])
 
     res.json({
       count: result.rows[0]?.count || 0
@@ -50,6 +56,12 @@ router.get('/count', async (req: Request, res: Response) => {
 // Get notification list from notifications table
 router.get('/list', async (req: Request, res: Response) => {
   try {
+    const { user_id } = req.query
+
+    if (!user_id) {
+      return res.status(400).json({ error: 'user_id query parameter is required' })
+    }
+
     const result = await pool.query(`
       SELECT
         notification_id as id,
@@ -63,9 +75,10 @@ router.get('/list', async (req: Request, res: Response) => {
         status,
         readed
       FROM notifications
+      WHERE user_id = $1 OR user_id IS NULL
       ORDER BY created_at DESC
       LIMIT 50
-    `)
+    `, [user_id])
 
     res.json(result.rows)
   } catch (error) {

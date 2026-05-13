@@ -31,6 +31,26 @@ router.post('/', async (req: Request, res: Response) => {
   }
 })
 
+router.get('/admin-users', async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, user_id, email, user_name, authority, is_active, avatar, partnership_id, created_at FROM users WHERE authority = $1',
+      ['admin']
+    )
+    res.json({
+      success: true,
+      data: result.rows,
+    })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'Failed to fetch admin users'
+    console.error('Error fetching admin users:', errorMsg, error)
+    res.status(500).json({
+      success: false,
+      error: errorMsg,
+    })
+  }
+})
+
 router.get('/', async (req: Request, res: Response) => {
   try {
     console.log('Fetching users from database...')

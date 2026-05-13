@@ -7,6 +7,7 @@ import Checkbox from '@/components/ui/Checkbox'
 import Pagination from '@/components/ui/Pagination'
 import Tag from '@/components/ui/Tag'
 import { notify } from '@/utils/notification'
+import { apiCreateNotification } from '@/services/CommonService'
 
 interface SpecialRequest {
   request_id: string
@@ -176,6 +177,33 @@ const SpecialRequest = () => {
 
       if (!response.ok) {
         throw new Error('Failed to create request')
+      }
+
+      const responseData = await response.json()
+      const requestId = responseData.data?.request_id
+
+      // Send notification to admin about the special request
+      try {
+        const adminResponse = await fetch('/api/users/admin-users')
+        if (adminResponse.ok) {
+          const adminData = await adminResponse.json()
+          if (adminData.data && adminData.data.length > 0) {
+            const adminUserId = adminData.data[0].user_id
+            await apiCreateNotification({
+              target: 'Special Request',
+              description: `New special request for ${formData.position} position from ${formData.company_name}`,
+              type: 1,
+              location: 'special-request',
+              locationLabel: 'Special Request',
+              status: 'Pending',
+              user_id: adminUserId,
+              related_entity_id: requestId,
+              related_entity_type: 'special_request',
+            })
+          }
+        }
+      } catch (notifError) {
+        console.error('Failed to create notification:', notifError)
       }
 
       notify.success('Success', 'Special request created successfully')
