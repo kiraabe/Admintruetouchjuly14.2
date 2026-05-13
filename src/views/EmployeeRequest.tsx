@@ -166,7 +166,7 @@ const EmployeeRequest = () => {
       }
 
       // Fetch special count
-      const specialCountResponse = await fetch('/api/employee-requests?page=1&limit=1')
+      const specialCountResponse = await fetch('/api/special-requests?page=1&limit=1')
       if (specialCountResponse.ok) {
         const text = await specialCountResponse.text()
         if (text) {
@@ -200,7 +200,7 @@ const EmployeeRequest = () => {
           }
         }
       } else if (activeTab === 'special') {
-        const response = await fetch(`/api/employee-requests?page=${page}&limit=${pageSize}`)
+        const response = await fetch(`/api/special-requests?page=${page}&limit=${pageSize}`)
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`)
         }
@@ -216,7 +216,7 @@ const EmployeeRequest = () => {
             total = data.total || 0
             console.log('Processed special requests:', requests, 'Total:', total)
           } else {
-            notify.error('Error', data.message || 'Failed to fetch employee requests')
+            notify.error('Error', data.message || 'Failed to fetch special requests')
           }
         }
       } else {
@@ -233,19 +233,22 @@ const EmployeeRequest = () => {
             }
           }
 
-          const specialResponse = await fetch(`/api/employee-requests?page=${page}&limit=${pageSize}`)
+          const specialResponse = await fetch(`/api/special-requests?page=${page}&limit=${pageSize}`)
           let specialRequests = []
           if (specialResponse.ok) {
             const text = await specialResponse.text()
             if (text) {
               const data = JSON.parse(text)
               if (data.success) {
-                specialRequests = data.data || []
+                specialRequests = (data.data || []).map((req: EmployeeRequest) => ({
+                  ...req,
+                  request_type: 'Special'
+                }))
               }
             }
           }
 
-          requests = [...standardRequests, ...specialRequests]
+          requests = [...standardRequests.map((req: EmployeeRequest) => ({ ...req, request_type: 'Standard' })), ...specialRequests]
           total = requests.length
         } catch (e) {
           console.error('Error fetching all requests:', e)
@@ -270,7 +273,7 @@ const EmployeeRequest = () => {
     try {
       const endpoint = activeTab === 'standard'
         ? `/api/standard-requests/${request.request_id}`
-        : `/api/employee-requests/${request.request_id}`
+        : `/api/special-requests/${request.request_id}`
 
       const response = await fetch(endpoint, {
         method: 'PUT',
@@ -333,7 +336,7 @@ const EmployeeRequest = () => {
     try {
       const endpoint = activeTab === 'standard'
         ? `/api/standard-requests/${request.request_id}`
-        : `/api/employee-requests/${request.request_id}`
+        : `/api/special-requests/${request.request_id}`
 
       const response = await fetch(endpoint)
       const data = await response.json()
@@ -387,7 +390,7 @@ const EmployeeRequest = () => {
     try {
       const endpoint = currentStandardRequest?.request_type === 'Standard'
         ? `/api/standard-requests/${currentStandardRequest.request_id}`
-        : `/api/employee-requests/${currentStandardRequest.request_id}`
+        : `/api/special-requests/${currentStandardRequest.request_id}`
 
       const response = await fetch(endpoint, {
         method: 'PUT',
