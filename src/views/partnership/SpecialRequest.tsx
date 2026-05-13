@@ -8,6 +8,7 @@ import Pagination from '@/components/ui/Pagination'
 import Tag from '@/components/ui/Tag'
 import { notify } from '@/utils/notification'
 import { apiCreateNotification } from '@/services/CommonService'
+import { useSessionUser } from '@/store/authStore'
 
 interface SpecialRequest {
   request_id: string
@@ -35,6 +36,7 @@ const REQUEST_TYPES = ['Standard', 'Special', 'Urgent', 'Contract']
 const REQUEST_STATUSES = ['Pending', 'In Progress', 'Approved', 'Completed', 'Rejected']
 
 const SpecialRequest = () => {
+  const { user } = useSessionUser((state) => state)
   const [requests, setRequests] = useState<SpecialRequest[]>([])
   const [filteredRequests, setFilteredRequests] = useState<SpecialRequest[]>([])
   const [selectedRequests, setSelectedRequests] = useState<string[]>([])
@@ -47,6 +49,7 @@ const SpecialRequest = () => {
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
   const [currentPage, setCurrentPage] = useState(1)
   const [totalRequests, setTotalRequests] = useState(0)
+  const [companyName, setCompanyName] = useState('')
   const [formData, setFormData] = useState({
     company_name: '',
     position: '',
@@ -61,6 +64,26 @@ const SpecialRequest = () => {
   useEffect(() => {
     fetchRequests(currentPage)
   }, [currentPage])
+
+  // Fetch company info when modal opens
+  useEffect(() => {
+    if (showAddModal && user.partnershipId) {
+      const fetchCompanyInfo = async () => {
+        try {
+          const response = await fetch(`/api/partnerships/${user.partnershipId}`)
+          if (response.ok) {
+            const data = await response.json()
+            const name = data.data?.company_name || data.company_name || ''
+            setCompanyName(name)
+            setFormData((prev) => ({ ...prev, company_name: name }))
+          }
+        } catch (error) {
+          console.error('Error fetching company info:', error)
+        }
+      }
+      fetchCompanyInfo()
+    }
+  }, [showAddModal, user.partnershipId])
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -554,12 +577,10 @@ const SpecialRequest = () => {
         </div>
         <div className="space-y-4 max-h-96 overflow-y-auto">
           <div>
-            <label className="form-label">Company Name *</label>
-            <Input
-              placeholder="Enter company name"
-              value={formData.company_name}
-              onChange={(e) => setFormData({ ...formData, company_name: e.target.value })}
-            />
+            <label className="form-label">Company Name</label>
+            <div className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-gray-100 dark:bg-gray-600 text-gray-900 dark:text-gray-100">
+              {companyName || 'Loading...'}
+            </div>
           </div>
 
           <div>
