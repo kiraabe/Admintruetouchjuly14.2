@@ -593,21 +593,6 @@ const SpecialRequest = () => {
           </div>
 
           <div>
-            <label className="form-label">Request Type</label>
-            <select
-              value={formData.request_type}
-              onChange={(e) => setFormData({ ...formData, request_type: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            >
-              {REQUEST_TYPES.map((type) => (
-                <option key={type} value={type}>
-                  {type}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
             <label className="form-label">Number of Positions</label>
             <Input
               type="number"
