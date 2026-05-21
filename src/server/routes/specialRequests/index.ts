@@ -8,7 +8,7 @@ import {
   updateSpecialRequest,
   deleteSpecialRequest,
   ensureSpecialRequestTableExists,
-} from '../../db/queries/specialRequestQueries'
+} from '../../db/queries/specialRequestQueries.ts'
 
 const router = Router()
 

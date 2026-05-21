@@ -10,7 +10,7 @@ import {
   updateStandardRequest,
   deleteStandardRequest,
   ensureStandardRequestTableExists,
-} from '../../db/queries/standardRequestQueries'
+} from '../../db/queries/standardRequestQueries.ts'
 
 const router = Router()
 

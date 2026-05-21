@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
-import { getUserByEmail, createUser } from '../../db/queries/userQueries'
-import { hashPassword, generateToken } from '../../utils/auth'
+import { getUserByEmail, createUser } from '../../db/queries/userQueries.ts'
+import { hashPassword, generateToken } from '../../utils/auth.ts'
 
 export async function signUp(req: Request, res: Response) {
   try {
