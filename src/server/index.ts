@@ -401,7 +401,22 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
   }
 })
 
-// Error handling
+// Serve static frontend build
+const distPath = path.join(process.cwd(), 'dist', 'client')
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath))
+  // SPA fallback - serve index.html for all non-API routes
+  app.get('*', (req, res) => {
+    const indexPath = path.join(distPath, 'index.html')
+    if (fs.existsSync(indexPath)) {
+      res.sendFile(indexPath)
+    } else {
+      res.status(404).json({ error: 'Frontend not found. Build the frontend first.' })
+    }
+  })
+}
+
+// Error handling (must come after static serving)
 app.use((err: any, req: any, res: any, next: any) => {
   console.error('Server error:', err)
   res.status(500).json({ error: err.message || 'Internal server error' })

@@ -36,7 +36,8 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: 'build'
+    outDir: 'dist/client',
+    emptyOutDir: true,
   },
   preview: {
     allowedHosts: ['truetouch-admin.onrender.com']
