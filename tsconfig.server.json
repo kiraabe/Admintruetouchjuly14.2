@@ -14,7 +14,6 @@
     "sourceMap": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "allowImportingTsExtensions": true,
     "noEmit": false,
     "types": ["node", "express"]
   },
