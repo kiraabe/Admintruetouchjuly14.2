@@ -1,0 +1,215 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                     FILE SERVER API - QUICK REFERENCE                        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ IMPORT & SETUP                                                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+import { fileServer } from '@/utils/fileServer'
+import { FileUploadManager } from '@/components/FileManager/FileUploadManager'
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ CORE OPERATIONS (3 Most Used)                                                │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+1. UPLOAD A FILE
+   const res = await fileServer.uploadFile(file, 'candidates')
+   if (res.success) console.log(res.file?.url)
+
+2. LIST FILES  
+   const res = await fileServer.listFiles('candidates')
+   res.files.forEach(f => console.log(f.filename))
+
+3. DELETE FILE
+   await fileServer.deleteFile('candidates', 'filename.pdf')
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ FILE CATEGORIES & LIMITS                                                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Category        Max Size    Allowed Types                Use Case
+─────────────────────────────────────────────────────────────────────────────
+candidates      10 MB       IMG, PDF, DOC, DOCX, TXT    Profiles, resumes
+profiles        5 MB        IMG                         User avatars
+partnerships    8 MB        IMG, PDF                    Partnership docs
+jobs            5 MB        IMG, PDF                    Job listings
+documents       15 MB       PDF, DOC, DOCX, TXT         General docs
+images          10 MB       IMG                         Image gallery
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ ALL UTILITY METHODS                                                          │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+uploadFile(file, category)              → Upload single file
+uploadFiles(files, category)            → Upload multiple files (max 10)
+listFiles(category)                     → Get all files in category
+getFileInfo(category, filename)         → Get file details
+deleteFile(category, filename)          → Delete a file
+getStats()                              → Get storage statistics
+getFileUrl(category, filename)          → Generate public URL
+downloadFile(url, filename)             → Download file to computer
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ API ENDPOINTS (Backend)                                                      │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+POST   /api/files/upload/:category              Upload single
+POST   /api/files/upload-bulk/:category         Upload multiple
+GET    /api/files/list/:category                List files
+GET    /api/files/info/:category/:filename      Get file info
+DELETE /api/files/delete/:category/:filename    Delete file
+GET    /api/files/stats                         Storage stats
+GET    /uploads/:category/:filename             Serve file (public)
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ RESPONSE EXAMPLES                                                            │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+SUCCESS:
+{
+  "success": true,
+  "file": {
+    "url": "/uploads/candidates/profile-1704067200000-a1b2c3d4.jpg",
+    "filename": "profile-1704067200000-a1b2c3d4.jpg",
+    "size": 256000
+  }
+}
+
+ERROR:
+{
+  "success": false,
+  "error": "File too large. Max size: 10MB"
+}
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ COMPONENT USAGE                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+<FileUploadManager
+  category="candidates"
+  maxFiles={1}
+  onUploadSuccess={(file) => {
+    console.log('File uploaded:', file.url)
+  }}
+/>
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ ERROR HANDLING                                                               │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+const res = await fileServer.uploadFile(file, 'candidates')
+
+if (res.success) {
+  // Use res.file?.url
+} else {
+  // res.error contains error message
+  console.error(res.error)
+}
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ COMMON PATTERNS                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Upload and save to DB:
+  const res = await fileServer.uploadFile(file, 'candidates')
+  if (res.success) {
+    saveCandidate({ profile_picture: res.file?.url })
+  }
+
+Upload with state:
+  const [url, setUrl] = useState('')
+  const res = await fileServer.uploadFile(file, 'candidates')
+  if (res.success) setUrl(res.file?.url || '')
+
+Bulk upload:
+  const res = await fileServer.uploadFiles(files, 'documents')
+  res.files?.forEach(f => console.log(f.url))
+
+Display list:
+  const { files } = await fileServer.listFiles('candidates')
+  return files.map(f => <img src={f.url} key={f.filename} />)
+
+Download:
+  fileServer.downloadFile('/uploads/candidates/file.pdf', 'file.pdf')
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ TROUBLESHOOTING                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Upload fails → Check file size and type
+File not found → Verify filename and category  
+CORS error → Check server CORS settings
+Slow uploads → File size too large
+Storage full → Delete old files
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ USEFUL LINKS                                                                 │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Quick Start:     FILE_SERVER_QUICK_START.md
+Full API Docs:   FILE_SERVER_API.md
+Integration:     FILE_SERVER_INTEGRATION.md
+Architecture:    FILE_SERVER_ARCHITECTURE.md
+Implementation:  FILE_SERVER_SUMMARY.md
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ CHEAT SHEET                                                                  │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+Upload single:          fileServer.uploadFile(file, 'candidates')
+Upload multiple:        fileServer.uploadFiles([f1, f2], 'documents')
+List all files:         fileServer.listFiles('candidates')
+Get file info:          fileServer.getFileInfo('candidates', 'name.pdf')
+Delete file:            fileServer.deleteFile('candidates', 'name.pdf')
+Download file:          fileServer.downloadFile(url, 'name.pdf')
+Get URL:                fileServer.getFileUrl('candidates', 'name.pdf')
+Check storage:          fileServer.getStats()
+
+File serving URL:       /uploads/candidates/profile-1704067200000.jpg
+Create public URL:      /uploads/{category}/{filename}
+
+Error check:            if (response.success) { ... }
+Get error:              response.error
+Get file data:          response.file
+Get file list:          response.files
+Get stats:              response.stats
+
+
+┌──────────────────────────────────────────────────────────────────────────────┐
+│ TYPE DEFINITIONS (TypeScript)                                                │
+└──────────────────────────────────────────────────────────────────────────────┘
+
+FileCategory = 'candidates' | 'profiles' | 'partnerships' | 'jobs' | 
+               'documents' | 'images'
+
+FileInfo = {
+  filename: string
+  size: number
+  createdAt: string
+  modifiedAt: string
+  url: string
+}
+
+UploadResponse = {
+  success: boolean
+  file?: { filename, url, size, mimeType }
+  error?: string
+}
+
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                    READY TO USE - START WITH QUICKSTART                     ║
+║                    FILE_SERVER_QUICK_START.md                               ║
+╚══════════════════════════════════════════════════════════════════════════════╝
