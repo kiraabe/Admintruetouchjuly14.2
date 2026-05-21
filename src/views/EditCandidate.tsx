@@ -67,8 +67,10 @@ const EditCandidate = () => {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
   const [profilePicturePreview, setProfilePicturePreview] = useState('')
   const [profilePicture, setProfilePicture] = useState<File | null>(null)
+  const [profilePictureUrl, setProfilePictureUrl] = useState('')
   const [resume, setResume] = useState<File | null>(null)
   const [resumeUrl, setResumeUrl] = useState<string | null>(null)
+  const [resumeExternalUrl, setResumeExternalUrl] = useState('')
   const [filteredLocations, setFilteredLocations] = useState<string[]>([])
 
   const [formData, setFormData] = useState({
@@ -156,6 +158,11 @@ const EditCandidate = () => {
 
         if (cand.profile_picture) {
           setProfilePicturePreview(cand.profile_picture)
+          setProfilePictureUrl(cand.profile_picture)
+        }
+        if (cand.resume_url) {
+          setResumeExternalUrl(cand.resume_url)
+          setResumeUrl(cand.resume_url.split('/').pop() || null)
         }
       } else {
         notify.error('Error', 'Candidate not found')
@@ -297,6 +304,14 @@ const EditCandidate = () => {
 
       if (profilePicture) {
         formDataToSend.append('profilePicture', profilePicture)
+      } else if (profilePictureUrl) {
+        formDataToSend.append('profilePictureUrl', profilePictureUrl)
+      }
+
+      if (resume) {
+        formDataToSend.append('resume', resume)
+      } else if (resumeExternalUrl) {
+        formDataToSend.append('resumeUrl', resumeExternalUrl)
       }
 
       if (isNewCandidate) {
@@ -689,22 +704,46 @@ const EditCandidate = () => {
                             )}
                           </div>
                         </div>
-                        <div className="upload">
-                          <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleProfilePictureChange}
-                            className="hidden"
-                            id="profilePictureInput"
-                          />
-                          <label htmlFor="profilePictureInput">
-                            <Button
-                              type="button"
-                              onClick={() => document.getElementById('profilePictureInput')?.click()}
-                            >
-                              Upload Image
-                            </Button>
-                          </label>
+                        <div className="space-y-3">
+                          <div className="upload">
+                            <input
+                              type="file"
+                              accept="image/*"
+                              onChange={handleProfilePictureChange}
+                              className="hidden"
+                              id="profilePictureInput"
+                            />
+                            <label htmlFor="profilePictureInput">
+                              <Button
+                                type="button"
+                                onClick={() => document.getElementById('profilePictureInput')?.click()}
+                              >
+                                Upload Image
+                              </Button>
+                            </label>
+                          </div>
+                          <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                              <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                              <span className="px-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">OR</span>
+                            </div>
+                          </div>
+                          <div>
+                            <Input
+                              type="url"
+                              placeholder="Paste image URL (CDN link)"
+                              value={profilePictureUrl}
+                              onChange={(e) => {
+                                setProfilePictureUrl(e.target.value)
+                                setProfilePicturePreview(e.target.value)
+                              }}
+                            />
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              Paste a CDN image URL (e.g., from Cloudinary, S3, etc.)
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -728,6 +767,7 @@ const EditCandidate = () => {
                               onClick={() => {
                                 setResume(null)
                                 setResumeUrl(null)
+                                setResumeExternalUrl('')
                               }}
                               className="text-red-500 hover:text-red-700"
                             >
@@ -744,22 +784,46 @@ const EditCandidate = () => {
                             <p className="text-sm text-gray-600 dark:text-gray-400">No resume uploaded</p>
                           </div>
                         )}
-                        <div className="upload">
-                          <input
-                            type="file"
-                            accept=".pdf,.doc,.docx,.txt"
-                            onChange={handleResumeChange}
-                            className="hidden"
-                            id="resumeInput"
-                          />
-                          <label htmlFor="resumeInput">
-                            <Button
-                              type="button"
-                              onClick={() => document.getElementById('resumeInput')?.click()}
-                            >
-                              Upload Resume
-                            </Button>
-                          </label>
+                        <div className="space-y-3">
+                          <div className="upload">
+                            <input
+                              type="file"
+                              accept=".pdf,.doc,.docx,.txt"
+                              onChange={handleResumeChange}
+                              className="hidden"
+                              id="resumeInput"
+                            />
+                            <label htmlFor="resumeInput">
+                              <Button
+                                type="button"
+                                onClick={() => document.getElementById('resumeInput')?.click()}
+                              >
+                                Upload Resume
+                              </Button>
+                            </label>
+                          </div>
+                          <div className="relative">
+                            <div className="absolute inset-0 flex items-center">
+                              <div className="w-full border-t border-gray-300 dark:border-gray-600"></div>
+                            </div>
+                            <div className="relative flex justify-center text-sm">
+                              <span className="px-2 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400">OR</span>
+                            </div>
+                          </div>
+                          <div>
+                            <Input
+                              type="url"
+                              placeholder="Paste resume URL (CDN link)"
+                              value={resumeExternalUrl}
+                              onChange={(e) => {
+                                setResumeExternalUrl(e.target.value)
+                                setResumeUrl(e.target.value.split('/').pop() || null)
+                              }}
+                            />
+                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                              Paste a CDN URL (e.g., from Cloudinary, S3, Google Drive, etc.)
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>
