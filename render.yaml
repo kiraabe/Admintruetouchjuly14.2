@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: ecme
+    name: True Touch
     env: node
     buildCommand: npm run build
     startCommand: npm run start
