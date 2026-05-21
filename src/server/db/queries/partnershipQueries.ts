@@ -1,4 +1,4 @@
-import pool from '../config.ts'
+import pool from '../config'
 import { randomUUID } from 'crypto'
 
 export interface Partnership {

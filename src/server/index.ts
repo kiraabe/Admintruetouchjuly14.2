@@ -8,16 +8,16 @@ import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
 import bcrypt from 'bcryptjs'
-import candidatesRouter from './routes/candidates/index.ts'
-import usersRouter from './routes/users/index.ts'
-import partnershipsRouter from './routes/partnerships/index.ts'
-import employeeRequestsRouter from './routes/employeeRequests/index.ts'
-import standardRequestsRouter from './routes/standardRequests/index.ts'
-import specialRequestsRouter from './routes/specialRequests/index.ts'
-import licensesRouter from './routes/licenses/index.ts'
-import jobsRouter from './routes/jobs/index.ts'
-import notificationsRouter from './routes/notifications/index.ts'
-import filesRouter from './routes/files/index.ts'
+import candidatesRouter from './routes/candidates/index'
+import usersRouter from './routes/users/index'
+import partnershipsRouter from './routes/partnerships/index'
+import employeeRequestsRouter from './routes/employeeRequests/index'
+import standardRequestsRouter from './routes/standardRequests/index'
+import specialRequestsRouter from './routes/specialRequests/index'
+import licensesRouter from './routes/licenses/index'
+import jobsRouter from './routes/jobs/index'
+import notificationsRouter from './routes/notifications/index'
+import filesRouter from './routes/files/index'
 
 const JWT_SECRET: Secret = process.env.JWT_SECRET || 'your-secret-key'
 
@@ -44,7 +44,7 @@ let pool: any = null
 async function initPool() {
   if (!pool) {
     try {
-      const poolModule = await import('./db/config.ts')
+      const poolModule = await import('./db/config')
       pool = poolModule.default
     } catch (err) {
       console.error('Failed to load db config:', err)
