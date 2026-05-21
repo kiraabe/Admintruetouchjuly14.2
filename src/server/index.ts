@@ -2,7 +2,8 @@ import 'dotenv/config'
 import express, { type Request, type Response } from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
-import jwt from 'jsonwebtoken'
+import jwt, { type Secret } from 'jsonwebtoken'
+import type { SignOptions } from 'jsonwebtoken'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
@@ -18,11 +19,14 @@ import jobsRouter from './routes/jobs/index.ts'
 import notificationsRouter from './routes/notifications/index.ts'
 import filesRouter from './routes/files/index.ts'
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
+const JWT_SECRET: Secret = process.env.JWT_SECRET || 'your-secret-key'
 
 function generateToken(userId: string, email: string): string {
-  return jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN })
+  return jwt.sign(
+    { userId, email },
+    JWT_SECRET,
+    { expiresIn: process.env.JWT_EXPIRES_IN || '7d' } as any
+  )
 }
 
 async function comparePasswords(password: string, hash: string): Promise<boolean> {
