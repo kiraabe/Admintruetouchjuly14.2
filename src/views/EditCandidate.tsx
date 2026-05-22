@@ -732,9 +732,9 @@ const EditCandidate = () => {
                       <h4 className="mb-6 font-semibold">Resume</h4>
                       <div className="bg-gray-100 dark:bg-gray-700 rounded-lg text-center p-4">
                         {resumeUrl ? (
-                          <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-600 rounded mb-4">
-                            <div className="flex items-center gap-2">
-                              <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
+                          <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-600 rounded mb-4 border border-primary/20">
+                            <div className="flex items-center gap-2 flex-1 min-w-0">
+                              <svg className="w-5 h-5 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M8 16.5a1 1 0 11-2 0 1 1 0 012 0zM15 7H4v2h11V7zM4 5h11V3H4v2zm11 8H4v2h11v-2z" />
                               </svg>
                               <a
@@ -742,8 +742,9 @@ const EditCandidate = () => {
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-sm text-primary hover:underline truncate"
+                                title={resumeUrl.split('/').pop() || resumeUrl}
                               >
-                                {resumeUrl.split('/').pop() || resumeUrl}
+                                {resumeUrl.split('/').pop()?.replace(/^\d+-/, '') || resumeUrl}
                               </a>
                             </div>
                             <button
@@ -752,7 +753,8 @@ const EditCandidate = () => {
                                 setResume(null)
                                 setResumeUrl(null)
                               }}
-                              className="text-red-500 hover:text-red-700"
+                              className="text-red-500 hover:text-red-700 flex-shrink-0 ml-2"
+                              title="Remove resume"
                             >
                               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
                                 <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
