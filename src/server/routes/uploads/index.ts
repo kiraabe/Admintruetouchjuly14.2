@@ -70,9 +70,9 @@ const uploaders = {
   }),
 }
 
-// Helper function to get full URL
-const getFileUrl = (filename: string, subpath: string, port: string | number) => {
-  return `http://localhost:${port}/uploads/${subpath}/${filename}`
+// Helper function to get file URL (returns relative path for frontend use)
+const getFileUrl = (filename: string, subpath: string) => {
+  return `/uploads/${subpath}/${filename}`
 }
 
 // POST Endpoints - Upload
@@ -84,10 +84,9 @@ router.post('/candidate/profile_picture', (req: Request, res: Response, next) =>
     if (!req.file) {
       return res.status(400).json({ error: 'No file provided' })
     }
-    const port = process.env.PORT || 5000
     res.json({
       filename: req.file.filename,
-      url: getFileUrl(req.file.filename, 'candidates/profile_pictures', port),
+      url: getFileUrl(req.file.filename, 'candidates/profile_pictures'),
     })
   })
 })
@@ -100,10 +99,9 @@ router.post('/candidate/cv', (req: Request, res: Response, next) => {
     if (!req.file) {
       return res.status(400).json({ error: 'No file provided' })
     }
-    const port = process.env.PORT || 5000
     res.json({
       filename: req.file.filename,
-      url: getFileUrl(req.file.filename, 'candidates/cvs', port),
+      url: getFileUrl(req.file.filename, 'candidates/cvs'),
     })
   })
 })
@@ -112,10 +110,9 @@ router.post('/job/image', uploaders.jobImage.single('file'), (req: Request, res:
   if (!req.file) {
     return res.status(400).json({ error: 'No file provided' })
   }
-  const port = process.env.PORT || 5000
   res.json({
     filename: req.file.filename,
-    url: getFileUrl(req.file.filename, 'jobs', port),
+    url: getFileUrl(req.file.filename, 'jobs'),
   })
 })
 
@@ -125,10 +122,9 @@ router.get('/candidates/profile_pictures', (req: Request, res: Response) => {
     if (err) {
       return res.status(500).json({ error: 'Unable to read directory' })
     }
-    const port = process.env.PORT || 5000
     const filesWithUrls = files.map((file) => ({
       filename: file,
-      url: getFileUrl(file, 'candidates/profile_pictures', port),
+      url: getFileUrl(file, 'candidates/profile_pictures'),
     }))
     res.json(filesWithUrls)
   })
@@ -139,10 +135,9 @@ router.get('/candidates/cvs', (req: Request, res: Response) => {
     if (err) {
       return res.status(500).json({ error: 'Unable to read directory' })
     }
-    const port = process.env.PORT || 5000
     const filesWithUrls = files.map((file) => ({
       filename: file,
-      url: getFileUrl(file, 'candidates/cvs', port),
+      url: getFileUrl(file, 'candidates/cvs'),
     }))
     res.json(filesWithUrls)
   })
@@ -153,10 +148,9 @@ router.get('/jobs', (req: Request, res: Response) => {
     if (err) {
       return res.status(500).json({ error: 'Unable to read directory' })
     }
-    const port = process.env.PORT || 5000
     const filesWithUrls = files.map((file) => ({
       filename: file,
-      url: getFileUrl(file, 'jobs', port),
+      url: getFileUrl(file, 'jobs'),
     }))
     res.json(filesWithUrls)
   })

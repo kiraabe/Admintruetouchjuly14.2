@@ -80,8 +80,17 @@ const Job = () => {
 
   const getImageUrl = (imageUrl: string | null) => {
     if (!imageUrl) return ''
-    if (imageUrl.startsWith('http')) return imageUrl
+    // If it's an absolute URL, extract just the relative path
+    if (imageUrl.includes('/uploads/jobs/')) {
+      return imageUrl.split('/uploads/jobs/')[1]
+        ? `/uploads/jobs/${imageUrl.split('/uploads/jobs/')[1]}`
+        : imageUrl
+    }
+    // If it already starts with /uploads, use as-is
+    if (imageUrl.startsWith('/uploads')) return imageUrl
+    // If it starts with /, use as-is
     if (imageUrl.startsWith('/')) return imageUrl
+    // Otherwise, assume it's just a filename and prepend the path
     return `/uploads/jobs/${imageUrl}`
   }
 
@@ -131,9 +140,22 @@ const Job = () => {
         status: formData.status,
       }
 
-      // If there's a new image file, upload to file server
+      // If there's a new image file, upload to API endpoint
       if (imageFile) {
-        const uploadResult = await uploadJobImage(imageFile)
+        const formDataWithFile = new FormData()
+        formDataWithFile.append('image', imageFile)
+
+        const uploadResponse = await fetch('/api/upload/job/image', {
+          method: 'POST',
+          body: formDataWithFile,
+        })
+
+        if (!uploadResponse.ok) {
+          const uploadError = await uploadResponse.json()
+          throw new Error(uploadError.error || 'Failed to upload image')
+        }
+
+        const uploadResult = await uploadResponse.json()
         payload.image_url = uploadResult.url
       } else if (selectedJob && selectedJob.image_url) {
         // Keep existing image URL when not changing it
@@ -160,6 +182,8 @@ const Job = () => {
       toast.success(selectedJob ? 'Job updated successfully' : 'Job added successfully')
       setShowEditModal(false)
       setShowAddModal(false)
+      setImageFile(null)
+      setImagePreview('')
       fetchJobs(currentPage)
     } catch (error) {
       toast.error(error instanceof Error ? error.message : 'Failed to save job')
