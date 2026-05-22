@@ -652,121 +652,205 @@ const PartnershipCandidates = () => {
         </div>
       </div>
 
-      {/* Info Modal - Resume Style */}
+      {/* Info Modal - Expanded Resume Style */}
       <Dialog isOpen={showInfoModal} onClose={() => setShowInfoModal(false)}>
         {selectedCandidate && (
-          <div className="space-y-6 max-h-96 overflow-y-auto">
+          <div className="space-y-6 max-h-[calc(90vh-100px)] overflow-y-auto w-full max-w-2xl">
             {/* Profile Header */}
-            <div className="text-center">
+            <div className="text-center border-b border-gray-200 dark:border-gray-700 pb-6">
               <div className="flex justify-center mb-4">
                 <img
                   src={selectedCandidate.profile_picture ? `/uploads/candidates/profile_pictures/${selectedCandidate.profile_picture}` : '/img/placeholder-avatar.png'}
                   alt={selectedCandidate.name}
-                  className="w-24 h-24 rounded-full object-cover border-4 border-primary"
+                  className="w-32 h-32 rounded-full object-cover border-4 border-primary"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = '/img/placeholder-avatar.png'
                   }}
                 />
               </div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{selectedCandidate.name}</h2>
-              <p className="text-primary font-semibold mt-1">{selectedCandidate.job_category || 'N/A'}</p>
-              <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{selectedCandidate.occupation || 'N/A'}</p>
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-gray-100">{selectedCandidate.name}</h2>
+              <p className="text-primary font-semibold mt-2 text-lg">{selectedCandidate.job_category || 'N/A'}</p>
+              <p className="text-gray-600 dark:text-gray-400 mt-1">{selectedCandidate.occupation || 'N/A'}</p>
+              {selectedCandidate.candidate_id && (
+                <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">ID: {selectedCandidate.candidate_id}</p>
+              )}
+            </div>
+
+            {/* Status Badge */}
+            <div className="flex justify-center">
+              <span className={`inline-block px-4 py-2 rounded-full text-sm font-semibold capitalize ${
+                selectedCandidate.status === 'available'
+                  ? 'bg-emerald-200 text-emerald-900 dark:bg-emerald-900 dark:text-emerald-200'
+                  : selectedCandidate.status === 'processing'
+                  ? 'bg-blue-200 text-blue-900 dark:bg-blue-900 dark:text-blue-200'
+                  : selectedCandidate.status === 'employee'
+                  ? 'bg-purple-200 text-purple-900 dark:bg-purple-900 dark:text-purple-200'
+                  : 'bg-gray-200 text-gray-900 dark:bg-gray-700 dark:text-gray-300'
+              }`}>
+                {selectedCandidate.status || 'Unknown'}
+              </span>
             </div>
 
             {/* Contact Information */}
-            <div className="border-t border-b border-gray-200 dark:border-gray-700 py-4">
-              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3 uppercase tracking-wide">Contact Information</h3>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Phone:</span>
-                  <span className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.phone_number || '-'}</span>
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4 uppercase tracking-widest">Contact Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Phone</p>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.phone_number || '-'}</p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Nationality:</span>
-                  <span className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.nationality || '-'}</span>
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Nationality</p>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.nationality || '-'}</p>
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600 dark:text-gray-400">Country:</span>
-                  <span className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.country || '-'}</span>
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Country</p>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.country || '-'}</p>
                 </div>
-                {selectedCandidate.current_location && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600 dark:text-gray-400">Current Location:</span>
-                    <span className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.current_location}</span>
-                  </div>
-                )}
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Current Location</p>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.current_location || '-'}</p>
+                </div>
               </div>
             </div>
 
             {/* Professional Information */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">Professional Details</h3>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Skill Level</p>
-                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.skill_level || '-'}</p>
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4 uppercase tracking-widest">Professional Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Skill Level</p>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.skill_level || '-'}</p>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Education</p>
-                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.education_level || '-'}</p>
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Education Level</p>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.education_level || '-'}</p>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Medical Status</p>
-                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.medical_status || '-'}</p>
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Medical Status</p>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.medical_status || '-'}</p>
                 </div>
-                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
-                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Status</p>
-                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium capitalize">{selectedCandidate.status || '-'}</p>
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Language Skills</p>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.language_skills || '-'}</p>
                 </div>
               </div>
             </div>
 
             {/* Personal Information */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">Personal Information</h3>
-              <div className="grid grid-cols-2 gap-3">
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4 uppercase tracking-widest">Personal Information</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {selectedCandidate.gender && (
-                  <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Gender</p>
-                    <p className="text-sm text-gray-900 dark:text-gray-100">{selectedCandidate.gender}</p>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Gender</p>
+                    <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.gender}</p>
+                  </div>
+                )}
+                {selectedCandidate.age && (
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Age</p>
+                    <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.age}</p>
                   </div>
                 )}
                 {selectedCandidate.date_of_birth && (
-                  <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Date of Birth</p>
-                    <p className="text-sm text-gray-900 dark:text-gray-100">{new Date(selectedCandidate.date_of_birth).toLocaleDateString()}</p>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Date of Birth</p>
+                    <p className="text-gray-900 dark:text-gray-100">{new Date(selectedCandidate.date_of_birth).toLocaleDateString()}</p>
                   </div>
                 )}
                 {selectedCandidate.religion && (
-                  <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Religion</p>
-                    <p className="text-sm text-gray-900 dark:text-gray-100">{selectedCandidate.religion}</p>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Religion</p>
+                    <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.religion}</p>
                   </div>
                 )}
                 {selectedCandidate.marital_status && (
-                  <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Marital Status</p>
-                    <p className="text-sm text-gray-900 dark:text-gray-100">{selectedCandidate.marital_status}</p>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Marital Status</p>
+                    <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.marital_status}</p>
                   </div>
                 )}
                 {selectedCandidate.passport_number && (
-                  <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Passport</p>
-                    <p className="text-sm text-gray-900 dark:text-gray-100">{selectedCandidate.passport_number}</p>
-                  </div>
-                )}
-                {selectedCandidate.language_skills && (
-                  <div>
-                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Languages</p>
-                    <p className="text-sm text-gray-900 dark:text-gray-100">{selectedCandidate.language_skills}</p>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Passport Number</p>
+                    <p className="text-gray-900 dark:text-gray-100 font-mono">{selectedCandidate.passport_number}</p>
                   </div>
                 )}
               </div>
             </div>
 
-            {/* Close Button */}
+            {/* Document & Timestamps */}
+            <div>
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-4 uppercase tracking-widest">Documents & Timestamps</h3>
+              <div className="grid grid-cols-1 gap-4">
+                {selectedCandidate.resume_url && (
+                  <div className="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-2">Resume</p>
+                    <a
+                      href={selectedCandidate.resume_url.includes('/') ? `/uploads/candidates/cvs/${selectedCandidate.resume_url.split('/').pop()}` : `/uploads/candidates/cvs/${selectedCandidate.resume_url}`}
+                      download
+                      className="inline-flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:underline font-medium"
+                    >
+                      <svg
+                        stroke="currentColor"
+                        fill="none"
+                        strokeWidth="2"
+                        viewBox="0 0 24 24"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        height="1em"
+                        width="1em"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path d="M19 18a3.5 3.5 0 0 0 0 -7h-1a5 4.5 0 0 0 -11 -2a4.6 4.4 0 0 0 -2.1 8.4"></path>
+                        <path d="M12 13l0 9"></path>
+                        <path d="M9 19l3 3l3 -3"></path>
+                      </svg>
+                      Download Resume
+                    </a>
+                  </div>
+                )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Created</p>
+                    <p className="text-sm text-gray-900 dark:text-gray-100">{new Date(selectedCandidate.created_at).toLocaleDateString()} {new Date(selectedCandidate.created_at).toLocaleTimeString()}</p>
+                  </div>
+                  <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Last Updated</p>
+                    <p className="text-sm text-gray-900 dark:text-gray-100">{new Date(selectedCandidate.updated_at).toLocaleDateString()} {new Date(selectedCandidate.updated_at).toLocaleTimeString()}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
             <div className="flex gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
-              <Button onClick={() => setShowInfoModal(false)} className="w-full">Close</Button>
+              <Button onClick={() => setShowInfoModal(false)} className="flex-1">Close</Button>
+              {selectedCandidate.resume_url && (
+                <a
+                  href={selectedCandidate.resume_url.includes('/') ? `/uploads/candidates/cvs/${selectedCandidate.resume_url.split('/').pop()}` : `/uploads/candidates/cvs/${selectedCandidate.resume_url}`}
+                  download
+                  className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+                >
+                  <svg
+                    stroke="currentColor"
+                    fill="none"
+                    strokeWidth="2"
+                    viewBox="0 0 24 24"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    height="1em"
+                    width="1em"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path d="M19 18a3.5 3.5 0 0 0 0 -7h-1a5 4.5 0 0 0 -11 -2a4.6 4.4 0 0 0 -2.1 8.4"></path>
+                    <path d="M12 13l0 9"></path>
+                    <path d="M9 19l3 3l3 -3"></path>
+                  </svg>
+                  Download Resume
+                </a>
+              )}
             </div>
           </div>
         )}
