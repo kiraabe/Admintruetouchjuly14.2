@@ -104,8 +104,13 @@ app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 
 // Serve uploaded files
 const jobsDir = path.join(process.cwd(), 'uploads', 'jobs')
+const candidateCvsDir = path.join(uploadsBaseDir, 'candidates', 'cvs')
+const candidateProfilesDir = path.join(uploadsBaseDir, 'candidates', 'profile_pictures')
+
 app.use('/uploads/profiles', express.static(profilesDir))
 app.use('/uploads/candidates', express.static(candidatesDir))
+app.use('/uploads/candidates/cvs', express.static(candidateCvsDir))
+app.use('/uploads/candidates/profile_pictures', express.static(candidateProfilesDir))
 app.use('/uploads/partnerships', express.static(partnershipsDir))
 app.use('/uploads/jobs', express.static(jobsDir))
 

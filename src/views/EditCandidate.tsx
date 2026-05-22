@@ -743,8 +743,7 @@ const EditCandidate = () => {
                                   e.preventDefault()
                                   try {
                                     const filename = resumeUrl.split('/').pop() || 'resume'
-                                    const downloadUrl = `/api/uploads/candidate/cv/${filename}`
-                                    const response = await fetch(downloadUrl)
+                                    const response = await fetch(resumeUrl)
                                     if (!response.ok) {
                                       throw new Error('Failed to fetch file')
                                     }

@@ -104,11 +104,11 @@ router.post('/', upload.fields([{ name: 'profilePicture', maxCount: 1 }, { name:
     const data: any = { ...req.body }
 
     if (files?.profilePicture?.[0]) {
-      data.profile_picture = `/uploads/candidates/${files.profilePicture[0].filename}`
+      data.profile_picture = `/uploads/candidates/profile_pictures/${files.profilePicture[0].filename}`
     }
 
     if (files?.resume?.[0]) {
-      data.resume_url = `/uploads/candidates/${files.resume[0].filename}`
+      data.resume_url = `/uploads/candidates/cvs/${files.resume[0].filename}`
     }
 
     // Convert password to password_hash for consistency
@@ -133,11 +133,11 @@ router.put('/:candidateId', upload.fields([{ name: 'profilePicture', maxCount: 1
     const data: any = { ...req.body }
 
     if (files?.profilePicture?.[0]) {
-      data.profile_picture = `/uploads/candidates/${files.profilePicture[0].filename}`
+      data.profile_picture = `/uploads/candidates/profile_pictures/${files.profilePicture[0].filename}`
     }
 
     if (files?.resume?.[0]) {
-      data.resume_url = `/uploads/candidates/${files.resume[0].filename}`
+      data.resume_url = `/uploads/candidates/cvs/${files.resume[0].filename}`
     }
 
     // Convert password to password_hash for consistency
