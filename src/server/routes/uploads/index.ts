@@ -76,25 +76,35 @@ const getFileUrl = (filename: string, subpath: string, port: string | number) =>
 }
 
 // POST Endpoints - Upload
-router.post('/candidate/profile_picture', uploaders.profilePicture.single('file'), (req: Request, res: Response) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file provided' })
-  }
-  const port = process.env.PORT || 5000
-  res.json({
-    filename: req.file.filename,
-    url: getFileUrl(req.file.filename, 'candidates/profile_pictures', port),
+router.post('/candidate/profile_picture', (req: Request, res: Response, next) => {
+  uploaders.profilePicture.single('file')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ error: err.message })
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file provided' })
+    }
+    const port = process.env.PORT || 5000
+    res.json({
+      filename: req.file.filename,
+      url: getFileUrl(req.file.filename, 'candidates/profile_pictures', port),
+    })
   })
 })
 
-router.post('/candidate/cv', uploaders.cv.single('file'), (req: Request, res: Response) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file provided' })
-  }
-  const port = process.env.PORT || 5000
-  res.json({
-    filename: req.file.filename,
-    url: getFileUrl(req.file.filename, 'candidates/cvs', port),
+router.post('/candidate/cv', (req: Request, res: Response, next) => {
+  uploaders.cv.single('file')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ error: err.message })
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file provided' })
+    }
+    const port = process.env.PORT || 5000
+    res.json({
+      filename: req.file.filename,
+      url: getFileUrl(req.file.filename, 'candidates/cvs', port),
+    })
   })
 })
 
