@@ -104,11 +104,15 @@ router.post('/', upload.fields([{ name: 'profilePicture', maxCount: 1 }, { name:
     const data: any = { ...req.body }
 
     if (files?.profilePicture?.[0]) {
-      data.profile_picture = `/uploads/candidates/profile_pictures/${files.profilePicture[0].filename}`
+      data.profile_picture = files.profilePicture[0].filename
+    } else if (data.profile_picture && !data.profile_picture.startsWith('/')) {
+      // Keep filename as-is if provided from frontend
     }
 
     if (files?.resume?.[0]) {
-      data.resume_url = `/uploads/candidates/cvs/${files.resume[0].filename}`
+      data.resume_url = files.resume[0].filename
+    } else if (data.resume_url && !data.resume_url.startsWith('/')) {
+      // Keep filename as-is if provided from frontend
     }
 
     // Convert password to password_hash for consistency
@@ -133,11 +137,15 @@ router.put('/:candidateId', upload.fields([{ name: 'profilePicture', maxCount: 1
     const data: any = { ...req.body }
 
     if (files?.profilePicture?.[0]) {
-      data.profile_picture = `/uploads/candidates/profile_pictures/${files.profilePicture[0].filename}`
+      data.profile_picture = files.profilePicture[0].filename
+    } else if (data.profile_picture && !data.profile_picture.startsWith('/')) {
+      // Keep filename as-is if provided from frontend
     }
 
     if (files?.resume?.[0]) {
-      data.resume_url = `/uploads/candidates/cvs/${files.resume[0].filename}`
+      data.resume_url = files.resume[0].filename
+    } else if (data.resume_url && !data.resume_url.startsWith('/')) {
+      // Keep filename as-is if provided from frontend
     }
 
     // Convert password to password_hash for consistency

@@ -536,7 +536,7 @@ const Candidates = () => {
                     <td className="py-3 px-4 font-semibold">
                       <div className="flex items-center gap-3">
                         <img
-                          src={candidate.profile_picture || '/img/placeholder-avatar.png'}
+                          src={candidate.profile_picture ? `/uploads/candidates/profile_pictures/${candidate.profile_picture}` : '/img/placeholder-avatar.png'}
                           alt={candidate.name}
                           className="w-10 h-10 rounded-full object-cover"
                           onError={(e) => {

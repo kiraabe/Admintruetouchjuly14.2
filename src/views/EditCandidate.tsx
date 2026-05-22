@@ -156,7 +156,10 @@ const EditCandidate = () => {
         }
 
         if (cand.profile_picture) {
-          setProfilePicturePreview(cand.profile_picture)
+          const picUrl = cand.profile_picture.startsWith('http')
+            ? cand.profile_picture
+            : `/uploads/candidates/profile_pictures/${cand.profile_picture}`
+          setProfilePicturePreview(picUrl)
         }
 
         if (cand.resume_url) {
@@ -300,19 +303,14 @@ const EditCandidate = () => {
         }
       })
 
-      let profilePictureUrl: string | undefined = profilePicturePreview
-      let resumeFileUrl: string | undefined = resumeUrl || undefined
-
       if (profilePicture) {
         const uploadResult = await uploadCandidateProfilePicture(profilePicture)
-        profilePictureUrl = uploadResult.url
-        formDataToSend.append('profile_picture', profilePictureUrl)
+        formDataToSend.append('profile_picture', uploadResult.filename)
       }
 
       if (resume) {
         const uploadResult = await uploadCandidateCV(resume)
-        resumeFileUrl = uploadResult.url
-        formDataToSend.append('resume_url', resumeFileUrl)
+        formDataToSend.append('resume_url', uploadResult.filename)
       }
 
       if (isNewCandidate) {
@@ -742,7 +740,7 @@ const EditCandidate = () => {
                                 onClick={async (e) => {
                                   e.preventDefault()
                                   try {
-                                    const filename = resumeUrl.split('/').pop() || 'resume'
+                                    const filename = resumeUrl.includes('/') ? resumeUrl.split('/').pop() : resumeUrl
                                     const downloadUrl = `/uploads/candidates/cvs/${filename}`
                                     const link = document.createElement('a')
                                     link.href = downloadUrl
