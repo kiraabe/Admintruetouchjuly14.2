@@ -78,6 +78,13 @@ const Job = () => {
     setShowAddModal(true)
   }
 
+  const getImageUrl = (imageUrl: string | null) => {
+    if (!imageUrl) return ''
+    if (imageUrl.startsWith('http')) return imageUrl
+    if (imageUrl.startsWith('/')) return imageUrl
+    return `/uploads/jobs/${imageUrl}`
+  }
+
   const handleEdit = (job: Job) => {
     setSelectedJob(job)
     // Convert ISO date format to YYYY-MM-DD for date input
@@ -92,7 +99,7 @@ const Job = () => {
       status: job.status,
     })
     if (job.image_url) {
-      setImagePreview(job.image_url)
+      setImagePreview(getImageUrl(job.image_url))
     }
     setShowEditModal(true)
   }
@@ -219,9 +226,12 @@ const Job = () => {
                 {job.image_url && (
                   <div className="flex-shrink-0">
                     <img
-                      src={job.image_url}
+                      src={getImageUrl(job.image_url)}
                       alt={job.title}
                       className="w-32 h-32 object-cover rounded"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).src = '/img/placeholder-avatar.png'
+                      }}
                     />
                   </div>
                 )}
