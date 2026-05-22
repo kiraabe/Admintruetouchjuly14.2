@@ -194,10 +194,23 @@ router.get('/download/cv/:filename', (req: Request, res: Response) => {
     return res.status(404).json({ error: 'File not found' })
   }
 
-  // Set proper headers for download
-  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
-  res.setHeader('Content-Type', 'application/octet-stream')
-  res.sendFile(filepath)
+  try {
+    // Set proper headers for download
+    const cleanFilename = path.basename(filename)
+    res.setHeader('Content-Disposition', `attachment; filename="${cleanFilename}"`)
+    res.setHeader('Content-Type', 'application/octet-stream')
+    res.download(filepath, cleanFilename, (err) => {
+      if (err) {
+        console.error('Download error:', err)
+        if (!res.headersSent) {
+          res.status(500).json({ error: 'Download failed' })
+        }
+      }
+    })
+  } catch (error) {
+    console.error('Error serving file:', error)
+    res.status(500).json({ error: 'Failed to download file' })
+  }
 })
 
 router.get('/candidate/cv/:filename', (req: Request, res: Response) => {

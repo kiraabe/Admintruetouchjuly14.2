@@ -107,9 +107,16 @@ const jobsDir = path.join(process.cwd(), 'uploads', 'jobs')
 const candidateCvsDir = path.join(uploadsBaseDir, 'candidates', 'cvs')
 const candidateProfilesDir = path.join(uploadsBaseDir, 'candidates', 'profile_pictures')
 
+// Configure static file serving with proper download headers for CVs
+app.use('/uploads/candidates/cvs', express.static(candidateCvsDir, {
+  setHeaders: (res, path, stat) => {
+    res.set('Content-Disposition', `attachment; filename="${path.split('/').pop()}"`)
+    res.set('Content-Type', 'application/octet-stream')
+  }
+}))
+
 app.use('/uploads/profiles', express.static(profilesDir))
 app.use('/uploads/candidates', express.static(candidatesDir))
-app.use('/uploads/candidates/cvs', express.static(candidateCvsDir))
 app.use('/uploads/candidates/profile_pictures', express.static(candidateProfilesDir))
 app.use('/uploads/partnerships', express.static(partnershipsDir))
 app.use('/uploads/jobs', express.static(jobsDir))

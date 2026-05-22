@@ -743,7 +743,7 @@ const EditCandidate = () => {
                                   e.preventDefault()
                                   try {
                                     const filename = resumeUrl.split('/').pop() || 'resume'
-                                    const downloadUrl = `/api/uploads/download/cv/${filename}`
+                                    const downloadUrl = `/uploads/candidates/cvs/${filename}`
                                     const link = document.createElement('a')
                                     link.href = downloadUrl
                                     link.download = filename.replace(/^\d+-/, '')
