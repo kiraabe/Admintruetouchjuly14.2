@@ -103,7 +103,8 @@ app.use(express.json({ limit: '5mb' }))
 app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 
 // Serve uploaded files
-const jobsDir = path.join(process.cwd(), 'uploads', 'jobs')
+const uploadsBaseDir = path.join(process.cwd(), 'uploads')
+const jobsDir = path.join(uploadsBaseDir, 'jobs')
 const candidateCvsDir = path.join(uploadsBaseDir, 'candidates', 'cvs')
 const candidateProfilesDir = path.join(uploadsBaseDir, 'candidates', 'profile_pictures')
 
