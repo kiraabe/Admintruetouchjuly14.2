@@ -605,7 +605,7 @@ const PartnershipCandidates = () => {
                         </button>
                         {candidate.resume_url && (
                           <a
-                            href={candidate.resume_url}
+                            href={candidate.resume_url.includes('/') ? `/uploads/candidates/cvs/${candidate.resume_url.split('/').pop()}` : `/uploads/candidates/cvs/${candidate.resume_url}`}
                             download
                             className="w-full flex items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                           >
