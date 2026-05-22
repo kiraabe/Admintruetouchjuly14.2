@@ -14,8 +14,7 @@
     "sourceMap": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "noEmit": false,
-    "allowImportingTsExtensions": true
+    "noEmit": false
   },
   "include": ["src/server/**/*"],
   "exclude": ["node_modules", "dist"]
