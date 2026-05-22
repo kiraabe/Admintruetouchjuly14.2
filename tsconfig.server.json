@@ -16,7 +16,8 @@
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "noImplicitAny": false,
-    "ignoreDeprecations": "5.0"
+    "ignoreDeprecations": "5.0",
+    "noImplicitThis": false
   },
   "include": ["src/server/**/*.ts"],
   "exclude": ["node_modules", "dist", "src/views", "src/components", "src/pages"]
