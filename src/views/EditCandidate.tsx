@@ -738,16 +738,23 @@ const EditCandidate = () => {
                                 <path d="M8 16.5a1 1 0 11-2 0 1 1 0 012 0zM15 7H4v2h11V7zM4 5h11V3H4v2zm11 8H4v2h11v-2z" />
                               </svg>
                               <a
-                                href={resumeUrl.startsWith('http') ? resumeUrl : '#'}
-                                onClick={(e) => {
-                                  if (resumeUrl.startsWith('http')) {
-                                    e.preventDefault()
+                                href="#"
+                                onClick={async (e) => {
+                                  e.preventDefault()
+                                  try {
+                                    const response = await fetch(resumeUrl)
+                                    if (!response.ok) throw new Error('Failed to fetch resume')
+                                    const blob = await response.blob()
+                                    const url = window.URL.createObjectURL(blob)
                                     const link = document.createElement('a')
-                                    link.href = resumeUrl
+                                    link.href = url
                                     link.download = resumeUrl.split('/').pop()?.replace(/^\d+-/, '') || 'resume'
                                     document.body.appendChild(link)
                                     link.click()
                                     document.body.removeChild(link)
+                                    window.URL.revokeObjectURL(url)
+                                  } catch (error) {
+                                    notify.error('Error', 'Failed to download resume')
                                   }
                                 }}
                                 className="text-sm text-primary hover:underline truncate cursor-pointer"
