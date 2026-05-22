@@ -122,6 +122,25 @@ app.use('/uploads/candidates/profile_pictures', express.static(candidateProfiles
 app.use('/uploads/partnerships', express.static(partnershipsDir))
 app.use('/uploads/jobs', express.static(jobsDir))
 
+// Fallback route for profile pictures (checks both new and old locations)
+app.get('/uploads/candidates/profile_pictures/:filename', (req, res) => {
+  const filename = req.params.filename
+
+  // Try new location first
+  let filepath = path.join(candidateProfilesDir, filename)
+  if (fs.existsSync(filepath)) {
+    return res.sendFile(filepath)
+  }
+
+  // Try old location as fallback
+  filepath = path.join(candidatesDir, filename)
+  if (fs.existsSync(filepath)) {
+    return res.sendFile(filepath)
+  }
+
+  res.status(404).json({ error: 'File not found' })
+})
+
 // Health check
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
