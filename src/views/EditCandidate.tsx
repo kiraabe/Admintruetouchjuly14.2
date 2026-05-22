@@ -158,6 +158,10 @@ const EditCandidate = () => {
         if (cand.profile_picture) {
           setProfilePicturePreview(cand.profile_picture)
         }
+
+        if (cand.resume_url) {
+          setResumeUrl(cand.resume_url)
+        }
       } else {
         notify.error('Error', 'Candidate not found')
         navigate('/candidates')
