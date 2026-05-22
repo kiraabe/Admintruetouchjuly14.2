@@ -652,89 +652,121 @@ const PartnershipCandidates = () => {
         </div>
       </div>
 
-      {/* Info Modal */}
+      {/* Info Modal - Resume Style */}
       <Dialog isOpen={showInfoModal} onClose={() => setShowInfoModal(false)}>
         {selectedCandidate && (
-          <div className="space-y-4 max-h-96 overflow-y-auto">
-            <div>
-              <h2 className="text-lg font-bold mb-4">{selectedCandidate.name}</h2>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Phone</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.phone_number || '-'}</p>
+          <div className="space-y-6 max-h-96 overflow-y-auto">
+            {/* Profile Header */}
+            <div className="text-center">
+              <div className="flex justify-center mb-4">
+                <img
+                  src={selectedCandidate.profile_picture ? `/uploads/candidates/profile_pictures/${selectedCandidate.profile_picture}` : '/img/placeholder-avatar.png'}
+                  alt={selectedCandidate.name}
+                  className="w-24 h-24 rounded-full object-cover border-4 border-primary"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = '/img/placeholder-avatar.png'
+                  }}
+                />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100">{selectedCandidate.name}</h2>
+              <p className="text-primary font-semibold mt-1">{selectedCandidate.job_category || 'N/A'}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-sm mt-1">{selectedCandidate.occupation || 'N/A'}</p>
+            </div>
+
+            {/* Contact Information */}
+            <div className="border-t border-b border-gray-200 dark:border-gray-700 py-4">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 mb-3 uppercase tracking-wide">Contact Information</h3>
+              <div className="space-y-2">
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Phone:</span>
+                  <span className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.phone_number || '-'}</span>
                 </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Passport</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.passport_number || '-'}</p>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Nationality:</span>
+                  <span className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.nationality || '-'}</span>
                 </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Gender</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.gender || '-'}</p>
+                <div className="flex justify-between">
+                  <span className="text-gray-600 dark:text-gray-400">Country:</span>
+                  <span className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.country || '-'}</span>
                 </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Age</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.age || '-'}</p>
+                {selectedCandidate.current_location && (
+                  <div className="flex justify-between">
+                    <span className="text-gray-600 dark:text-gray-400">Current Location:</span>
+                    <span className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.current_location}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Professional Information */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">Professional Details</h3>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Skill Level</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.skill_level || '-'}</p>
                 </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Date of Birth</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.date_of_birth || '-'}</p>
+                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Education</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.education_level || '-'}</p>
                 </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Nationality</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.nationality || '-'}</p>
+                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Medical Status</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.medical_status || '-'}</p>
                 </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Religion</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.religion || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Marital Status</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.marital_status || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Occupation</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.occupation || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Job Category</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.job_category || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Skill Level</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.skill_level || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Education Level</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.education_level || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Language Skills</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.language_skills || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Country</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.country || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">City</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.city || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Current Location</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.current_location || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Medical Status</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.medical_status || '-'}</p>
-                </div>
-                <div>
-                  <label className="text-sm font-semibold text-gray-600 dark:text-gray-400">Status</label>
-                  <p className="text-gray-900 dark:text-gray-100">{selectedCandidate.status || '-'}</p>
+                <div className="bg-gray-50 dark:bg-gray-700 p-3 rounded">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Status</p>
+                  <p className="text-sm text-gray-900 dark:text-gray-100 font-medium capitalize">{selectedCandidate.status || '-'}</p>
                 </div>
               </div>
             </div>
-            <div className="flex gap-2 pt-4">
-              <Button onClick={() => setShowInfoModal(false)}>Close</Button>
+
+            {/* Personal Information */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100 uppercase tracking-wide">Personal Information</h3>
+              <div className="grid grid-cols-2 gap-3">
+                {selectedCandidate.gender && (
+                  <div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Gender</p>
+                    <p className="text-sm text-gray-900 dark:text-gray-100">{selectedCandidate.gender}</p>
+                  </div>
+                )}
+                {selectedCandidate.date_of_birth && (
+                  <div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Date of Birth</p>
+                    <p className="text-sm text-gray-900 dark:text-gray-100">{new Date(selectedCandidate.date_of_birth).toLocaleDateString()}</p>
+                  </div>
+                )}
+                {selectedCandidate.religion && (
+                  <div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Religion</p>
+                    <p className="text-sm text-gray-900 dark:text-gray-100">{selectedCandidate.religion}</p>
+                  </div>
+                )}
+                {selectedCandidate.marital_status && (
+                  <div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Marital Status</p>
+                    <p className="text-sm text-gray-900 dark:text-gray-100">{selectedCandidate.marital_status}</p>
+                  </div>
+                )}
+                {selectedCandidate.passport_number && (
+                  <div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Passport</p>
+                    <p className="text-sm text-gray-900 dark:text-gray-100">{selectedCandidate.passport_number}</p>
+                  </div>
+                )}
+                {selectedCandidate.language_skills && (
+                  <div>
+                    <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold">Languages</p>
+                    <p className="text-sm text-gray-900 dark:text-gray-100">{selectedCandidate.language_skills}</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Close Button */}
+            <div className="flex gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
+              <Button onClick={() => setShowInfoModal(false)} className="w-full">Close</Button>
             </div>
           </div>
         )}
