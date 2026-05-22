@@ -1,27 +1,32 @@
-# Ecme - The Ultimate React, Vite & TypeScript Web Template
+# True Touch - Foreign Employment Recruitment Agency Platform
 
-Ecme  is a modern and responsive admin dashboard template built with React and TypeScript. Designed to provide a highly customizable and easy-to-use platform for building admin interfaces, it includes a variety of reusable components, pre-designed pages, and dynamic features. 
+True Touch is a modern and comprehensive recruitment management system designed specifically for foreign employment agencies. Built with React and TypeScript, it provides a powerful platform for managing partnership candidates, processing recruitment requests, and streamlining the entire employment pipeline.
 
-This template is perfect for developing dashboards, web applications, CRM systems, e-commerce backends, and more. Whether you're building a small-scale admin panel or a large-scale enterprise application, Ecme is designed to be flexible and scalable.
+This platform is designed to help recruitment agencies efficiently manage candidates, partnerships, and employment processes at scale. Whether you're coordinating with multiple partners, screening candidates, or tracking employment status, True Touch provides the tools you need.
 
 Key Features:
-- **Responsive Layout**: Optimized for all screen sizes and devices.
-- **Dark/Light Mode**: Easily switch between light and dark themes.
-- **Configurable Themes**: Personalize colors, layouts, and more to fit your needs.
-- **Built with React + TypeScript**: Ensures robust type-checking and fast development.
-- **Multi-Locale Support**: Easily add and manage multiple languages.
-- **RTL Support**: Full Right-to-Left support for languages like Arabic or Hebrew.
-- **Tailwind Component-Based Architecture**: Reusable components to streamline your development process.
-- **API Ready**: Simple integration with any RESTful API.
-- **Integrated Backend**: Express.js backend included in the same codebase.
+- **Partnership Management**: Manage partnership candidates with detailed profiles and status tracking.
+- **Candidate Database**: Comprehensive candidate profiles with personal, professional, and document information.
+- **Advanced Filtering & Search**: Filter candidates by job category, skill level, nationality, education, and more.
+- **Request Management**: Create and track standard requests for candidate placements.
+- **Status Tracking**: Monitor candidates through multiple status stages (Available, Processing, Employee).
+- **Document Management**: Upload and download resumes and other candidate documents.
+- **CSV Export**: Export candidate data for reporting and analysis.
+- **Responsive Design**: Optimized for all screen sizes and devices.
+- **Dark/Light Mode**: Toggle between light and dark themes for comfortable usage.
+- **Role-Based Access**: Different access levels for Admin and Partnership users.
+- **Integrated Backend**: Express.js backend with PostgreSQL database.
+- **Real-time Notifications**: Notification system for recruitment activities and updates.
 
 ---
-### Demo
-Check out the [Live Demo](https://ecme-react.themenate.net/) to explore the template in action.
 
+## Core Modules
 
-### Guide
-Please visit our [Online documentation](https://ecme-react.themenate.net/guide/documentation/introduction) for detailed guides, setup instructions, and customization options.
+- **Dashboard**: Overview of partnership KPIs, recent activities, and system status
+- **Partnership Candidates**: View, filter, and manage candidate database with advanced search capabilities
+- **Standard Requests**: Track and manage employment requests from partners
+- **Admin Panel**: System administration, user management, and configuration
+- **Notifications**: Real-time updates on recruitment activities and requests
 
 ## Quick Start
 
