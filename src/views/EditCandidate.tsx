@@ -737,7 +737,14 @@ const EditCandidate = () => {
                               <svg className="w-5 h-5 text-primary" fill="currentColor" viewBox="0 0 20 20">
                                 <path d="M8 16.5a1 1 0 11-2 0 1 1 0 012 0zM15 7H4v2h11V7zM4 5h11V3H4v2zm11 8H4v2h11v-2z" />
                               </svg>
-                              <span className="text-sm text-gray-700 dark:text-gray-300 truncate">{resumeUrl}</span>
+                              <a
+                                href={resumeUrl.startsWith('http') ? resumeUrl : '#'}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-sm text-primary hover:underline truncate"
+                              >
+                                {resumeUrl.split('/').pop() || resumeUrl}
+                              </a>
                             </div>
                             <button
                               type="button"
