@@ -5,6 +5,7 @@ import Input from '@/components/ui/Input'
 import Dialog from '@/components/ui/Dialog'
 import Pagination from '@/components/ui/Pagination'
 import { toast } from 'sonner'
+import { uploadJobImage } from '@/utils/fileServer'
 
 interface Job {
   id: string
@@ -123,17 +124,10 @@ const Job = () => {
         status: formData.status,
       }
 
-      // If there's a new image file, convert to data URL
+      // If there's a new image file, upload to file server
       if (imageFile) {
-        const reader = new FileReader()
-        const imageDataUrl = await new Promise<string>((resolve, reject) => {
-          reader.onloadend = () => {
-            resolve(reader.result as string)
-          }
-          reader.onerror = reject
-          reader.readAsDataURL(imageFile)
-        })
-        payload.image_url = imageDataUrl
+        const uploadResult = await uploadJobImage(imageFile)
+        payload.image_url = uploadResult.url
       } else if (selectedJob && selectedJob.image_url) {
         // Keep existing image URL when not changing it
         payload.image_url = selectedJob.image_url

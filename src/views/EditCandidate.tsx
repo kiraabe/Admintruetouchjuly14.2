@@ -4,6 +4,7 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
 import { notify } from '@/utils/notification'
+import { uploadCandidateProfilePicture, uploadCandidateCV } from '@/utils/fileServer'
 
 interface Candidate {
   id: number
@@ -295,8 +296,19 @@ const EditCandidate = () => {
         }
       })
 
+      let profilePictureUrl: string | undefined = profilePicturePreview
+      let resumeFileUrl: string | undefined = resumeUrl || undefined
+
       if (profilePicture) {
-        formDataToSend.append('profilePicture', profilePicture)
+        const uploadResult = await uploadCandidateProfilePicture(profilePicture)
+        profilePictureUrl = uploadResult.url
+        formDataToSend.append('profile_picture', profilePictureUrl)
+      }
+
+      if (resume) {
+        const uploadResult = await uploadCandidateCV(resume)
+        resumeFileUrl = uploadResult.url
+        formDataToSend.append('resume_url', resumeFileUrl)
       }
 
       if (isNewCandidate) {
