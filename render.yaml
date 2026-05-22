@@ -3,7 +3,7 @@ services:
     name: truetouch-app
     env: node
     plan: free
-    buildCommand: npm ci --include=dev && npm run build:production
+    buildCommand: npm install && npm run build:production
     startCommand: npm run start:production
     envVars:
       - key: NODE_ENV
