@@ -1,4 +1,4 @@
-import pool from '../config.ts'
+import pool from '../config.js'
 
 interface SpecialRequest {
   request_id?: string
