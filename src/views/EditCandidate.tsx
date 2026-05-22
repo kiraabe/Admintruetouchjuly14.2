@@ -743,7 +743,14 @@ const EditCandidate = () => {
                                   e.preventDefault()
                                   try {
                                     const filename = resumeUrl.split('/').pop() || 'resume'
-                                    const response = await fetch(resumeUrl)
+                                    let response = await fetch(resumeUrl)
+
+                                    // If original URL fails, try the cvs subdirectory
+                                    if (!response.ok) {
+                                      const altUrl = `/uploads/candidates/cvs/${filename}`
+                                      response = await fetch(altUrl)
+                                    }
+
                                     if (!response.ok) {
                                       throw new Error('Failed to fetch file')
                                     }
