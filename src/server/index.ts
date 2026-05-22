@@ -349,6 +349,7 @@ app.use('/api/notification', notificationsRouter)
 
 // Upload Routes
 app.use('/api/upload', uploadsRouter)
+app.use('/api/uploads', uploadsRouter)
 
 // Auth routes
 app.post('/api/sign-in', async (req: Request, res: Response) => {
