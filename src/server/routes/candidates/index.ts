@@ -10,7 +10,7 @@ import {
   createCandidate,
   updateCandidate,
   deleteCandidate,
-} from '../../db/queries/candidateQueries'
+} from '../../db/queries/candidateQueries.ts'
 
 const router = Router()
 

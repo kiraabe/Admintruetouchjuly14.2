@@ -8,7 +8,7 @@ let pool: any = null
 async function initPool() {
   if (!pool) {
     try {
-      const poolModule = await import('../../db/config')
+      const poolModule = await import('../../db/config.ts')
       pool = poolModule.default
     } catch (err) {
       console.error('Failed to load db config:', err)
