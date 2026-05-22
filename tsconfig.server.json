@@ -14,6 +14,7 @@
     "sourceMap": true,
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
+    "allowImportingTsExtensions": true,
     "noEmit": false
   },
   "ts-node": {
