@@ -22,7 +22,7 @@ const JWT_SECRET: string = process.env.JWT_SECRET || 'your-secret-key'
 const JWT_EXPIRES_IN: string = process.env.JWT_EXPIRES_IN || '7d'
 
 function generateToken(userId: string, email: string): string {
-  return jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN })
+  return jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN } as any)
 }
 
 async function comparePasswords(password: string, hash: string): Promise<boolean> {
@@ -40,7 +40,7 @@ let pool: any = null
 async function initPool() {
   if (!pool) {
     try {
-      const poolModule = await import('./db/config.ts')
+      const poolModule = await import('./db/config')
       pool = poolModule.default
     } catch (err) {
       console.error('Failed to load db config:', err)
