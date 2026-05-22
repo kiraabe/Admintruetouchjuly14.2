@@ -15,25 +15,56 @@ import {
 const router = Router()
 
 // Configure multer for file uploads
-const uploadsDir = path.join(process.cwd(), 'uploads', 'candidates')
-if (!fs.existsSync(uploadsDir)) {
-  fs.mkdirSync(uploadsDir, { recursive: true })
-}
+const uploadsBaseDir = path.join(process.cwd(), 'uploads')
+const profilePicturesDir = path.join(uploadsBaseDir, 'candidates', 'profile_pictures')
+const cvsDir = path.join(uploadsBaseDir, 'candidates', 'cvs')
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, uploadsDir)
+;[profilePicturesDir, cvsDir].forEach(dir => {
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true })
+  }
+})
+
+const createStorage = (destination: string) =>
+  multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, destination)
+    },
+    filename: (req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
+      const ext = path.extname(file.originalname)
+      const name = file.fieldname === 'profilePicture' ? 'profile' : 'resume'
+      cb(null, `${name}-${uniqueSuffix}${ext}`)
+    },
+  })
+
+const profilePictureUpload = multer({
+  storage: createStorage(profilePicturesDir),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true)
+    } else {
+      cb(new Error('Profile picture must be an image file'))
+    }
   },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
-    const ext = path.extname(file.originalname)
-    const name = file.fieldname === 'profilePicture' ? 'profile' : 'resume'
-    cb(null, `${name}-${uniqueSuffix}${ext}`)
+})
+
+const resumeUpload = multer({
+  storage: createStorage(cvsDir),
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    const validTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain']
+    if (validTypes.includes(file.mimetype)) {
+      cb(null, true)
+    } else {
+      cb(new Error('Resume must be PDF, DOC, DOCX, or TXT'))
+    }
   },
 })
 
 const upload = multer({
-  storage,
+  storage: createStorage(profilePicturesDir),
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (file.fieldname === 'profilePicture') {
@@ -98,7 +129,12 @@ router.get('/:candidateId', async (req, res) => {
   }
 })
 
-router.post('/', upload.fields([{ name: 'profilePicture', maxCount: 1 }, { name: 'resume', maxCount: 1 }]), async (req: Request, res: Response) => {
+router.post('/', (req: Request, res: Response, next) => {
+  upload.fields([{ name: 'profilePicture', maxCount: 1 }, { name: 'resume', maxCount: 1 }])(req, res, (err) => {
+    if (err) return res.status(400).json({ error: err.message })
+    next()
+  })
+}, async (req: Request, res: Response) => {
   try {
     const files = req.files as Record<string, Express.Multer.File[]>
     const data: any = { ...req.body }
@@ -131,7 +167,12 @@ router.post('/', upload.fields([{ name: 'profilePicture', maxCount: 1 }, { name:
   }
 })
 
-router.put('/:candidateId', upload.fields([{ name: 'profilePicture', maxCount: 1 }, { name: 'resume', maxCount: 1 }]), async (req: Request, res: Response) => {
+router.put('/:candidateId', (req: Request, res: Response, next) => {
+  upload.fields([{ name: 'profilePicture', maxCount: 1 }, { name: 'resume', maxCount: 1 }])(req, res, (err) => {
+    if (err) return res.status(400).json({ error: err.message })
+    next()
+  })
+}, async (req: Request, res: Response) => {
   try {
     const files = req.files as Record<string, Express.Multer.File[]>
     const data: any = { ...req.body }
