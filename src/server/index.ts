@@ -16,6 +16,7 @@ import specialRequestsRouter from './routes/specialRequests/index.ts'
 import licensesRouter from './routes/licenses/index.ts'
 import jobsRouter from './routes/jobs/index.ts'
 import notificationsRouter from './routes/notifications/index.ts'
+import uploadsRouter from './routes/uploads/index.ts'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
@@ -345,6 +346,9 @@ app.use('/api/special-requests', specialRequestsRouter)
 app.use('/api/licenses', licensesRouter)
 app.use('/api/jobs', jobsRouter)
 app.use('/api/notification', notificationsRouter)
+
+// Upload Routes
+app.use('/api/upload', uploadsRouter)
 
 // Auth routes
 app.post('/api/sign-in', async (req: Request, res: Response) => {

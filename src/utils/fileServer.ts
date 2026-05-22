@@ -1,5 +1,3 @@
-const FILE_SERVER_URL = 'http://localhost:3001'
-
 export interface UploadResponse {
   filename: string
   url: string
@@ -9,7 +7,7 @@ export async function uploadCandidateProfilePicture(file: File): Promise<UploadR
   const formData = new FormData()
   formData.append('file', file)
 
-  const response = await fetch(`${FILE_SERVER_URL}/upload/candidate/profile_picture`, {
+  const response = await fetch('/api/upload/candidate/profile_picture', {
     method: 'POST',
     body: formData,
   })
@@ -26,7 +24,7 @@ export async function uploadCandidateCV(file: File): Promise<UploadResponse> {
   const formData = new FormData()
   formData.append('file', file)
 
-  const response = await fetch(`${FILE_SERVER_URL}/upload/candidate/cv`, {
+  const response = await fetch('/api/upload/candidate/cv', {
     method: 'POST',
     body: formData,
   })
@@ -43,7 +41,7 @@ export async function uploadJobImage(file: File): Promise<UploadResponse> {
   const formData = new FormData()
   formData.append('file', file)
 
-  const response = await fetch(`${FILE_SERVER_URL}/upload/job/image`, {
+  const response = await fetch('/api/upload/job/image', {
     method: 'POST',
     body: formData,
   })
@@ -57,19 +55,19 @@ export async function uploadJobImage(file: File): Promise<UploadResponse> {
 }
 
 export async function getProfilePictures(): Promise<UploadResponse[]> {
-  const response = await fetch(`${FILE_SERVER_URL}/files/candidates/profile_pictures`)
+  const response = await fetch('/api/upload/candidates/profile_pictures')
   if (!response.ok) throw new Error('Failed to fetch profile pictures')
   return response.json()
 }
 
 export async function getCVs(): Promise<UploadResponse[]> {
-  const response = await fetch(`${FILE_SERVER_URL}/files/candidates/cvs`)
+  const response = await fetch('/api/upload/candidates/cvs')
   if (!response.ok) throw new Error('Failed to fetch CVs')
   return response.json()
 }
 
 export async function getJobImages(): Promise<UploadResponse[]> {
-  const response = await fetch(`${FILE_SERVER_URL}/files/jobs`)
+  const response = await fetch('/api/upload/jobs')
   if (!response.ok) throw new Error('Failed to fetch job images')
   return response.json()
 }
