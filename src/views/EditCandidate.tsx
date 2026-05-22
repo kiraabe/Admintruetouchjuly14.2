@@ -739,8 +739,18 @@ const EditCandidate = () => {
                               </svg>
                               <a
                                 href={resumeUrl.startsWith('http') ? resumeUrl : '#'}
-                                download={resumeUrl.split('/').pop()?.replace(/^\d+-/, '') || 'resume'}
-                                className="text-sm text-primary hover:underline truncate"
+                                onClick={(e) => {
+                                  if (resumeUrl.startsWith('http')) {
+                                    e.preventDefault()
+                                    const link = document.createElement('a')
+                                    link.href = resumeUrl
+                                    link.download = resumeUrl.split('/').pop()?.replace(/^\d+-/, '') || 'resume'
+                                    document.body.appendChild(link)
+                                    link.click()
+                                    document.body.removeChild(link)
+                                  }
+                                }}
+                                className="text-sm text-primary hover:underline truncate cursor-pointer"
                                 title={resumeUrl.split('/').pop() || resumeUrl}
                               >
                                 {resumeUrl.split('/').pop()?.replace(/^\d+-/, '') || resumeUrl}
