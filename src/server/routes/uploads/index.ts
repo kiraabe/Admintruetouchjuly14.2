@@ -1,11 +1,10 @@
-import express, { Router, Request, Response } from 'express'
+import express from 'express'
+import type { Request, Response, Router as ExpressRouter } from 'express'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
-import { fileURLToPath } from 'url'
 
-const router = Router()
-const __dirname = path.dirname(path.resolve(fileURLToPath(import.meta.url)))
+const router = express.Router()
 
 // Create uploads directory structure
 const uploadsBaseDir = path.join(process.cwd(), 'uploads')
