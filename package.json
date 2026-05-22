@@ -7,7 +7,7 @@
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "vite",
     "dev:backend": "ts-node --project tsconfig.server.json src/server/index.ts",
-    "build": "vite build && npm run build:backend",
+    "build": "vite build; tsc --project tsconfig.server.json",
     "build:backend": "tsc --project tsconfig.server.json",
     "build:production": "npm run build && npm run build:backend",
     "start": "node dist/server/index.js",
