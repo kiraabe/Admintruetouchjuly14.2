@@ -16,6 +16,6 @@
     "allowSyntheticDefaultImports": true,
     "noEmit": false
   },
-  "include": ["src/**/*"],
+  "include": ["src/server/**/*"],
   "exclude": ["node_modules", "dist"]
 }
