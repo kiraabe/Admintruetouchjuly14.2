@@ -739,8 +739,7 @@ const EditCandidate = () => {
                               </svg>
                               <a
                                 href={resumeUrl.startsWith('http') ? resumeUrl : '#'}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                download={resumeUrl.split('/').pop()?.replace(/^\d+-/, '') || 'resume'}
                                 className="text-sm text-primary hover:underline truncate"
                                 title={resumeUrl.split('/').pop() || resumeUrl}
                               >
