@@ -165,19 +165,33 @@ router.get('/jobs', (req: Request, res: Response) => {
 // Download endpoints
 router.get('/candidate/cv/:filename', (req: Request, res: Response) => {
   const filename = req.params.filename
-  // Try subdirectory first, then parent directory
-  let filepath = path.join(uploadDirs.cvs, filename)
 
-  if (!filepath.startsWith(uploadDirs.cvs)) {
-    return res.status(403).json({ error: 'Access denied' })
+  // Security: prevent directory traversal
+  if (filename.includes('..') || filename.includes('/')) {
+    return res.status(403).json({ error: 'Invalid filename' })
   }
 
-  if (!fs.existsSync(filepath)) {
-    // Try the parent candidates directory (where files are actually stored)
-    filepath = path.join(uploadsBaseDir, 'candidates', filename)
-    if (!fs.existsSync(filepath)) {
-      return res.status(404).json({ error: 'File not found' })
+  console.log(`Download request for: ${filename}`)
+
+  // Try multiple locations where CV files might be stored
+  const locations = [
+    path.join(uploadDirs.cvs, filename), // uploads/candidates/cvs/{filename}
+    path.join(uploadsBaseDir, 'candidates', filename), // uploads/candidates/{filename}
+  ]
+
+  let filepath = ''
+  for (const loc of locations) {
+    console.log(`Checking: ${loc}`)
+    if (fs.existsSync(loc)) {
+      filepath = loc
+      console.log(`Found at: ${filepath}`)
+      break
     }
+  }
+
+  if (!filepath) {
+    console.log(`File not found in any location`)
+    return res.status(404).json({ error: 'File not found' })
   }
 
   res.download(filepath)
@@ -185,21 +199,24 @@ router.get('/candidate/cv/:filename', (req: Request, res: Response) => {
 
 router.get('/candidate/profile_picture/:filename', (req: Request, res: Response) => {
   const filename = req.params.filename
-  // Try subdirectory first, then parent directory
-  let filepath = path.join(uploadDirs.profilePictures, filename)
 
-  if (!filepath.startsWith(uploadsBaseDir)) {
-    return res.status(403).json({ error: 'Access denied' })
+  // Security: prevent directory traversal
+  if (filename.includes('..') || filename.includes('/')) {
+    return res.status(403).json({ error: 'Invalid filename' })
   }
+
+  // Try the candidates directory (where files are actually stored)
+  let filepath = path.join(uploadsBaseDir, 'candidates', filename)
+
+  console.log(`Download request for: ${filename}`)
+  console.log(`Looking for file at: ${filepath}`)
 
   if (!fs.existsSync(filepath)) {
-    // Try the parent candidates directory
-    filepath = path.join(uploadsBaseDir, 'candidates', filename)
-    if (!fs.existsSync(filepath)) {
-      return res.status(404).json({ error: 'File not found' })
-    }
+    console.log(`File not found at ${filepath}`)
+    return res.status(404).json({ error: 'File not found' })
   }
 
+  console.log(`File found, serving: ${filepath}`)
   res.download(filepath)
 })
 
