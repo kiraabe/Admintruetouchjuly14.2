@@ -163,7 +163,7 @@ router.get('/jobs', (req: Request, res: Response) => {
 })
 
 // Download endpoints
-router.get('/candidate/cv/:filename', (req: Request, res: Response) => {
+router.get('/download/cv/:filename', (req: Request, res: Response) => {
   const filename = req.params.filename
 
   // Security: prevent directory traversal
@@ -194,7 +194,15 @@ router.get('/candidate/cv/:filename', (req: Request, res: Response) => {
     return res.status(404).json({ error: 'File not found' })
   }
 
-  res.download(filepath)
+  // Set proper headers for download
+  res.setHeader('Content-Disposition', `attachment; filename="${filename}"`)
+  res.setHeader('Content-Type', 'application/octet-stream')
+  res.sendFile(filepath)
+})
+
+router.get('/candidate/cv/:filename', (req: Request, res: Response) => {
+  // Redirect to download endpoint
+  res.redirect(`/api/uploads/download/cv/${req.params.filename}`)
 })
 
 router.get('/candidate/profile_picture/:filename', (req: Request, res: Response) => {

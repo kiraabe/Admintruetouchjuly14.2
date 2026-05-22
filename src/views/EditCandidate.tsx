@@ -743,26 +743,13 @@ const EditCandidate = () => {
                                   e.preventDefault()
                                   try {
                                     const filename = resumeUrl.split('/').pop() || 'resume'
-                                    let response = await fetch(resumeUrl)
-
-                                    // If original URL fails, try the cvs subdirectory
-                                    if (!response.ok) {
-                                      const altUrl = `/uploads/candidates/cvs/${filename}`
-                                      response = await fetch(altUrl)
-                                    }
-
-                                    if (!response.ok) {
-                                      throw new Error('Failed to fetch file')
-                                    }
-                                    const blob = await response.blob()
-                                    const url = window.URL.createObjectURL(blob)
+                                    const downloadUrl = `/api/uploads/download/cv/${filename}`
                                     const link = document.createElement('a')
-                                    link.href = url
+                                    link.href = downloadUrl
                                     link.download = filename.replace(/^\d+-/, '')
                                     document.body.appendChild(link)
                                     link.click()
                                     document.body.removeChild(link)
-                                    window.URL.revokeObjectURL(url)
                                   } catch (error) {
                                     notify.error('Error', 'Failed to download resume')
                                   }
