@@ -162,6 +162,37 @@ router.get('/jobs', (req: Request, res: Response) => {
   })
 })
 
+// Download endpoints
+router.get('/candidate/cv/:filename', (req: Request, res: Response) => {
+  const filename = req.params.filename
+  const filepath = path.join(uploadDirs.cvs, filename)
+
+  if (!filepath.startsWith(uploadDirs.cvs)) {
+    return res.status(403).json({ error: 'Access denied' })
+  }
+
+  if (!fs.existsSync(filepath)) {
+    return res.status(404).json({ error: 'File not found' })
+  }
+
+  res.download(filepath)
+})
+
+router.get('/candidate/profile_picture/:filename', (req: Request, res: Response) => {
+  const filename = req.params.filename
+  const filepath = path.join(uploadDirs.profilePictures, filename)
+
+  if (!filepath.startsWith(uploadDirs.profilePictures)) {
+    return res.status(403).json({ error: 'Access denied' })
+  }
+
+  if (!fs.existsSync(filepath)) {
+    return res.status(404).json({ error: 'File not found' })
+  }
+
+  res.download(filepath)
+})
+
 // Error handling middleware
 router.use((err: any, req: Request, res: Response) => {
   if (err instanceof multer.MulterError) {

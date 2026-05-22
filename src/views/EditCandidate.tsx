@@ -742,17 +742,14 @@ const EditCandidate = () => {
                                 onClick={async (e) => {
                                   e.preventDefault()
                                   try {
-                                    const response = await fetch(resumeUrl)
-                                    if (!response.ok) throw new Error('Failed to fetch resume')
-                                    const blob = await response.blob()
-                                    const url = window.URL.createObjectURL(blob)
+                                    const filename = resumeUrl.split('/').pop() || 'resume'
+                                    const downloadUrl = `/api/uploads/candidate/cv/${filename}`
                                     const link = document.createElement('a')
-                                    link.href = url
-                                    link.download = resumeUrl.split('/').pop()?.replace(/^\d+-/, '') || 'resume'
+                                    link.href = downloadUrl
+                                    link.download = filename.replace(/^\d+-/, '')
                                     document.body.appendChild(link)
                                     link.click()
                                     document.body.removeChild(link)
-                                    window.URL.revokeObjectURL(url)
                                   } catch (error) {
                                     notify.error('Error', 'Failed to download resume')
                                   }
