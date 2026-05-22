@@ -36,6 +36,19 @@ export default defineConfig({
     }
   },
   build: {
-    outDir: 'build'
-  }
+    outDir: 'dist/public',
+    emptyOutDir: true,
+    sourcemap: false,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+        },
+      },
+    },
+  },
+  preview: {
+    port: 4173,
+  },
 })

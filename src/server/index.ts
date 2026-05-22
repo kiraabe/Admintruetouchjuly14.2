@@ -383,6 +383,18 @@ app.use('/api/notification', notificationsRouter)
 app.use('/api/upload', uploadsRouter)
 app.use('/api/uploads', uploadsRouter)
 
+// Serve static files from the frontend build
+const publicDir = path.join(process.cwd(), 'dist', 'public')
+if (fs.existsSync(publicDir)) {
+  app.use(express.static(publicDir))
+  // SPA fallback: serve index.html for all non-API routes
+  app.get('*', (req: Request, res: Response) => {
+    res.sendFile(path.join(publicDir, 'index.html'), { headers: { 'Cache-Control': 'no-cache' } })
+  })
+} else if (process.env.NODE_ENV === 'production') {
+  console.warn('Warning: Static frontend files not found. App may not have a UI.')
+}
+
 // Auth routes
 app.post('/api/sign-in', async (req: Request, res: Response) => {
   try {
