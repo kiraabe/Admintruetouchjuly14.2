@@ -12,9 +12,16 @@
     "resolveJsonModule": true,
     "declaration": true,
     "sourceMap": true,
-    "moduleResolution": "node",
+    "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
     "noEmit": false
+  },
+  "ts-node": {
+    "esm": true,
+    "experimentalEsm": true,
+    "compilerOptions": {
+      "module": "esnext"
+    }
   },
   "include": ["src/server/**/*"],
   "exclude": ["node_modules", "dist"]
