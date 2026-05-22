@@ -14,8 +14,7 @@
     "sourceMap": true,
     "moduleResolution": "bundler",
     "allowSyntheticDefaultImports": true,
-    "allowImportingTsExtensions": true,
-    "noEmit": true
+    "noEmit": false
   },
   "ts-node": {
     "esm": true,
