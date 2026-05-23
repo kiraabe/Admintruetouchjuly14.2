@@ -7,7 +7,7 @@
     "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
     "dev:frontend": "vite",
     "dev:backend": "ts-node --project tsconfig.server.json src/server/index.ts",
-    "build": "vite build",
+    "build": "node --max-old-space-size=2048 ./node_modules/vite/bin/vite.js build",
     "build:backend": "tsc --project tsconfig.server.prod.json",
     "build:production": "npm run build && npm run build:backend",
     "start:production": "npm run build:production && NODE_ENV=production node dist/server/index.js",
