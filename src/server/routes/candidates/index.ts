@@ -2,6 +2,8 @@ import { Router, type Request, type Response } from 'express'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
+import FormData from 'form-data'
+import axios from 'axios'
 import {
   getAllCandidates,
   getCandidateById,
