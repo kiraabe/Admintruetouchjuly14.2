@@ -1,5 +1,6 @@
 import { Router, type Request, type Response } from 'express'
 import multer from 'multer'
+import type { File } from 'multer'
 import path from 'path'
 import fs from 'fs'
 import FormData from 'form-data'
@@ -12,7 +13,16 @@ import {
   createCandidate,
   updateCandidate,
   deleteCandidate,
-} from '../../db/queries/candidateQueries.ts'
+} from '../../db/queries/candidateQueries.js'
+
+declare global {
+  namespace Express {
+    interface Request {
+      file?: File
+      files?: File[]
+    }
+  }
+}
 
 const router = Router()
 
@@ -138,7 +148,7 @@ router.post('/', (req: Request, res: Response, next) => {
   })
 }, async (req: Request, res: Response) => {
   try {
-    const files = req.files as Record<string, Express.Multer.File[]>
+    const files = req.files as any
     const data: any = { ...req.body }
 
     if (files?.profilePicture?.[0]) {
@@ -180,7 +190,7 @@ router.put('/:candidateId', (req: Request, res: Response, next) => {
   })
 }, async (req: Request, res: Response) => {
   try {
-    const files = req.files as Record<string, Express.Multer.File[]>
+    const files = req.files as any
     const data: any = { ...req.body }
 
     if (files?.profilePicture?.[0]) {

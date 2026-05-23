@@ -1,8 +1,18 @@
 import express from 'express'
 import type { Request, Response, Router as ExpressRouter } from 'express'
 import multer from 'multer'
+import type { File } from 'multer'
 import path from 'path'
 import fs from 'fs'
+
+declare global {
+  namespace Express {
+    interface Request {
+      file?: File
+      files?: File[]
+    }
+  }
+}
 
 const router = express.Router()
 
@@ -34,7 +44,7 @@ const createStorage = (subdir: string) =>
   })
 
 // File filters
-const imageFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const imageFilter = (req: Request, file: File, cb: multer.FileFilterCallback) => {
   const allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
   if (allowedMimes.includes(file.mimetype)) {
     cb(null, true)
@@ -43,7 +53,7 @@ const imageFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFil
   }
 }
 
-const pdfFilter = (req: Request, file: Express.Multer.File, cb: multer.FileFilterCallback) => {
+const pdfFilter = (req: Request, file: File, cb: multer.FileFilterCallback) => {
   if (file.mimetype === 'application/pdf') {
     cb(null, true)
   } else {

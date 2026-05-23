@@ -1,10 +1,11 @@
-import { Router } from 'express'
+import { Router, type Request, type Response } from 'express'
 import multer from 'multer'
+import type { File } from 'multer'
 import path from 'path'
 import fs from 'fs'
 import bcrypt from 'bcryptjs'
 import { randomUUID } from 'crypto'
-import pool from '../../db/config.ts'
+import pool from '../../db/config.js'
 import {
   getAllPartnerships,
   getPartnershipById,
@@ -13,7 +14,16 @@ import {
   createPartnership,
   updatePartnership,
   deletePartnership,
-} from '../../db/queries/partnershipQueries.ts'
+} from '../../db/queries/partnershipQueries.js'
+
+declare global {
+  namespace Express {
+    interface Request {
+      file?: File
+      files?: File[]
+    }
+  }
+}
 
 const router = Router()
 
@@ -123,7 +133,7 @@ router.post('/', upload.fields([
     console.log('POST /api/partnerships - files:', req.files ? Object.keys(req.files) : 'no files')
 
     const { company_name, business_email, business_category, license_number, contact_person_name, phone_number, service_city, status } = req.body
-    const files = req.files as { [key: string]: Express.Multer.File[] }
+    const files = req.files as any
 
     if (!company_name || !business_email || !business_category || !license_number || !contact_person_name || !phone_number || !service_city) {
       console.log('Missing fields:', { company_name, business_email, business_category, license_number, contact_person_name, phone_number, service_city })
@@ -199,7 +209,7 @@ router.put('/:partnerId', upload.fields([
   { name: 'licenseDocument', maxCount: 1 },
 ]), async (req, res) => {
   try {
-    const files = req.files as { [key: string]: Express.Multer.File[] }
+    const files = req.files as any
     const data: any = { ...req.body }
 
     if (files?.companyLogo?.[0]) {

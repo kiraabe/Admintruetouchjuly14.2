@@ -54,7 +54,7 @@ let pool: any = null
 async function initPool() {
   if (!pool) {
     try {
-      const poolModule = await import('../../db/config.ts')
+      const poolModule = await import('../../db/config.js')
       pool = poolModule.default
     } catch (err) {
       console.error('Failed to load db config:', err)

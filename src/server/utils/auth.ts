@@ -14,10 +14,11 @@ export async function comparePasswords(password: string, hash: string): Promise<
 }
 
 export function generateToken(userId: string, email: string): string {
+  const options: any = { expiresIn: JWT_EXPIRES_IN }
   return jwt.sign(
     { userId, email },
-    JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN },
+    JWT_SECRET as string,
+    options,
   )
 }
 
