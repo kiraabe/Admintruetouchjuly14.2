@@ -75,6 +75,11 @@ const getFileUrl = (filename: string, subpath: string) => {
   return `/uploads/${subpath}/${filename}`
 }
 
+// Helper function to get relative path from uploads folder
+const getRelativePath = (filename: string, subpath: string) => {
+  return `${subpath}/${filename}`
+}
+
 // POST Endpoints - Upload
 router.post('/candidate/profile_picture', (req: Request, res: Response, next) => {
   uploaders.profilePicture.single('file')(req, res, (err) => {
@@ -84,8 +89,10 @@ router.post('/candidate/profile_picture', (req: Request, res: Response, next) =>
     if (!req.file) {
       return res.status(400).json({ error: 'No file provided' })
     }
+    const path = getRelativePath(req.file.filename, 'candidates/profile_pictures')
     res.json({
       filename: req.file.filename,
+      path: path,
       url: getFileUrl(req.file.filename, 'candidates/profile_pictures'),
     })
   })
@@ -99,8 +106,10 @@ router.post('/candidate/cv', (req: Request, res: Response, next) => {
     if (!req.file) {
       return res.status(400).json({ error: 'No file provided' })
     }
+    const path = getRelativePath(req.file.filename, 'candidates/cvs')
     res.json({
       filename: req.file.filename,
+      path: path,
       url: getFileUrl(req.file.filename, 'candidates/cvs'),
     })
   })
@@ -110,8 +119,10 @@ router.post('/job/image', uploaders.jobImage.single('file'), (req: Request, res:
   if (!req.file) {
     return res.status(400).json({ error: 'No file provided' })
   }
+  const path = getRelativePath(req.file.filename, 'jobs')
   res.json({
     filename: req.file.filename,
+    path: path,
     url: getFileUrl(req.file.filename, 'jobs'),
   })
 })

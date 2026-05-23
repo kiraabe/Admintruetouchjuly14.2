@@ -127,9 +127,9 @@ function saveDataUrlImage(dataUrl: string): string | null {
 
     console.log('Saving image to:', filepath, 'size:', base64Data.length)
     fs.writeFileSync(filepath, Buffer.from(base64Data, 'base64'))
-    const finalPath = `/uploads/jobs/${filename}`
-    console.log('Image saved successfully, returning path:', finalPath)
-    return finalPath
+    const relativePath = `jobs/${filename}`
+    console.log('Image saved successfully, returning relative path:', relativePath)
+    return relativePath
   } catch (error) {
     console.error('Error saving image:', error)
     return null
@@ -179,6 +179,7 @@ router.post('/', async (req: Request, res: Response) => {
     }
 
     const id = uuidv4()
+    console.log('[JOB CREATE] Saving image to PostgreSQL:', finalImageUrl)
     const result = await dbPool.query(
       `INSERT INTO jobs (
         id, title, description, author, image_url, expire_date, status
@@ -247,6 +248,7 @@ router.put('/:id', async (req: Request, res: Response) => {
       })
     }
 
+    console.log('[JOB UPDATE] Saving image to PostgreSQL:', finalImageUrl)
     const result = await dbPool.query(
       `UPDATE jobs SET
         title = $1, description = $2, author = $3,
