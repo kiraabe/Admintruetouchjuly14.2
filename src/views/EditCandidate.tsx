@@ -158,7 +158,7 @@ const EditCandidate = () => {
         if (cand.profile_picture) {
           const picUrl = cand.profile_picture.startsWith('http')
             ? cand.profile_picture
-            : `/uploads/candidates/profile_pictures/${cand.profile_picture}`
+            : `/uploads/${cand.profile_picture}`
           setProfilePicturePreview(picUrl)
         }
 
