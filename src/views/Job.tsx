@@ -80,18 +80,12 @@ const Job = () => {
 
   const getImageUrl = (imageUrl: string | null) => {
     if (!imageUrl) return ''
-    // If it's an absolute URL, extract just the relative path
-    if (imageUrl.includes('/uploads/jobs/')) {
-      return imageUrl.split('/uploads/jobs/')[1]
-        ? `/uploads/jobs/${imageUrl.split('/uploads/jobs/')[1]}`
-        : imageUrl
-    }
     // If it already starts with /uploads, use as-is
     if (imageUrl.startsWith('/uploads')) return imageUrl
     // If it starts with /, use as-is
     if (imageUrl.startsWith('/')) return imageUrl
-    // Otherwise, assume it's just a filename and prepend the path
-    return `/uploads/jobs/${imageUrl}`
+    // Otherwise, assume it's a relative path from uploads folder (e.g., jobs/filename.jpg)
+    return `/uploads/${imageUrl}`
   }
 
   const handleEdit = (job: Job) => {

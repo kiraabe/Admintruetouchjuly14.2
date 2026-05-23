@@ -740,11 +740,11 @@ const EditCandidate = () => {
                                 onClick={async (e) => {
                                   e.preventDefault()
                                   try {
+                                    const downloadUrl = `/uploads/${resumeUrl}`
                                     const filename = resumeUrl.includes('/') ? resumeUrl.split('/').pop() : resumeUrl
-                                    const downloadUrl = `/uploads/candidates/cvs/${filename}`
                                     const link = document.createElement('a')
                                     link.href = downloadUrl
-                                    link.download = filename.replace(/^\d+-/, '')
+                                    link.download = filename?.replace(/^\d+-/, '') || 'resume'
                                     document.body.appendChild(link)
                                     link.click()
                                     document.body.removeChild(link)
