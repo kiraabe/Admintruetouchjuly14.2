@@ -7,16 +7,16 @@ import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
 import bcrypt from 'bcryptjs'
-import candidatesRouter from './routes/candidates/index'
-import usersRouter from './routes/users/index'
-import partnershipsRouter from './routes/partnerships/index'
-import employeeRequestsRouter from './routes/employeeRequests/index'
-import standardRequestsRouter from './routes/standardRequests/index'
-import specialRequestsRouter from './routes/specialRequests/index'
-import licensesRouter from './routes/licenses/index'
-import jobsRouter from './routes/jobs/index'
-import notificationsRouter from './routes/notifications/index'
-import uploadsRouter from './routes/uploads/index'
+import candidatesRouter from './routes/candidates/index.js'
+import usersRouter from './routes/users/index.js'
+import partnershipsRouter from './routes/partnerships/index.js'
+import employeeRequestsRouter from './routes/employeeRequests/index.js'
+import standardRequestsRouter from './routes/standardRequests/index.js'
+import specialRequestsRouter from './routes/specialRequests/index.js'
+import licensesRouter from './routes/licenses/index.js'
+import jobsRouter from './routes/jobs/index.js'
+import notificationsRouter from './routes/notifications/index.js'
+import uploadsRouter from './routes/uploads/index.js'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
@@ -41,7 +41,7 @@ let pool: any = null
 async function initPool() {
   if (!pool) {
     try {
-      const poolModule = await import('./db/config')
+      const poolModule = await import('./db/config.js')
       pool = poolModule.default
     } catch (err) {
       console.error('Failed to load db config:', err)
