@@ -145,16 +145,16 @@ router.post('/', (req: Request, res: Response, next) => {
       const relativePath = `candidates/profile_pictures/${files.profilePicture[0].filename}`
       data.profile_picture = relativePath
       console.log('[CANDIDATE CREATE] Saving profile_picture to PostgreSQL:', relativePath)
-    } else if (data.profile_picture && !data.profile_picture.startsWith('/')) {
-      // Keep filename as-is if provided from frontend
+    } else if (data.profile_picture) {
+      console.log('[CANDIDATE CREATE] Saving profile_picture to PostgreSQL:', data.profile_picture)
     }
 
     if (files?.resume?.[0]) {
       const relativePath = `candidates/cvs/${files.resume[0].filename}`
       data.resume_url = relativePath
       console.log('[CANDIDATE CREATE] Saving resume_url (cv) to PostgreSQL:', relativePath)
-    } else if (data.resume_url && !data.resume_url.startsWith('/')) {
-      // Keep filename as-is if provided from frontend
+    } else if (data.resume_url) {
+      console.log('[CANDIDATE CREATE] Saving resume_url (cv) to PostgreSQL:', data.resume_url)
     }
 
     // Convert password to password_hash for consistency
@@ -187,16 +187,16 @@ router.put('/:candidateId', (req: Request, res: Response, next) => {
       const relativePath = `candidates/profile_pictures/${files.profilePicture[0].filename}`
       data.profile_picture = relativePath
       console.log('[CANDIDATE UPDATE] Saving profile_picture to PostgreSQL:', relativePath)
-    } else if (data.profile_picture && !data.profile_picture.startsWith('/')) {
-      // Keep filename as-is if provided from frontend
+    } else if (data.profile_picture) {
+      console.log('[CANDIDATE UPDATE] Saving profile_picture to PostgreSQL:', data.profile_picture)
     }
 
     if (files?.resume?.[0]) {
       const relativePath = `candidates/cvs/${files.resume[0].filename}`
       data.resume_url = relativePath
       console.log('[CANDIDATE UPDATE] Saving resume_url (cv) to PostgreSQL:', relativePath)
-    } else if (data.resume_url && !data.resume_url.startsWith('/')) {
-      // Keep filename as-is if provided from frontend
+    } else if (data.resume_url) {
+      console.log('[CANDIDATE UPDATE] Saving resume_url (cv) to PostgreSQL:', data.resume_url)
     }
 
     // Convert password to password_hash for consistency

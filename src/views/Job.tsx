@@ -156,7 +156,7 @@ const Job = () => {
         }
 
         const uploadResult = await uploadResponse.json()
-        payload.image_url = uploadResult.url
+        payload.image_url = uploadResult.path
       } else if (selectedJob && selectedJob.image_url) {
         // Keep existing image URL when not changing it
         payload.image_url = selectedJob.image_url

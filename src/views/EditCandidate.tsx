@@ -305,12 +305,12 @@ const EditCandidate = () => {
 
       if (profilePicture) {
         const uploadResult = await uploadCandidateProfilePicture(profilePicture)
-        formDataToSend.append('profile_picture', uploadResult.filename)
+        formDataToSend.append('profile_picture', uploadResult.path)
       }
 
       if (resume) {
         const uploadResult = await uploadCandidateCV(resume)
-        formDataToSend.append('resume_url', uploadResult.filename)
+        formDataToSend.append('resume_url', uploadResult.path)
       }
 
       if (isNewCandidate) {
