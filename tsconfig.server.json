@@ -13,11 +13,15 @@
     "noEmit": false,
     "declaration": false,
     "sourceMap": true,
-    "moduleResolution": "nodenext",
+    "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
     "noImplicitAny": false,
     "ignoreDeprecations": "5.0",
     "noImplicitThis": false
+  },
+  "ts-node": {
+    "esm": true,
+    "experimentalEsm": true
   },
   "include": ["src/server/**/*.ts"],
   "exclude": ["node_modules", "dist", "src/views", "src/components", "src/pages"]
