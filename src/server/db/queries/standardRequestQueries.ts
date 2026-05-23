@@ -1,4 +1,4 @@
-import pool from '../config.js'
+import pool from '../config.ts'
 
 interface StandardRequest {
   request_id?: string

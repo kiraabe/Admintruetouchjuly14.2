@@ -5,7 +5,7 @@ import path from 'path'
 import fs from 'fs'
 import bcrypt from 'bcryptjs'
 import { randomUUID } from 'crypto'
-import pool from '../../db/config.js'
+import pool from '../../db/config.ts'
 import {
   getAllPartnerships,
   getPartnershipById,
