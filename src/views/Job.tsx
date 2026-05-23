@@ -143,7 +143,7 @@ const Job = () => {
       // If there's a new image file, upload to API endpoint
       if (imageFile) {
         const formDataWithFile = new FormData()
-        formDataWithFile.append('image', imageFile)
+        formDataWithFile.append('file', imageFile)
 
         const uploadResponse = await fetch('/api/upload/job/image', {
           method: 'POST',
