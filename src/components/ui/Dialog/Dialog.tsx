@@ -3,6 +3,7 @@ import classNames from 'classnames'
 import CloseButton from '../CloseButton'
 import { motion } from 'framer-motion'
 import useWindowSize from '../hooks/useWindowSize'
+import ScrollBar from '../ScrollBar'
 import type ReactModal from 'react-modal'
 import type { MouseEvent } from 'react'
 
@@ -107,9 +108,9 @@ const Dialog = (props: DialogProps) => {
             >
                 {closable && renderCloseButton}
                 {title && <h2 className="text-lg font-bold mb-4">{title}</h2>}
-                <div className="dialog-body">
+                <ScrollBar className="dialog-body max-h-[60vh]">
                     {children}
-                </div>
+                </ScrollBar>
                 {(confirmText || onConfirm) && (
                     <div className="mt-6 flex gap-3 justify-end">
                         <button
