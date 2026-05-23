@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from 'express'
-import pool from '../../db/config'
+import pool from '../../db/config.js'
 
 const router = Router()
 

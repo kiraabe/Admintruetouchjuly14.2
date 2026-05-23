@@ -1,4 +1,4 @@
-import pool from '../config'
+import pool from '../config.js'
 
 interface EmployeeRequest {
   request_id?: string
