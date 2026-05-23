@@ -14,7 +14,7 @@ import {
   createPartnership,
   updatePartnership,
   deletePartnership,
-} from '../../db/queries/partnershipQueries.js'
+} from '../../db/queries/partnershipQueries.ts'
 
 declare global {
   namespace Express {
