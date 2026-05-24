@@ -28,7 +28,6 @@
     "experimentalEsm": true,
     "transpileOnly": true,
     "compilerOptions": {
-      "allowImportingTsExtensions": true,
       "moduleResolution": "node"
     },
     "extensions": [".ts", ".tsx"]
