@@ -332,12 +332,40 @@ app.get('/api/seed-employee-requests', async (req: Request, res: Response) => {
 
 // Serve uploaded files publicly - MUST be before API routes and auth middleware
 const uploadsBaseDir = path.join(process.cwd(), 'uploads')
+console.log(`[UPLOADS] CWD: ${process.cwd()}`)
+console.log(`[UPLOADS] Directory path: ${uploadsBaseDir}`)
+console.log(`[UPLOADS] Directory exists: ${fs.existsSync(uploadsBaseDir)}`)
+
+// Create uploads directory if it doesn't exist
+if (!fs.existsSync(uploadsBaseDir)) {
+  console.log(`[UPLOADS] Creating uploads directory...`)
+  fs.mkdirSync(uploadsBaseDir, { recursive: true })
+}
+
 const jobsDir = path.join(uploadsBaseDir, 'jobs')
 const candidateCvsDir = path.join(uploadsBaseDir, 'candidates', 'cvs')
 const candidateProfilesDir = path.join(uploadsBaseDir, 'candidates', 'profile_pictures')
 
 // Serve the entire /uploads directory publicly without any authentication
-app.use('/uploads', express.static(uploadsBaseDir))
+app.use('/uploads', express.static(uploadsBaseDir, {
+  index: false,
+  fallthrough: true,
+  dotfiles: 'ignore'
+}))
+
+// Debug endpoint to list uploads directory
+app.get('/api/debug/uploads-dir', (req, res) => {
+  try {
+    const files = fs.readdirSync(uploadsBaseDir, { recursive: true })
+    res.json({
+      uploadsDir: uploadsBaseDir,
+      exists: fs.existsSync(uploadsBaseDir),
+      files: files.slice(0, 100)
+    })
+  } catch (err) {
+    res.status(500).json({ error: (err as Error).message })
+  }
+})
 
 // API Routes
 app.use('/api/candidates', candidatesRouter)
