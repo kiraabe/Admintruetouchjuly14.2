@@ -25,7 +25,12 @@
   },
   "ts-node": {
     "esm": true,
-    "experimentalEsm": true
+    "experimentalEsm": true,
+    "transpileOnly": true,
+    "compilerOptions": {
+      "allowImportingTsExtensions": true,
+      "moduleResolution": "node"
+    }
   },
   "include": ["src/server/**/*.ts"],
   "exclude": ["node_modules", "dist", "src/views", "src/components", "src/pages"]
