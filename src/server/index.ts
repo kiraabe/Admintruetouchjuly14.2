@@ -330,6 +330,15 @@ app.get('/api/seed-employee-requests', async (req: Request, res: Response) => {
   }
 })
 
+// Serve uploaded files publicly - MUST be before API routes and auth middleware
+const uploadsBaseDir = path.join(process.cwd(), 'uploads')
+const jobsDir = path.join(uploadsBaseDir, 'jobs')
+const candidateCvsDir = path.join(uploadsBaseDir, 'candidates', 'cvs')
+const candidateProfilesDir = path.join(uploadsBaseDir, 'candidates', 'profile_pictures')
+
+// Serve the entire /uploads directory publicly without any authentication
+app.use('/uploads', express.static(uploadsBaseDir))
+
 // API Routes
 app.use('/api/candidates', candidatesRouter)
 app.use('/api/partnerships', partnershipsRouter)
@@ -344,45 +353,6 @@ app.use('/api/notification', notificationsRouter)
 // Upload Routes
 app.use('/api/upload', uploadsRouter)
 app.use('/api/uploads', uploadsRouter)
-
-// Serve uploaded files publicly (before SPA fallback)
-const uploadsBaseDir = path.join(process.cwd(), 'uploads')
-const jobsDir = path.join(uploadsBaseDir, 'jobs')
-const candidateCvsDir = path.join(uploadsBaseDir, 'candidates', 'cvs')
-const candidateProfilesDir = path.join(uploadsBaseDir, 'candidates', 'profile_pictures')
-
-// Configure static file serving with proper download headers for CVs
-app.use('/uploads/candidates/cvs', express.static(candidateCvsDir, {
-  setHeaders: (res, path, stat) => {
-    res.set('Content-Disposition', `attachment; filename="${path.split('/').pop()}"`)
-    res.set('Content-Type', 'application/octet-stream')
-  }
-}))
-
-app.use('/uploads/profiles', express.static(profilesDir))
-app.use('/uploads/candidates', express.static(candidatesDir))
-app.use('/uploads/candidates/profile_pictures', express.static(candidateProfilesDir))
-app.use('/uploads/partnerships', express.static(partnershipsDir))
-app.use('/uploads/jobs', express.static(jobsDir))
-
-// Fallback route for profile pictures (checks both new and old locations)
-app.get('/uploads/candidates/profile_pictures/:filename', (req, res) => {
-  const filename = req.params.filename
-
-  // Try new location first
-  let filepath = path.join(candidateProfilesDir, filename)
-  if (fs.existsSync(filepath)) {
-    return res.sendFile(filepath)
-  }
-
-  // Try old location as fallback
-  filepath = path.join(candidatesDir, filename)
-  if (fs.existsSync(filepath)) {
-    return res.sendFile(filepath)
-  }
-
-  res.status(404).json({ error: 'File not found' })
-})
 
 // Serve static files from the frontend build
 const publicDir = path.join(process.cwd(), 'dist', 'public')
