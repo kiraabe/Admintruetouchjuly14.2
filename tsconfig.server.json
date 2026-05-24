@@ -30,7 +30,8 @@
     "compilerOptions": {
       "allowImportingTsExtensions": true,
       "moduleResolution": "node"
-    }
+    },
+    "extensions": [".ts", ".tsx"]
   },
   "include": ["src/server/**/*.ts"],
   "exclude": ["node_modules", "dist", "src/views", "src/components", "src/pages"]
