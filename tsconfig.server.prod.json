@@ -10,7 +10,7 @@
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "noEmit": false,
+    "noEmit": true,
     "declaration": false,
     "sourceMap": true,
     "moduleResolution": "node",
