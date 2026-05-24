@@ -1,4 +1,4 @@
-import pool from '../config'
+import pool from '../config.ts'
 import bcrypt from 'bcryptjs'
 
 export interface Candidate {
