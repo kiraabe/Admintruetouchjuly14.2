@@ -719,6 +719,19 @@ async function startServer() {
         )
       `)
       console.log('✓ Jobs table ready')
+
+      // Seed sample jobs if table is empty
+      const jobCount = await dbPool.query('SELECT COUNT(*) as count FROM jobs')
+      if (jobCount.rows[0].count === 0) {
+        console.log('Seeding jobs with sample data...')
+        await dbPool.query(`
+          INSERT INTO jobs (title, description, author, expire_date, status) VALUES
+          ('Software Engineer', 'Looking for experienced software engineers', 'admin', '2024-12-31', 'active'),
+          ('Product Manager', 'Lead product development for our platform', 'admin', '2024-12-31', 'active'),
+          ('UI/UX Designer', 'Design intuitive user interfaces', 'admin', '2024-12-31', 'active')
+        `)
+        console.log('✓ Jobs seeded successfully')
+      }
     } catch (tableError) {
       console.error('Error creating jobs table:', tableError)
     }
