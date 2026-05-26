@@ -532,7 +532,7 @@ const PartnershipCandidates = () => {
                     <td className="py-3 px-4 font-semibold">
                       <div className="flex items-center gap-3">
                         <img
-                          src={getCandidateProfilePictureUrl(candidate.profile_picture)}
+                          src={getCandidateProfilePictureUrl(candidate.candidate_id, candidate.profile_picture)}
                           alt={candidate.name}
                           className="w-10 h-10 rounded-full object-cover"
                           onError={(e) => {

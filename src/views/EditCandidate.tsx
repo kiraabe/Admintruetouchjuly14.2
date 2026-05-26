@@ -157,7 +157,7 @@ const EditCandidate = () => {
         }
 
         if (cand.profile_picture) {
-          setProfilePicturePreview(getCandidateProfilePictureUrl(cand.profile_picture))
+          setProfilePicturePreview(getCandidateProfilePictureUrl(cand.candidate_id, cand.profile_picture))
         }
 
         if (cand.resume_url) {

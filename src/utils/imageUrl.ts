@@ -1,13 +1,13 @@
-export function getCandidateProfilePictureUrl(filename: string | null | undefined): string {
-  if (!filename) return '/img/placeholder-avatar.png'
-  
-  // If it's already an absolute URL or full path, return as-is
-  if (filename.startsWith('http') || filename.startsWith('/uploads')) {
+export function getCandidateProfilePictureUrl(candidateId: string | null | undefined, filename: string | null | undefined): string {
+  if (!candidateId || !filename) return '/img/placeholder-avatar.png'
+
+  // If it's already an absolute URL, return as-is
+  if (filename.startsWith('http')) {
     return filename
   }
-  
-  // Otherwise, it's just a filename - construct the full path
-  return `/uploads/candidates/profile_pictures/${filename}`
+
+  // Serve from database API endpoint
+  return `/api/candidates/${candidateId}/profile-picture`
 }
 
 export function getCandidateCVUrl(filename: string | null | undefined): string {

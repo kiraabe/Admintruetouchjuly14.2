@@ -152,8 +152,12 @@ router.post('/', (req: Request, res: Response, next) => {
     const data: any = { ...req.body }
 
     if (files?.profilePicture?.[0]) {
-      data.profile_picture = files.profilePicture[0].filename
-      console.log('[CANDIDATE CREATE] Saving profile_picture to PostgreSQL:', files.profilePicture[0].filename)
+      const file = files.profilePicture[0]
+      data.profile_picture = file.filename
+      // Read file and convert to base64
+      const fileData = fs.readFileSync(file.path)
+      data.profile_picture_data = fileData
+      console.log('[CANDIDATE CREATE] Saving profile_picture to PostgreSQL:', file.filename, 'size:', fileData.length)
     } else if (data.profile_picture) {
       console.log('[CANDIDATE CREATE] Saving profile_picture to PostgreSQL:', data.profile_picture)
     }
@@ -192,8 +196,12 @@ router.put('/:candidateId', (req: Request, res: Response, next) => {
     const data: any = { ...req.body }
 
     if (files?.profilePicture?.[0]) {
-      data.profile_picture = files.profilePicture[0].filename
-      console.log('[CANDIDATE UPDATE] Saving profile_picture to PostgreSQL:', files.profilePicture[0].filename)
+      const file = files.profilePicture[0]
+      data.profile_picture = file.filename
+      // Read file and convert to binary data
+      const fileData = fs.readFileSync(file.path)
+      data.profile_picture_data = fileData
+      console.log('[CANDIDATE UPDATE] Saving profile_picture to PostgreSQL:', file.filename, 'size:', fileData.length)
     } else if (data.profile_picture) {
       console.log('[CANDIDATE UPDATE] Saving profile_picture to PostgreSQL:', data.profile_picture)
     }
@@ -235,6 +243,42 @@ router.delete('/:candidateId', async (req, res) => {
   } catch (error) {
     console.error('Error deleting candidate:', error)
     res.status(500).json({ success: false, error: 'Failed to delete candidate' })
+  }
+})
+
+// Serve candidate profile picture from database
+router.get('/:candidateId/profile-picture', async (req, res) => {
+  try {
+    const candidate = await getCandidateById(req.params.candidateId)
+
+    if (!candidate) {
+      return res.status(404).json({ success: false, error: 'Candidate not found' })
+    }
+
+    if (!candidate.profile_picture_data) {
+      return res.status(404).json({ success: false, error: 'No profile picture found' })
+    }
+
+    // Determine MIME type from filename if available
+    let mimeType = 'image/jpeg'
+    if (candidate.profile_picture) {
+      const ext = candidate.profile_picture.toLowerCase().split('.').pop()
+      const mimeTypes: Record<string, string> = {
+        'jpg': 'image/jpeg',
+        'jpeg': 'image/jpeg',
+        'png': 'image/png',
+        'gif': 'image/gif',
+        'webp': 'image/webp',
+      }
+      mimeType = mimeTypes[ext] || 'image/jpeg'
+    }
+
+    res.setHeader('Content-Type', mimeType)
+    res.setHeader('Cache-Control', 'public, max-age=31536000')
+    res.send(candidate.profile_picture_data)
+  } catch (error) {
+    console.error('Error serving profile picture:', error)
+    res.status(500).json({ success: false, error: 'Failed to serve profile picture' })
   }
 })
 

@@ -44,6 +44,7 @@ async function runMigrations() {
         phone_number VARCHAR(20),
         password_hash VARCHAR(255),
         profile_picture VARCHAR(255),
+        profile_picture_data BYTEA,
         gender VARCHAR(50),
         age INT,
         date_of_birth DATE,
@@ -138,6 +139,46 @@ async function runMigrations() {
       console.log('✓ Notification indexes created')
     } catch (indexError) {
       console.log('Note: Notification indexes may already exist')
+    }
+
+    // Add profile_picture_data column to candidates if it doesn't exist
+    try {
+      const checkColumn = await pool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.columns
+          WHERE table_name = 'candidates' AND column_name = 'profile_picture_data'
+        )
+      `)
+      if (!checkColumn.rows[0].exists) {
+        await pool.query(`ALTER TABLE candidates ADD COLUMN profile_picture_data BYTEA`)
+        console.log('✓ Added profile_picture_data column to candidates table')
+      }
+    } catch (err) {
+      console.log('Note: profile_picture_data column check/creation:', err instanceof Error ? err.message : err)
+    }
+
+    // Add image_data column to jobs if it doesn't exist
+    try {
+      const jobsTableCheck = await pool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables
+          WHERE table_name = 'jobs'
+        )
+      `)
+      if (jobsTableCheck.rows[0].exists) {
+        const checkColumn = await pool.query(`
+          SELECT EXISTS (
+            SELECT FROM information_schema.columns
+            WHERE table_name = 'jobs' AND column_name = 'image_data'
+          )
+        `)
+        if (!checkColumn.rows[0].exists) {
+          await pool.query(`ALTER TABLE jobs ADD COLUMN image_data BYTEA`)
+          console.log('✓ Added image_data column to jobs table')
+        }
+      }
+    } catch (err) {
+      console.log('Note: image_data column check/creation:', err instanceof Error ? err.message : err)
     }
 
     console.log('Migrations completed successfully')
