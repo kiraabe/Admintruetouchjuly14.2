@@ -3,9 +3,23 @@ import { v4 as uuidv4 } from 'uuid'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
-import pool from '../../db/config.ts'
 
 const router = Router()
+
+let pool: any = null
+
+async function getPool() {
+  if (!pool) {
+    try {
+      const poolModule = await import('../../db/config.ts')
+      pool = poolModule.default
+    } catch (err) {
+      console.error('Failed to load db config in jobs route:', err)
+      throw new Error('Database connection not available')
+    }
+  }
+  return pool
+}
 
 // Configure multer for job images - allow missing files
 const jobsDir = path.join(process.cwd(), 'uploads', 'jobs')
@@ -53,7 +67,7 @@ const uploadMiddleware = (req: Request, res: Response, next: Function) => {
 // GET all jobs
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const dbPool = pool
+    const dbPool = await getPool()
     const page = Math.max(1, parseInt(req.query.page as string) || 1)
     const limit = Math.min(100, parseInt(req.query.limit as string) || 10)
     const offset = (page - 1) * limit
@@ -76,7 +90,7 @@ router.get('/', async (req: Request, res: Response) => {
 // GET single job
 router.get('/:id', async (req: Request, res: Response) => {
   try {
-    const dbPool = pool
+    const dbPool = await getPool()
     const result = await dbPool.query(
       'SELECT * FROM jobs WHERE id = $1',
       [req.params.id]
@@ -125,7 +139,7 @@ function saveDataUrlImage(dataUrl: string): string | null {
 // POST create job
 router.post('/', async (req: Request, res: Response) => {
   try {
-    const dbPool = pool
+    const dbPool = await getPool()
 
     let { title, description, author, expire_date, status, image_url } = req.body
 
@@ -193,7 +207,7 @@ router.post('/', async (req: Request, res: Response) => {
 // PUT update job
 router.put('/:id', async (req: Request, res: Response) => {
   try {
-    const dbPool = pool
+    const dbPool = await getPool()
 
     let { title, description, author, image_url, expire_date, status } = req.body
 
@@ -268,7 +282,7 @@ router.put('/:id', async (req: Request, res: Response) => {
 // DELETE job
 router.delete('/:id', async (req: Request, res: Response) => {
   try {
-    const dbPool = pool
+    const dbPool = await getPool()
     const result = await dbPool.query(
       'DELETE FROM jobs WHERE id = $1 RETURNING *',
       [req.params.id]
