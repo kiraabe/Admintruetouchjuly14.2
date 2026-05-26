@@ -13,7 +13,7 @@ import {
   createCandidate,
   updateCandidate,
   deleteCandidate,
-} from '../'
+} from '../../db/queries/candidateQueries'
 
 declare global {
   namespace Express {

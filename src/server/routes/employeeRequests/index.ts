@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from 'express'
-import pool from '../'
+import pool from '../../db/config'
 import {
   getAllEmployeeRequests,
   getEmployeeRequestById,
@@ -8,7 +8,7 @@ import {
   createEmployeeRequest,
   updateEmployeeRequest,
   deleteEmployeeRequest,
-} from '../'
+} from '../../db/queries/employeeRequestQueries'
 
 const router = Router()
 
