@@ -5,7 +5,7 @@ import path from 'path'
 import fs from 'fs'
 import bcrypt from 'bcryptjs'
 import { randomUUID } from 'crypto'
-import pool from '../../db/config.ts'
+import pool from '../'
 import {
   getAllPartnerships,
   getPartnershipById,
@@ -14,7 +14,7 @@ import {
   createPartnership,
   updatePartnership,
   deletePartnership,
-} from '../../db/queries/partnershipQueries.ts'
+} from '../'
 
 declare global {
   namespace Express {

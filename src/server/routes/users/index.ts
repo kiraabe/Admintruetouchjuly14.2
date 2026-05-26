@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express'
 import bcrypt from 'bcryptjs'
-import pool from '../../db/config.ts'
+import pool from '../'
 
 const router = Router()
 

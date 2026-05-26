@@ -1,6 +1,6 @@
 import type { Request, Response } from 'express'
-import { getUserByEmail } from '../../db/queries/userQueries.ts'
-import { comparePasswords, generateToken } from '../../utils/auth.ts'
+import { getUserByEmail } from '../'
+import { comparePasswords, generateToken } from '../'
 
 export async function signIn(req: Request, res: Response) {
   try {
