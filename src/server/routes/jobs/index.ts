@@ -72,8 +72,8 @@ router.get('/', async (req: Request, res: Response) => {
     const limit = Math.min(100, parseInt(req.query.limit as string) || 10)
     const offset = (page - 1) * limit
 
-    const countResult = await dbPool.query('SELECT COUNT(*) FROM jobs')
-    const total = parseInt(countResult.rows[0].count, 10)
+    const countResult = await dbPool.query('SELECT COUNT(*) as total FROM jobs')
+    const total = parseInt(countResult.rows[0].total, 10)
 
     const result = await dbPool.query(
       'SELECT * FROM jobs ORDER BY created_at DESC LIMIT $1 OFFSET $2',
