@@ -7,6 +7,7 @@ import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
 import bcrypt from 'bcryptjs'
+import pool from './db/config.ts'
 import candidatesRouter from './routes/candidates/index.ts'
 import usersRouter from './routes/users/index.ts'
 import partnershipsRouter from './routes/partnerships/index.ts'
@@ -35,21 +36,6 @@ async function comparePasswords(password: string, hash: string): Promise<boolean
   return await bcrypt.compare(password, hash)
 }
 
-// Dynamic import for pool to avoid circular dependency issues
-let pool: any = null
-
-async function initPool() {
-  if (!pool) {
-    try {
-      const poolModule = await import('./db/config')
-      pool = poolModule.default
-    } catch (err) {
-      console.error('Failed to load db config:', err)
-      throw new Error('Database connection not available')
-    }
-  }
-  return pool
-}
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -111,10 +97,8 @@ app.get('/health', (req, res) => {
 // Migration endpoint - manually trigger column addition
 app.get('/api/migrate/add-partnership-id', async (req, res) => {
   try {
-    const dbPool = await initPool()
-
     // Check if column already exists
-    const checkColumn = await dbPool.query(`
+    const checkColumn = await pool.query(`
       SELECT EXISTS (
         SELECT FROM information_schema.columns
         WHERE table_name = 'users' AND column_name = 'partnership_id'
@@ -129,7 +113,7 @@ app.get('/api/migrate/add-partnership-id', async (req, res) => {
     }
 
     // Add the column
-    await dbPool.query(`
+    await pool.query(`
       ALTER TABLE users
       ADD COLUMN partnership_id UUID
     `)
@@ -150,8 +134,7 @@ app.get('/api/migrate/add-partnership-id', async (req, res) => {
 // Debug endpoint to list all users (remove in production)
 app.get('/api/debug/users', async (req, res) => {
   try {
-    const dbPool = await initPool()
-    const result = await dbPool.query('SELECT id, user_id, email, user_name, authority, is_active, partnership_id FROM users')
+    const result = await pool.query('SELECT id, user_id, email, user_name, authority, is_active, partnership_id FROM users')
     res.json({ users: result.rows })
   } catch (error) {
     res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to fetch users' })
@@ -161,10 +144,9 @@ app.get('/api/debug/users', async (req, res) => {
 // Debug endpoint to check employee requests table
 app.get('/api/debug/employee-requests', async (req, res) => {
   try {
-    const dbPool = await initPool()
 
     // Check if table exists
-    const tableCheck = await dbPool.query(`
+    const tableCheck = await pool.query(`
       SELECT EXISTS (
         SELECT FROM information_schema.tables
         WHERE table_name = 'employee_requests'
@@ -181,7 +163,7 @@ app.get('/api/debug/employee-requests', async (req, res) => {
     }
 
     // Get column info
-    const columns = await dbPool.query(`
+    const columns = await pool.query(`
       SELECT column_name, data_type
       FROM information_schema.columns
       WHERE table_name = 'employee_requests'
@@ -189,7 +171,7 @@ app.get('/api/debug/employee-requests', async (req, res) => {
     `)
 
     // Count rows
-    const count = await dbPool.query('SELECT COUNT(*) as count FROM employee_requests')
+    const count = await pool.query('SELECT COUNT(*) as count FROM employee_requests')
 
     res.json({
       status: 'OK',
@@ -208,10 +190,10 @@ app.get('/api/debug/employee-requests', async (req, res) => {
 // Debug endpoint to check partnerships table
 app.get('/api/debug/partnerships', async (req, res) => {
   try {
-    const dbPool = await initPool()
+
 
     // Check if table exists
-    const tableCheck = await dbPool.query(`
+    const tableCheck = await pool.query(`
       SELECT EXISTS (
         SELECT FROM information_schema.tables
         WHERE table_name = 'partnerships'
@@ -228,7 +210,7 @@ app.get('/api/debug/partnerships', async (req, res) => {
     }
 
     // Get column info
-    const columns = await dbPool.query(`
+    const columns = await pool.query(`
       SELECT column_name, data_type
       FROM information_schema.columns
       WHERE table_name = 'partnerships'
@@ -236,7 +218,7 @@ app.get('/api/debug/partnerships', async (req, res) => {
     `)
 
     // Count rows
-    const count = await dbPool.query('SELECT COUNT(*) as count FROM partnerships')
+    const count = await pool.query('SELECT COUNT(*) as count FROM partnerships')
 
     res.json({
       status: 'OK',
@@ -255,8 +237,8 @@ app.get('/api/debug/partnerships', async (req, res) => {
 // Test employee requests table
 app.get('/api/test-employee-requests', async (req, res) => {
   try {
-    const dbPool = await initPool()
-    const result = await dbPool.query('SELECT 1 as test')
+
+    const result = await pool.query('SELECT 1 as test')
     res.json({ success: true, message: 'Database connection working', data: result.rows })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
@@ -266,7 +248,7 @@ app.get('/api/test-employee-requests', async (req, res) => {
 
 // Seed employee requests with test data
 app.get('/api/seed-employee-requests', async (req: Request, res: Response) => {
-  const dbPool = await initPool()
+
 
   try {
     // First ensure all columns exist
@@ -280,18 +262,18 @@ app.get('/api/seed-employee-requests', async (req: Request, res: Response) => {
 
     for (const cmd of alterCommands) {
       try {
-        await dbPool.query(cmd)
+        await pool.query(cmd)
       } catch (e) {
         console.log(`Column already exists or error: ${e}`)
       }
     }
 
     // Clear existing data
-    await dbPool.query('DELETE FROM employee_requests')
+    await pool.query('DELETE FROM employee_requests')
     console.log('Cleared existing employee requests')
 
     // Insert seed data
-    const insertResult = await dbPool.query(`
+    const insertResult = await pool.query(`
       INSERT INTO employee_requests (
         request_type, company_name, contact_person, email, phone_number,
         position, number_of_employees, start_date, location, status,
@@ -403,8 +385,8 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
       return res.status(400).json({ message: 'Email and password are required' })
     }
 
-    const dbPool = await initPool()
-    const result = await dbPool.query(
+
+    const result = await pool.query(
       'SELECT id, user_id, email, password_hash, user_name, is_active, avatar, authority, partnership_id FROM users WHERE email = $1',
       [email]
     )
@@ -453,13 +435,13 @@ app.use((err: any, req: any, res: any, next: any) => {
 // Initialize database and start server
 async function startServer() {
   try {
-    const dbPool = await initPool()
+
 
     // Run migrations
     console.log('Initializing database...')
 
     // Create users table
-    await dbPool.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         user_id UUID DEFAULT gen_random_uuid() UNIQUE,
@@ -477,7 +459,7 @@ async function startServer() {
 
     // Add partnership_id column if it doesn't exist (for existing databases)
     try {
-      const columnCheck = await dbPool.query(`
+      const columnCheck = await pool.query(`
         SELECT EXISTS (
           SELECT FROM information_schema.columns
           WHERE table_name = 'users' AND column_name = 'partnership_id'
@@ -485,7 +467,7 @@ async function startServer() {
       `)
 
       if (!columnCheck.rows[0].exists) {
-        await dbPool.query(`
+        await pool.query(`
           ALTER TABLE users
           ADD COLUMN partnership_id UUID
         `)
@@ -499,13 +481,13 @@ async function startServer() {
 
     // Seed test user
     const hashedPassword = await bcrypt.hash('123Qwe', 10)
-    await dbPool.query(`
+    await pool.query(`
       INSERT INTO users (email, password_hash, user_name, authority, is_active)
       VALUES ($1, $2, $3, $4, $5)
       ON CONFLICT (email) DO NOTHING
     `, ['admin-01@ecme.com', hashedPassword, 'Admin', 'admin', true])
 
-    await dbPool.query(`
+    await pool.query(`
       CREATE TABLE IF NOT EXISTS candidates (
         id SERIAL PRIMARY KEY,
         candidate_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
@@ -537,14 +519,14 @@ async function startServer() {
     `)
 
     // Add status column if it doesn't exist (for existing databases)
-    await dbPool.query(`
+    await pool.query(`
       ALTER TABLE candidates
       ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'available'
     `)
 
     try {
       console.log('Creating partnerships table...')
-      await dbPool.query(`
+      await pool.query(`
         CREATE TABLE IF NOT EXISTS partnerships (
           id SERIAL PRIMARY KEY,
           partner_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
@@ -566,14 +548,14 @@ async function startServer() {
 
       // Add foreign key constraint from users to partnerships
       try {
-        const constraintCheck = await dbPool.query(`
+        const constraintCheck = await pool.query(`
           SELECT constraint_name
           FROM information_schema.table_constraints
           WHERE table_name = 'users' AND constraint_name = 'fk_users_partnership_id'
         `)
 
         if (constraintCheck.rows.length === 0) {
-          await dbPool.query(`
+          await pool.query(`
             ALTER TABLE users
             ADD CONSTRAINT fk_users_partnership_id
             FOREIGN KEY (partnership_id) REFERENCES partnerships(partner_id) ON DELETE CASCADE
@@ -591,7 +573,7 @@ async function startServer() {
 
     try {
       console.log('Creating employee_requests table...')
-      await dbPool.query(`
+      await pool.query(`
         CREATE TABLE IF NOT EXISTS employee_requests (
           id SERIAL PRIMARY KEY,
           request_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
@@ -622,11 +604,11 @@ async function startServer() {
       for (const col of missingColumns) {
         try {
           if (col === 'request_type') {
-            await dbPool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} VARCHAR(50) DEFAULT 'Standard'`)
+            await pool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} VARCHAR(50) DEFAULT 'Standard'`)
           } else if (col === 'partnership_id') {
-            await dbPool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} UUID`)
+            await pool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} UUID`)
           } else if (col === 'salary_range' || col === 'required_skills' || col === 'work_city' || col === 'urgency') {
-            await dbPool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} VARCHAR(255)`)
+            await pool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} VARCHAR(255)`)
           }
         } catch (e) {
           // Column likely already exists, ignore
@@ -634,10 +616,10 @@ async function startServer() {
       }
 
       // Seed hardcoded data for testing
-      const existingCount = await dbPool.query('SELECT COUNT(*) as count FROM employee_requests')
+      const existingCount = await pool.query('SELECT COUNT(*) as count FROM employee_requests')
       if (existingCount.rows[0].count === 0) {
         console.log('Seeding employee_requests with test data...')
-        await dbPool.query(`
+        await pool.query(`
           INSERT INTO employee_requests (
             request_type, company_name, contact_person, email, phone_number,
             position, number_of_employees, start_date, location, status,
@@ -682,7 +664,7 @@ async function startServer() {
 
     try {
       console.log('Creating licenses table...')
-      await dbPool.query(`
+      await pool.query(`
         CREATE TABLE IF NOT EXISTS licenses (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           license_number VARCHAR(255) UNIQUE NOT NULL,
@@ -705,7 +687,7 @@ async function startServer() {
 
     try {
       console.log('Creating jobs table...')
-      await dbPool.query(`
+      await pool.query(`
         CREATE TABLE IF NOT EXISTS jobs (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           title VARCHAR(56) NOT NULL,
@@ -721,10 +703,10 @@ async function startServer() {
       console.log('✓ Jobs table ready')
 
       // Seed sample jobs if table is empty
-      const jobCount = await dbPool.query('SELECT COUNT(*) as count FROM jobs')
+      const jobCount = await pool.query('SELECT COUNT(*) as count FROM jobs')
       if (jobCount.rows[0].count === 0) {
         console.log('Seeding jobs with sample data...')
-        await dbPool.query(`
+        await pool.query(`
           INSERT INTO jobs (title, description, author, expire_date, status) VALUES
           ('Software Engineer', 'Looking for experienced software engineers', 'admin', '2024-12-31', 'active'),
           ('Product Manager', 'Lead product development for our platform', 'admin', '2024-12-31', 'active'),
@@ -738,7 +720,7 @@ async function startServer() {
 
     try {
       console.log('Creating notifications table...')
-      const createTableResult = await dbPool.query(`
+      const createTableResult = await pool.query(`
         CREATE TABLE IF NOT EXISTS notifications (
           id SERIAL PRIMARY KEY,
           notification_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
@@ -761,15 +743,15 @@ async function startServer() {
 
       // Create indexes for better query performance
       try {
-        await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_notifications_readed ON notifications(readed)`)
-        await dbPool.query(`CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC)`)
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_notifications_readed ON notifications(readed)`)
+        await pool.query(`CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC)`)
         console.log('✓ Notification indexes created')
       } catch (indexError) {
         console.log('Note: Indexes may already exist')
       }
 
       // Verify table exists
-      const tableCheck = await dbPool.query(`
+      const tableCheck = await pool.query(`
         SELECT EXISTS (
           SELECT FROM information_schema.tables
           WHERE table_name = 'notifications'
