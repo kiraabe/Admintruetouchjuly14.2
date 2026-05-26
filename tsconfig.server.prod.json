@@ -6,7 +6,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": false,
-    "esModuleInterop": false,
+    "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
@@ -18,8 +18,7 @@
     "moduleDetection": "force",
     "noImplicitAny": false,
     "ignoreDeprecations": "5.0",
-    "noImplicitThis": false,
-    "allowImportingTsExtensions": true
+    "noImplicitThis": false
   },
   "include": ["src/server/**/*.ts"],
   "exclude": ["node_modules", "dist", "src/views", "src/components", "src/pages"]
