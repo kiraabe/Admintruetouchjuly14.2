@@ -6,8 +6,11 @@ export function getCandidateProfilePictureUrl(candidateId: string | null | undef
     return filename
   }
 
-  // Serve from database API endpoint
-  return `/api/candidates/${candidateId}/profile-picture`
+  // Serve directly from filesystem like job images
+  if (filename.startsWith('/uploads')) return filename
+  if (filename.startsWith('/')) return filename
+
+  return `/uploads/candidates/profile_pictures/${filename}`
 }
 
 export function getCandidateCVUrl(filename: string | null | undefined): string {
