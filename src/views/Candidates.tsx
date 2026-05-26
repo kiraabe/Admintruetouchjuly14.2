@@ -7,6 +7,7 @@ import Dialog from '@/components/ui/Dialog'
 import Checkbox from '@/components/ui/Checkbox'
 import Pagination from '@/components/ui/Pagination'
 import { notify } from '@/utils/notification'
+import { getCandidateProfilePictureUrl } from '@/utils/imageUrl'
 
 interface Candidate {
   id: number
@@ -536,7 +537,7 @@ const Candidates = () => {
                     <td className="py-3 px-4 font-semibold">
                       <div className="flex items-center gap-3">
                         <img
-                          src={candidate.profile_picture ? `/uploads/${candidate.profile_picture}` : '/img/placeholder-avatar.png'}
+                          src={getCandidateProfilePictureUrl(candidate.profile_picture)}
                           alt={candidate.name}
                           className="w-10 h-10 rounded-full object-cover"
                           onError={(e) => {

@@ -5,6 +5,7 @@ import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
 import { notify } from '@/utils/notification'
 import { uploadCandidateProfilePicture, uploadCandidateCV } from '@/utils/fileServer'
+import { getCandidateProfilePictureUrl, getCandidateCVUrl } from '@/utils/imageUrl'
 
 interface Candidate {
   id: number
@@ -156,10 +157,7 @@ const EditCandidate = () => {
         }
 
         if (cand.profile_picture) {
-          const picUrl = cand.profile_picture.startsWith('http')
-            ? cand.profile_picture
-            : `/uploads/${cand.profile_picture}`
-          setProfilePicturePreview(picUrl)
+          setProfilePicturePreview(getCandidateProfilePictureUrl(cand.profile_picture))
         }
 
         if (cand.resume_url) {
@@ -305,12 +303,12 @@ const EditCandidate = () => {
 
       if (profilePicture) {
         const uploadResult = await uploadCandidateProfilePicture(profilePicture)
-        formDataToSend.append('profile_picture', uploadResult.path)
+        formDataToSend.append('profile_picture', uploadResult.filename)
       }
 
       if (resume) {
         const uploadResult = await uploadCandidateCV(resume)
-        formDataToSend.append('resume_url', uploadResult.path)
+        formDataToSend.append('resume_url', uploadResult.filename)
       }
 
       if (isNewCandidate) {
