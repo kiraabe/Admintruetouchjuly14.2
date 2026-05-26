@@ -18,7 +18,8 @@
     "moduleDetection": "force",
     "noImplicitAny": false,
     "ignoreDeprecations": "5.0",
-    "noImplicitThis": false
+    "noImplicitThis": false,
+    "allowImportingTsExtensions": true
   },
   "include": ["src/server/**/*.ts"],
   "exclude": ["node_modules", "dist", "src/views", "src/components", "src/pages"]
