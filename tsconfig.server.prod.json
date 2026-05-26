@@ -15,7 +15,6 @@
     "sourceMap": true,
     "moduleResolution": "node",
     "allowSyntheticDefaultImports": true,
-    "allowImportingTsExtensions": true,
     "moduleDetection": "force",
     "noImplicitAny": false,
     "ignoreDeprecations": "5.0",
