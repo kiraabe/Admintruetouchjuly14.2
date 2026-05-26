@@ -17,6 +17,7 @@
     "allowSyntheticDefaultImports": true,
     "moduleDetection": "force",
     "noImplicitAny": false,
+    "noEmitOnError": true,
     "ignoreDeprecations": "5.0",
     "noImplicitThis": false
   },

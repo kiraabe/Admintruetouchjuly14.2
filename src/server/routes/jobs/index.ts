@@ -3,7 +3,7 @@ import { v4 as uuidv4 } from 'uuid'
 import multer from 'multer'
 import path from 'path'
 import fs from 'fs'
-import pool from '../../db/config'
+import pool from '../../db/config.js'
 
 const router = Router()
 
