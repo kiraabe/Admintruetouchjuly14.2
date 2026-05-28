@@ -1,7 +1,7 @@
 import express from 'express'
-import { signIn } from './signIn.js'
-import { signUp } from './signUp.js'
-import { authMiddleware } from '../../middleware/auth.js'
+import { signIn } from './signIn.ts'
+import { signUp } from './signUp.ts'
+import { authMiddleware } from '../../middleware/auth.ts'
 
 const router = express.Router()
 
