@@ -51,12 +51,27 @@ const JOB_CATEGORIES = [
   'Electricians',
 ]
 
+const SKILLS_BY_CATEGORY: Record<string, string[]> = {
+  'Housekeepers': ['Cleaning', 'Laundry', 'Dishwashing', 'Organization', 'Time Management', 'Customer Service'],
+  'Cleaners': ['Floor Cleaning', 'Sanitization', 'Equipment Operation', 'Chemical Knowledge', 'Safety Procedures', 'Attention to Detail'],
+  'Nannies and caregivers': ['Childcare', 'First Aid/CPR', 'Meal Preparation', 'Educational Support', 'Patience', 'Safety Awareness'],
+  'Drivers': ['Defensive Driving', 'GPS Navigation', 'Vehicle Maintenance', 'Road Safety', 'Time Management', 'Customer Service'],
+  'Warehouse staff': ['Inventory Management', 'Forklift Operation', 'Organization', 'Physical Stamina', 'Safety Compliance', 'Attention to Detail'],
+  'Retail store employees': ['Customer Service', 'Cash Handling', 'Product Knowledge', 'Sales Skills', 'Visual Merchandising', 'Communication'],
+  'Waiters/waitresses': ['Customer Service', 'Food Service', 'Communication', 'Multitasking', 'Problem Solving', 'Professionalism'],
+  'Laundry services': ['Stain Removal', 'Ironing', 'Fabric Care', 'Equipment Operation', 'Quality Control', 'Time Management'],
+  '5-star hotel security': ['Security Protocols', 'Customer Service', 'Conflict Resolution', 'First Aid', 'Surveillance', 'Physical Fitness'],
+  'Kitchen helpers': ['Food Preparation', 'Kitchen Safety', 'Sanitation', 'Organization', 'Teamwork', 'Efficiency'],
+  'Construction workers': ['Safety Procedures', 'Equipment Handling', 'Teamwork', 'Physical Strength', 'Technical Knowledge', 'Problem Solving'],
+  'Laborers': ['Physical Stamina', 'Safety Awareness', 'Teamwork', 'Equipment Operation', 'Organization', 'Attention to Detail'],
+  'Electricians': ['Electrical Wiring', 'Maintenance', 'Circuit Installation', 'Troubleshooting', 'Safety Procedures', 'Equipment Handling'],
+}
+
 const EDUCATION_LEVELS = ['Primary', 'Secondary', 'Diploma', 'Bachelor', 'Master', 'PhD']
-const SKILL_LEVELS = ['Entry', 'Intermediate', 'Advanced', 'Expert']
 const GENDERS = ['Male', 'Female', 'Other']
 const MARITAL_STATUS = ['Single', 'Married', 'Divorced', 'Widowed']
 const RELIGIONS = ['Christianity', 'Islam', 'Hinduism', 'Buddhism', 'Judaism', 'Sikhism', 'Atheism', 'Agnosticism', 'Other']
-const LANGUAGES = ['English', 'Spanish', 'French', 'German', 'Mandarin', 'Arabic', 'Portuguese', 'Russian', 'Japanese', 'Hindi']
+const COMMON_LANGUAGES = ['English', 'Amharic', 'Afaan Oromo', 'Arabic', 'French', 'Somali', 'Tigrinya', 'Swahili', 'Turkish', 'Spanish', 'German', 'Italian', 'Chinese', 'Hindi', 'Urdu', 'Russian', 'Portuguese', 'Japanese', 'Korean', 'Dutch', 'Greek', 'Hebrew', 'Persian', 'Bengali', 'Tamil', 'Punjabi', 'Malay', 'Thai', 'Vietnamese']
 const COUNTRIES = ['India', 'Philippines', 'Indonesia', 'Vietnam', 'Thailand', 'Malaysia', 'Singapore', 'Sri Lanka', 'Bangladesh', 'Myanmar', 'Ethiopia']
 const MEDICAL_STATUS = ['Fit', 'Fit with restrictions', 'Unfit', 'Under review', 'Not assessed']
 
@@ -72,6 +87,9 @@ const EditCandidate = () => {
   const [resume, setResume] = useState<File | null>(null)
   const [resumeUrl, setResumeUrl] = useState<string | null>(null)
   const [filteredLocations, setFilteredLocations] = useState<string[]>([])
+  const [languageSuggestions, setLanguageSuggestions] = useState<string[]>([])
+  const [showLanguageSuggestions, setShowLanguageSuggestions] = useState(false)
+  const [selectedSkills, setSelectedSkills] = useState<string[]>([])
 
   const [formData, setFormData] = useState({
     name: '',
@@ -91,7 +109,6 @@ const EditCandidate = () => {
     city: '',
     current_location: '',
     medical_status: '',
-    status: 'available',
   })
 
   useEffect(() => {
@@ -136,8 +153,12 @@ const EditCandidate = () => {
           city: cand.city || '',
           current_location: cand.current_location || '',
           medical_status: cand.medical_status || '',
-          status: cand.status || 'available',
         })
+
+        if (cand.skill_level) {
+          const skills = cand.skill_level.split(',').map((s: string) => s.trim())
+          setSelectedSkills(skills)
+        }
 
         if (cand.country) {
           const countryCities: Record<string, string[]> = {
@@ -219,6 +240,45 @@ const EditCandidate = () => {
     })
   }
 
+  const handleLanguageInput = (value: string) => {
+    handleFieldChange('language_skills', value)
+    
+    if (value.trim().length > 0) {
+      const suggestions = COMMON_LANGUAGES.filter(lang =>
+        lang.toLowerCase().includes(value.toLowerCase())
+      )
+      setLanguageSuggestions(suggestions)
+      setShowLanguageSuggestions(true)
+    } else {
+      setLanguageSuggestions([])
+      setShowLanguageSuggestions(false)
+    }
+  }
+
+  const selectLanguage = (language: string) => {
+    const current = formData.language_skills.split(',').map(l => l.trim()).filter(l => l)
+    if (!current.includes(language)) {
+      const updated = [...current, language].join(', ')
+      handleFieldChange('language_skills', updated)
+    }
+    setShowLanguageSuggestions(false)
+  }
+
+  const handleJobCategoryChange = (category: string) => {
+    setFormData({ ...formData, job_category: category })
+    setSelectedSkills([])
+  }
+
+  const toggleSkill = (skill: string) => {
+    setSelectedSkills(prev => {
+      if (prev.includes(skill)) {
+        return prev.filter(s => s !== skill)
+      } else {
+        return [...prev, skill]
+      }
+    })
+  }
+
   const handleProfilePictureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
@@ -285,6 +345,14 @@ const EditCandidate = () => {
       newErrors.date_of_birth = validateDateOfBirth(formData.date_of_birth)
     }
 
+    if (!profilePicture && !profilePicturePreview) {
+      newErrors.profile_picture = 'Profile picture is required'
+    }
+
+    if (!resume && !resumeUrl) {
+      newErrors.resume = 'Resume is required'
+    }
+
     setFieldErrors(newErrors)
 
     if (Object.values(newErrors).some((err) => err)) {
@@ -300,6 +368,10 @@ const EditCandidate = () => {
           formDataToSend.append(key, String(value))
         }
       })
+
+      if (selectedSkills.length > 0) {
+        formDataToSend.append('skill_level', selectedSkills.join(', '))
+      }
 
       if (profilePicture) {
         const uploadResult = await uploadCandidateProfilePicture(profilePicture)
@@ -388,6 +460,8 @@ const EditCandidate = () => {
       </div>
     )
   }
+
+  const availableSkills = formData.job_category ? SKILLS_BY_CATEGORY[formData.job_category] || [] : []
 
   return (
     <main className="h-full">
@@ -529,29 +603,13 @@ const EditCandidate = () => {
                           <label className="form-label mb-2">Job Category</label>
                           <select
                             value={formData.job_category}
-                            onChange={(e) => setFormData({ ...formData, job_category: e.target.value })}
+                            onChange={(e) => handleJobCategoryChange(e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
                           >
                             <option value="">Select job category</option>
                             {JOB_CATEGORIES.map((cat) => (
                               <option key={cat} value={cat}>
                                 {cat}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div>
-                          <label className="form-label mb-2">Skill Level</label>
-                          <select
-                            value={formData.skill_level}
-                            onChange={(e) => setFormData({ ...formData, skill_level: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
-                          >
-                            <option value="">Select skill level</option>
-                            {SKILL_LEVELS.map((level) => (
-                              <option key={level} value={level}>
-                                {level}
                               </option>
                             ))}
                           </select>
@@ -591,28 +649,59 @@ const EditCandidate = () => {
 
                         <div>
                           <label className="form-label mb-2">Language Skills</label>
-                          <Input
-                            value={formData.language_skills}
-                            onChange={(e) => setFormData({ ...formData, language_skills: e.target.value })}
-                            placeholder="e.g., English, Spanish"
-                          />
-                        </div>
-
-                        <div>
-                          <label className="form-label mb-2">Status</label>
-                          <select
-                            value={formData.status}
-                            onChange={(e) => setFormData({ ...formData, status: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
-                          >
-                            <option value="available">Available</option>
-                            <option value="Processing">Processing</option>
-                            <option value="Employee">Employee</option>
-                          </select>
+                          <div className="relative">
+                            <Input
+                              value={formData.language_skills}
+                              onChange={(e) => handleLanguageInput(e.target.value)}
+                              placeholder="Type to search languages..."
+                              onFocus={() => formData.language_skills && setShowLanguageSuggestions(true)}
+                              onBlur={() => setTimeout(() => setShowLanguageSuggestions(false), 200)}
+                            />
+                            {showLanguageSuggestions && languageSuggestions.length > 0 && (
+                              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                                {languageSuggestions.map((lang) => (
+                                  <button
+                                    key={lang}
+                                    type="button"
+                                    onClick={() => selectLanguage(lang)}
+                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100"
+                                  >
+                                    {lang}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Separate languages with comma</p>
                         </div>
                       </div>
                     </div>
                   </Card>
+
+                  {/* Skills Section */}
+                  {formData.job_category && availableSkills.length > 0 && (
+                    <Card className="card-border">
+                      <div className="card-body">
+                        <h4 className="mb-6 font-semibold">Skills for {formData.job_category}</h4>
+                        <div className="grid md:grid-cols-2 gap-4">
+                          {availableSkills.map((skill) => (
+                            <div key={skill} className="flex items-center">
+                              <input
+                                type="checkbox"
+                                id={skill}
+                                checked={selectedSkills.includes(skill)}
+                                onChange={() => toggleSkill(skill)}
+                                className="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary dark:focus:ring-offset-gray-800 dark:bg-gray-700 dark:border-gray-600"
+                              />
+                              <label htmlFor={skill} className="ml-2 text-sm text-gray-900 dark:text-gray-300">
+                                {skill}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </Card>
+                  )}
 
                   {/* Location Information Section */}
                   <Card className="card-border">
@@ -673,7 +762,7 @@ const EditCandidate = () => {
                   {/* Image Section */}
                   <Card className="card-border">
                     <div className="card-body">
-                      <h4 className="mb-6 font-semibold">Profile Picture</h4>
+                      <h4 className="mb-6 font-semibold">Profile Picture *</h4>
                       <div className="bg-gray-100 dark:bg-gray-700 rounded-lg text-center p-4">
                         <div className="flex items-center justify-center mb-4">
                           <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-white dark:border-gray-600 bg-gray-200 dark:bg-gray-600">
@@ -718,14 +807,16 @@ const EditCandidate = () => {
                             </Button>
                           </label>
                         </div>
+                        {fieldErrors.profile_picture && (
+                          <p className="text-red-600 dark:text-red-400 text-xs mt-2">{fieldErrors.profile_picture}</p>
+                        )}
                       </div>
-                    </div>
-                  </Card>
+                    </Card>
 
                   {/* Resume Section */}
                   <Card className="card-border">
                     <div className="card-body">
-                      <h4 className="mb-6 font-semibold">Resume</h4>
+                      <h4 className="mb-6 font-semibold">Resume *</h4>
                       <div className="bg-gray-100 dark:bg-gray-700 rounded-lg text-center p-4">
                         {resumeUrl ? (
                           <div className="flex items-center justify-between p-3 bg-white dark:bg-gray-600 rounded mb-4 border border-primary/20">
@@ -795,9 +886,11 @@ const EditCandidate = () => {
                             </Button>
                           </label>
                         </div>
+                        {fieldErrors.resume && (
+                          <p className="text-red-600 dark:text-red-400 text-xs mt-2">{fieldErrors.resume}</p>
+                        )}
                       </div>
-                    </div>
-                  </Card>
+                    </Card>
 
                   {/* Account Settings */}
                   {!isNewCandidate && candidate && (
