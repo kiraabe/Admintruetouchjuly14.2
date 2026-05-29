@@ -70,10 +70,18 @@ const ContactUs = () => {
       const data = await response.json()
       if (data.success) {
         const newMessages = data.data || []
-        setMessages(newMessages)
+        // Ensure all required fields are present
+        const processedMessages = newMessages.map((msg: ContactMessage) => ({
+          ...msg,
+          name: msg.name || 'Unknown',
+          email: msg.email || 'N/A',
+          subject: msg.subject || 'No Subject',
+          message: msg.message || '',
+        }))
+        setMessages(processedMessages)
 
         // Create notifications for new messages
-        newMessages.forEach((msg) => {
+        processedMessages.forEach((msg) => {
           if (msg.status === 'new') {
             createNotification(
               msg.name,
@@ -240,8 +248,8 @@ const ContactUs = () => {
               <tbody>
                 {paginatedMessages.map((msg) => (
                   <tr key={msg.id || msg.contact_id} className="border-b dark:border-gray-700">
-                    <td className="px-4 py-3">{msg.name}</td>
-                    <td className="px-4 py-3">{msg.email}</td>
+                    <td className="px-4 py-3 font-medium">{msg.name || 'Unknown'}</td>
+                    <td className="px-4 py-3">{msg.email || 'N/A'}</td>
                     <td className="px-4 py-3">{msg.subject}</td>
                     <td className="px-4 py-3">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClass(msg.status)}`}>
