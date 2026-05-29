@@ -5,6 +5,7 @@ import Tag from '@/components/ui/Tag'
 import Segment from '@/components/ui/Segment'
 import Avatar from '@/components/ui/Avatar'
 import Chart from '@/components/shared/Chart'
+import CountryMap from '@/components/shared/CountryMap'
 
 interface KPI {
   title: string
@@ -344,9 +345,7 @@ const Dashboard = () => {
         <h4 className="text-lg font-bold mb-4">Top Countries</h4>
         <div className="flex flex-col xl:flex-row items-center gap-4 mt-4">
           <div className="px-4 flex flex-col justify-center flex-1 w-full">
-            <div className="w-full h-64 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center text-gray-400">
-              <p className="text-sm">Global distribution map</p>
-            </div>
+            <CountryMap />
           </div>
           <div className="flex flex-col justify-center px-4 2xl:min-w-[340px] xl:w-[300px] w-full gap-2">
             {[
