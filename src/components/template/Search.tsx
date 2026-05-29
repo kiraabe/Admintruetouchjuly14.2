@@ -77,6 +77,46 @@ const ListItem = (props: {
     )
 }
 
+const searchPageContent = (query: string): SearchResult => {
+    const queryLower = query.toLowerCase()
+    const results: SearchData[] = []
+    const pageContainer = document.querySelector('[data-loc*="PageContainer"]') || document.querySelector('main')
+
+    if (!pageContainer) {
+        return { title: 'Page Content', data: [] }
+    }
+
+    const walkDOM = (node: Node, path: string = '') => {
+        if (node.nodeType === Node.TEXT_NODE) {
+            const text = node.textContent || ''
+            if (text.toLowerCase().includes(queryLower) && text.trim().length > 0) {
+                const parentElement = node.parentElement
+                if (parentElement && text.length < 100) {
+                    const key = `${path}-${text.substring(0, 30)}`
+                    if (!results.some(r => r.key === key)) {
+                        results.push({
+                            key,
+                            path: '#',
+                            title: text.trim(),
+                            icon: 'document',
+                            category: 'Page Content',
+                            categoryTitle: 'Page Content',
+                        })
+                    }
+                }
+            }
+        } else if (node.nodeType === Node.ELEMENT_NODE) {
+            const element = node as Element
+            Array.from(element.childNodes).forEach((child, index) => {
+                walkDOM(child, `${path}/${element.tagName}[${index}]`)
+            })
+        }
+    }
+
+    walkDOM(pageContainer)
+    return { title: 'Page Content', data: results.slice(0, 10) }
+}
+
 const _Search = ({ className }: { className?: string }) => {
     const location = useLocation()
     const [searchDialogOpen, setSearchDialogOpen] = useState(false)
@@ -126,12 +166,16 @@ const _Search = ({ className }: { className?: string }) => {
 
         const respond = await apiGetSearchResult<SearchResult[]>({ query })
 
-        if (respond) {
-            if (respond.length === 0) {
-                setNoResult(true)
-            }
-            setSearchResult(respond)
+        const panelResults = searchPageContent(query)
+        const combinedResults = [
+            ...respond,
+            ...(panelResults.length > 0 ? [panelResults] : []),
+        ]
+
+        if (combinedResults.length === 0) {
+            setNoResult(true)
         }
+        setSearchResult(combinedResults)
     }
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
