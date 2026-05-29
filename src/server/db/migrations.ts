@@ -1,5 +1,5 @@
 import 'dotenv/config'
-import pool from './config.js'
+import pool from './config'
 
 async function runMigrations() {
   try {

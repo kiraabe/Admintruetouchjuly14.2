@@ -1,4 +1,4 @@
-import pool from './db/config.js'
+import pool from './db/config'
 
 async function testConnection() {
   try {
