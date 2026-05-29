@@ -116,13 +116,16 @@ const Dashboard = () => {
   }
 
   const aggregateTopCountries = (candidatesData: Candidate[], partnershipsData: Partnership[]) => {
-    const locationMap: { [key: string]: number } = {}
+    const locationMap: { [key: string]: { candidates: number; partnerships: number } } = {}
 
     // Count candidates by country
     candidatesData.forEach((candidate) => {
       const country = candidate.country?.trim()
       if (country) {
-        locationMap[country] = (locationMap[country] || 0) + 1
+        if (!locationMap[country]) {
+          locationMap[country] = { candidates: 0, partnerships: 0 }
+        }
+        locationMap[country].candidates += 1
       }
     })
 
@@ -130,23 +133,28 @@ const Dashboard = () => {
     partnershipsData.forEach((partnership) => {
       const city = partnership.service_city?.trim()
       if (city) {
-        locationMap[city] = (locationMap[city] || 0) + 1
+        if (!locationMap[city]) {
+          locationMap[city] = { candidates: 0, partnerships: 0 }
+        }
+        locationMap[city].partnerships += 1
       }
     })
 
     // Get top 5 countries/locations by count
     const sortedLocations = Object.entries(locationMap)
-      .sort((a, b) => b[1] - a[1])
+      .sort((a, b) => (b[1].candidates + b[1].partnerships) - (a[1].candidates + a[1].partnerships))
       .slice(0, 5)
 
-    const total = sortedLocations.reduce((sum, [_, count]) => sum + count, 0)
+    const total = sortedLocations.reduce((sum, [_, data]) => sum + data.candidates + data.partnerships, 0)
 
     if (total > 0 && sortedLocations.length > 0) {
       // Create dynamic country data from actual data with correct coordinates
-      const updated: CountryData[] = sortedLocations.map(([name, count]) => ({
+      const updated: CountryData[] = sortedLocations.map(([name, data]) => ({
         name,
         coordinates: getCountryCoordinates(name),
-        percentage: (count / total) * 100,
+        percentage: ((data.candidates + data.partnerships) / total) * 100,
+        candidates: data.candidates,
+        partnerships: data.partnerships,
       }))
       setTopCountries(updated)
     }

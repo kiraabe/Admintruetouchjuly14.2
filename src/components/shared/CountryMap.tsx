@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps'
 
 const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
@@ -6,6 +7,8 @@ export interface CountryData {
   name: string
   coordinates: [number, number]
   percentage: number
+  candidates?: number
+  partnerships?: number
 }
 
 export const countryCoordinates: { [key: string]: [number, number] } = {
@@ -105,10 +108,35 @@ interface CountryMapProps {
   data?: CountryData[]
 }
 
+interface TooltipPosition {
+  x: number
+  y: number
+}
+
 export default function CountryMap({ selectedCountry, onCountryClick, data }: CountryMapProps) {
   const mapData = data || countriesData
+  const [hoveredCountry, setHoveredCountry] = useState<string | null>(null)
+  const [tooltipPos, setTooltipPos] = useState<TooltipPosition>({ x: 0, y: 0 })
+
+  const handleMarkerHover = (e: React.MouseEvent, countryName: string) => {
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
+    setTooltipPos({
+      x: rect.x,
+      y: rect.y - 50,
+    })
+    setHoveredCountry(countryName)
+  }
+
+  const handleMarkerLeave = () => {
+    setHoveredCountry(null)
+  }
+
+  const getCountryInfo = (countryName: string) => {
+    return mapData.find(c => c.name === countryName)
+  }
+
   return (
-    <div className="w-full h-full min-h-64">
+    <div className="w-full h-full min-h-64 relative">
       <ComposableMap projection="geoMercator">
         <Geographies geography={geoUrl}>
           {({ geographies }) =>
@@ -152,6 +180,8 @@ export default function CountryMap({ selectedCountry, onCountryClick, data }: Co
               coordinates={country.coordinates}
               onClick={() => onCountryClick?.(country.name)}
               style={{ cursor: 'pointer' }}
+              onMouseEnter={(e) => handleMarkerHover(e, country.name)}
+              onMouseLeave={handleMarkerLeave}
             >
               <circle
                 r={isSelected ? radius + 2 : radius}
@@ -183,6 +213,30 @@ export default function CountryMap({ selectedCountry, onCountryClick, data }: Co
           )
         })}
       </ComposableMap>
+
+      {hoveredCountry && (
+        <div
+          className="absolute bg-gray-800 text-white px-3 py-2 rounded-lg shadow-lg text-sm z-50 pointer-events-none"
+          style={{
+            left: `${tooltipPos.x}px`,
+            top: `${tooltipPos.y}px`,
+            transform: 'translate(-50%, -100%)',
+          }}
+        >
+          <div className="font-semibold mb-1">{hoveredCountry}</div>
+          {getCountryInfo(hoveredCountry) && (
+            <>
+              <div className="text-gray-300">Share: {getCountryInfo(hoveredCountry)!.percentage.toFixed(2)}%</div>
+              {getCountryInfo(hoveredCountry)!.candidates !== undefined && (
+                <div className="text-blue-300">Candidates: {getCountryInfo(hoveredCountry)!.candidates}</div>
+              )}
+              {getCountryInfo(hoveredCountry)!.partnerships !== undefined && (
+                <div className="text-green-300">Partnerships: {getCountryInfo(hoveredCountry)!.partnerships}</div>
+              )}
+            </>
+          )}
+        </div>
+      )}
     </div>
   )
 }
