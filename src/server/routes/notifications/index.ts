@@ -119,10 +119,9 @@ router.put('/mark-all-read', async (req: Request, res: Response) => {
       UPDATE notifications
       SET readed = true, updated_at = CURRENT_TIMESTAMP
       WHERE readed = false
-      RETURNING COUNT(*) as updated
     `)
 
-    res.json({ success: true, updated: result.rows[0]?.updated || 0 })
+    res.json({ success: true, updated: result.rowCount || 0 })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
     console.error('Error marking all as read:', errorMsg)
