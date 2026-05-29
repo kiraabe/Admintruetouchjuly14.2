@@ -5,7 +5,7 @@ import Tag from '@/components/ui/Tag'
 import Segment from '@/components/ui/Segment'
 import Avatar from '@/components/ui/Avatar'
 import Chart from '@/components/shared/Chart'
-import CountryMap from '@/components/shared/CountryMap'
+import CountryMap, { countriesData } from '@/components/shared/CountryMap'
 
 interface KPI {
   title: string
@@ -50,6 +50,7 @@ const Dashboard = () => {
   const [requests, setRequests] = useState<EmployeeRequest[]>([])
   const [kpis, setKpis] = useState<KPI[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedCountry, setSelectedCountry] = useState<string>(countriesData[0].name)
 
   useEffect(() => {
     fetchData()
@@ -345,31 +346,54 @@ const Dashboard = () => {
         <h4 className="text-lg font-bold mb-4">Top Countries</h4>
         <div className="flex flex-col xl:flex-row items-center gap-4 mt-4">
           <div className="px-4 flex flex-col justify-center flex-1 w-full">
-            <CountryMap />
+            <CountryMap
+              selectedCountry={selectedCountry}
+              onCountryClick={setSelectedCountry}
+            />
           </div>
           <div className="flex flex-col justify-center px-4 2xl:min-w-[340px] xl:w-[300px] w-full gap-2">
-            {[
-              { country: 'United States', flag: '🇺🇸', percentage: 38.61 },
-              { country: 'Brazil', flag: '🇧🇷', percentage: 32.79 },
-              { country: 'India', flag: '🇮🇳', percentage: 26.42 },
-              { country: 'United Kingdom', flag: '🇬🇧', percentage: 17.42 },
-              { country: 'Turkey', flag: '🇹🇷', percentage: 12.85 },
-            ].map((item) => (
-              <div key={item.country} className="flex items-center gap-4 p-3 rounded-xl transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700">
-                <div className="flex gap-2 text-xl">{item.flag}</div>
-                <div className="flex-1">
-                  <div className="font-semibold text-sm">{item.country}</div>
-                  <div className="progress line">
-                    <div className="progress-wrapper">
-                      <div className="progress-inner transition-colors duration-150">
-                        <div className="progress-bg h-2 bg-primary" style={{ width: `${item.percentage}%` }}></div>
-                      </div>
+            {countriesData.map((item) => {
+              const flags: { [key: string]: string } = {
+                'United States': '🇺🇸',
+                'Brazil': '🇧🇷',
+                'India': '🇮🇳',
+                'United Kingdom': '🇬🇧',
+                'Turkey': '🇹🇷',
+              }
+              const isSelected = selectedCountry === item.country
+
+              return (
+                <div
+                  key={item.country}
+                  onClick={() => setSelectedCountry(item.country)}
+                  className={`flex items-center gap-4 p-3 rounded-xl transition-all duration-150 cursor-pointer ${
+                    isSelected
+                      ? 'bg-primary bg-opacity-10 border border-primary'
+                      : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
+                >
+                  <div className="flex gap-2 text-xl">{flags[item.country]}</div>
+                  <div className="flex-1">
+                    <div className={`font-semibold text-sm ${isSelected ? 'text-primary' : ''}`}>
+                      {item.country}
                     </div>
-                    <span className="progress-info font-bold text-sm">{item.percentage.toFixed(2)}%</span>
+                    <div className="progress line">
+                      <div className="progress-wrapper">
+                        <div className="progress-inner transition-colors duration-150">
+                          <div
+                            className={`progress-bg h-2 ${isSelected ? 'bg-red-500' : 'bg-primary'}`}
+                            style={{ width: `${item.percentage}%` }}
+                          ></div>
+                        </div>
+                      </div>
+                      <span className={`progress-info font-bold text-sm ${isSelected ? 'text-red-500' : ''}`}>
+                        {item.percentage.toFixed(2)}%
+                      </span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </Card>
