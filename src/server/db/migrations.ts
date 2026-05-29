@@ -50,7 +50,6 @@ async function runMigrations() {
         nationality VARCHAR(255),
         religion VARCHAR(255),
         marital_status VARCHAR(50),
-        occupation VARCHAR(255),
         job_category VARCHAR(255),
         skill_level VARCHAR(100),
         education_level VARCHAR(100),

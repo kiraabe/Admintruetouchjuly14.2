@@ -15,7 +15,6 @@ export interface Candidate {
   nationality: string | null
   religion: string | null
   marital_status: string | null
-  occupation: string | null
   job_category: string | null
   skill_level: string | null
   education_level: string | null
