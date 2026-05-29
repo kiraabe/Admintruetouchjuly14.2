@@ -783,6 +783,28 @@ async function startServer() {
       throw tableError
     }
 
+    // Create contact_us table
+    try {
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS contact_us (
+          id SERIAL PRIMARY KEY,
+          contact_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+          name VARCHAR(255) NOT NULL,
+          email VARCHAR(255) NOT NULL,
+          phone VARCHAR(20),
+          subject VARCHAR(255) NOT NULL,
+          message TEXT NOT NULL,
+          status VARCHAR(50) DEFAULT 'new',
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `)
+      console.log('✓ Contact Us table ready')
+    } catch (tableError) {
+      console.error('Error creating contact_us table:', tableError instanceof Error ? tableError.message : tableError)
+      throw tableError
+    }
+
     console.log('✓ Database initialized')
 
     const server = app.listen(PORT, () => {

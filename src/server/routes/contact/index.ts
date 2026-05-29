@@ -1,4 +1,4 @@
-import express, { Request, Response } from 'express'
+import { Router, type Request, type Response } from 'express'
 import {
   getContactMessages,
   getContactMessageById,
@@ -7,7 +7,7 @@ import {
   deleteContactMessage,
 } from '../../db/queries/contactQueries.ts'
 
-const router = express.Router()
+const router = Router()
 
 router.get('/', async (req: Request, res: Response) => {
   try {
