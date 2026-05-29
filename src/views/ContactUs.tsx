@@ -184,7 +184,7 @@ const ContactUs = () => {
               </thead>
               <tbody>
                 {paginatedMessages.map((msg) => (
-                  <tr key={msg.contact_id} className="border-b dark:border-gray-700">
+                  <tr key={msg.id || msg.contact_id} className="border-b dark:border-gray-700">
                     <td className="px-4 py-3">{msg.name}</td>
                     <td className="px-4 py-3">{msg.email}</td>
                     <td className="px-4 py-3">{msg.subject}</td>
