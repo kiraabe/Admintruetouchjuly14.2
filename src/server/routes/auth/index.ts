@@ -1,9 +1,9 @@
 import express from 'express'
 import jwt from 'jsonwebtoken'
-import { signIn } from './signIn.ts'
-import { signUp } from './signUp.ts'
-import { authMiddleware } from '../../middleware/auth.ts'
-import { validateSession } from '../../middleware/validateSession.ts'
+import { signIn } from './signIn'
+import { signUp } from './signUp'
+import { authMiddleware } from '../../middleware/auth'
+import { validateSession } from '../../middleware/validateSession'
 
 const router = express.Router()
 
@@ -34,7 +34,7 @@ router.post('/refresh', validateSession, (req: any, res) => {
         role: req.user.role,
       },
       JWT_SECRET,
-      { expiresIn: JWT_EXPIRES_IN }
+      { expiresIn: JWT_EXPIRES_IN as any }
     )
 
     res.json({

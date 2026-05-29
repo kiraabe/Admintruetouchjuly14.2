@@ -1,4 +1,4 @@
-import pool from '../db/config.ts'
+import pool from './db/config'
 
 async function checkUser() {
   try {

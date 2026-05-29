@@ -1,4 +1,4 @@
-import pool from '../config.ts'
+import pool from '../config'
 
 export interface User {
   id: number
