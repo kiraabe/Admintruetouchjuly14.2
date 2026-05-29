@@ -87,8 +87,10 @@ export async function ensureStandardRequestTableExists() {
 
 export async function getAllStandardRequests() {
   const result = await pool.query(`
-    SELECT * FROM standard_requests
-    ORDER BY created_at DESC
+    SELECT sr.*, p.company_logo
+    FROM standard_requests sr
+    LEFT JOIN partnerships p ON sr.partnership_id = p.partner_id
+    ORDER BY sr.created_at DESC
   `)
   return result.rows
 }
