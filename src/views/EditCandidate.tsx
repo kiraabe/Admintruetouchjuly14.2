@@ -811,7 +811,8 @@ const EditCandidate = () => {
                           <p className="text-red-600 dark:text-red-400 text-xs mt-2">{fieldErrors.profile_picture}</p>
                         )}
                       </div>
-                    </Card>
+                    </div>
+                  </Card>
 
                   {/* Resume Section */}
                   <Card className="card-border">
@@ -890,7 +891,8 @@ const EditCandidate = () => {
                           <p className="text-red-600 dark:text-red-400 text-xs mt-2">{fieldErrors.resume}</p>
                         )}
                       </div>
-                    </Card>
+                    </div>
+                  </Card>
 
                   {/* Account Settings */}
                   {!isNewCandidate && candidate && (
