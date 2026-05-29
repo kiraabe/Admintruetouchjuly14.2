@@ -33,22 +33,22 @@ export default function CountryMap({ selectedCountry, onCountryClick }: CountryM
                 geography={geo}
                 style={{
                   default: {
-                    fill: '#e5e7eb',
+                    fill: '#f3f4f6',
                     stroke: '#d1d5db',
                     strokeWidth: 0.75,
                     outline: 'none',
                     cursor: 'pointer',
                   },
                   hover: {
-                    fill: '#bfdbfe',
-                    stroke: '#60a5fa',
+                    fill: '#e5e7eb',
+                    stroke: '#9ca3af',
                     strokeWidth: 0.75,
                     outline: 'none',
                     cursor: 'pointer',
                   },
                   pressed: {
-                    fill: '#3b82f6',
-                    stroke: '#1e40af',
+                    fill: '#d1d5db',
+                    stroke: '#6b7280',
                     strokeWidth: 0.75,
                     outline: 'none',
                   },
@@ -70,7 +70,7 @@ export default function CountryMap({ selectedCountry, onCountryClick }: CountryM
             >
               <circle
                 r={isSelected ? radius + 2 : radius}
-                fill={isSelected ? '#ef4444' : '#3b82f6'}
+                fill={isSelected ? '#6b7280' : '#9ca3af'}
                 opacity={isSelected ? 1 : 0.8}
                 style={{ transition: 'all 200ms ease' }}
               />

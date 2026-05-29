@@ -126,7 +126,7 @@ const Dashboard = () => {
             <path d="M12 17v1m0 -8v1"></path>
           </svg>
         ),
-        bgColor: 'bg-sky-200',
+        bgColor: 'bg-gray-200',
       },
       {
         title: 'Placement Rate',
@@ -368,25 +368,25 @@ const Dashboard = () => {
                   onClick={() => setSelectedCountry(item.name)}
                   className={`flex items-center gap-4 p-3 rounded-xl transition-all duration-150 cursor-pointer ${
                     isSelected
-                      ? 'bg-primary bg-opacity-10 border border-primary'
+                      ? 'bg-gray-200 border border-gray-400'
                       : 'hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
                   <div className="flex gap-2 text-xl">{flags[item.name]}</div>
                   <div className="flex-1">
-                    <div className={`font-semibold text-sm ${isSelected ? 'text-primary' : ''}`}>
+                    <div className={`font-semibold text-sm ${isSelected ? 'text-gray-700' : ''}`}>
                       {item.name}
                     </div>
                     <div className="progress line">
                       <div className="progress-wrapper">
                         <div className="progress-inner transition-colors duration-150">
                           <div
-                            className={`progress-bg h-2 ${isSelected ? 'bg-red-500' : 'bg-primary'}`}
+                            className={`progress-bg h-2 ${isSelected ? 'bg-gray-600' : 'bg-gray-400'}`}
                             style={{ width: `${item.percentage}%` }}
                           ></div>
                         </div>
                       </div>
-                      <span className={`progress-info font-bold text-sm ${isSelected ? 'text-red-500' : ''}`}>
+                      <span className={`progress-info font-bold text-sm ${isSelected ? 'text-gray-600' : ''}`}>
                         {item.percentage.toFixed(2)}%
                       </span>
                     </div>
