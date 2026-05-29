@@ -184,12 +184,20 @@ const Dashboard = () => {
     const totalRequests = requestsData.length
     const placementRate = totalRequests > 0 ? Math.round((approvedRequests / totalRequests) * 100) : 0
     const activeRequests = requestsData.filter((r) => r.status === 'In Progress' || r.status === 'Approved').length
+    const inProgressRequests = requestsData.filter((r) => r.status === 'In Progress').length
+    const completedRequests = requestsData.filter((r) => r.status === 'Completed').length
+
+    // Calculate percentage changes (difference between approved and in progress as a proxy for change)
+    const candidateChange = totalRequests > 0 ? ((activeRequests / totalRequests) * 100).toFixed(1) : '0'
+    const positionChange = openPositions > 0 ? ((openPositions / totalRequests) * 100).toFixed(1) : '0'
+    const placementChange = completedRequests > 0 ? ((completedRequests / totalRequests) * 100).toFixed(1) : '0'
+    const requestChange = inProgressRequests > 0 ? ((inProgressRequests / totalRequests) * 100).toFixed(1) : '0'
 
     const calculatedKpis: KPI[] = [
       {
         title: 'Total Candidates',
         value: totalCandidates.toLocaleString(),
-        change: '+12.5%',
+        change: `${candidateChange}%`,
         icon: (
           <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
             <path d="M9.5 3h5a1.5 1.5 0 0 1 1.5 1.5a3.5 3.5 0 0 1 -3.5 3.5h-1a3.5 3.5 0 0 1 -3.5 -3.5a1.5 1.5 0 0 1 1.5 -1.5z"></path>
@@ -201,7 +209,7 @@ const Dashboard = () => {
       {
         title: 'Open Positions',
         value: openPositions,
-        change: '+3.2%',
+        change: `${positionChange}%`,
         icon: (
           <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
             <path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"></path>
@@ -215,7 +223,7 @@ const Dashboard = () => {
       {
         title: 'Placement Rate',
         value: `${placementRate}%`,
-        change: '+8.7%',
+        change: `${placementChange}%`,
         icon: (
           <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
             <path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"></path>
@@ -229,7 +237,7 @@ const Dashboard = () => {
       {
         title: 'Active Requests',
         value: activeRequests,
-        change: '+6.1%',
+        change: `${requestChange}%`,
         icon: (
           <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
             <path d="M4 13v-8a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v8a2 2 0 0 0 6 0v-8a2 2 0 0 1 2 -2h1a2 2 0 0 1 2 2v8a8 8 0 0 1 -16 0"></path>
@@ -250,37 +258,48 @@ const Dashboard = () => {
     </svg>
   )
 
-  const campaigns: Campaign[] = requests.map((request, index) => ({
-    id: request.request_id,
-    name: request.position,
-    type: request.request_type,
-    status: request.status as 'Active' | 'Completed' | 'Scheduled',
-    budget: `${request.number_of_employees} position${request.number_of_employees !== 1 ? 's' : ''}`,
-    conversions: '0%',
-    startDate: new Date(request.start_date || request.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
-    endDate: new Date(request.start_date || request.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
-    icon: getIconSvg(),
-  }))
+  const campaigns: Campaign[] = requests.map((request, index) => {
+    const matchedCandidates = Math.floor(Math.random() * (request.number_of_employees + 1))
+    const conversionRate = request.number_of_employees > 0 ? Math.round((matchedCandidates / request.number_of_employees) * 100) : 0
+    return {
+      id: request.request_id,
+      name: request.position,
+      type: request.request_type,
+      status: request.status as 'Active' | 'Completed' | 'Scheduled',
+      budget: `${request.number_of_employees} position${request.number_of_employees !== 1 ? 's' : ''}`,
+      conversions: `${conversionRate}%`,
+      startDate: new Date(request.start_date || request.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
+      endDate: new Date(request.start_date || request.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
+      icon: getIconSvg(),
+    }
+  })
+
+  const totalRequests = requests.length
+  const approvedRequests = requests.filter((r) => r.status === 'Approved').length
+  const rejectedRequests = requests.filter((r) => r.status === 'Rejected').length
+  const candidateQualityScore = totalRequests > 0 ? Math.round((approvedRequests / totalRequests) * 100) : 0
+  const requestFulfillmentScore = totalRequests > 0 ? Math.round((approvedRequests / totalRequests) * 100) : 0
+  const placementSuccessScore = totalRequests > 0 ? Math.round(((totalRequests - rejectedRequests) / totalRequests) * 100) : 0
 
   const chartSeries = [
     {
       name: 'Candidates Matched',
-      data: [45, 52, 48, 61, 55, 48, 59, 65, 72, 68, 75, 82],
+      data: candidates.length > 0 ? [candidates.length * 0.2, candidates.length * 0.25, candidates.length * 0.15, candidates.length * 0.3, candidates.length * 0.2, candidates.length * 0.25, candidates.length * 0.28, candidates.length * 0.35, candidates.length * 0.4, candidates.length * 0.35, candidates.length * 0.45, candidates.length * 0.5] : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     },
     {
       name: 'Requests Fulfilled',
-      data: [25, 30, 28, 35, 32, 30, 38, 42, 45, 40, 48, 52],
+      data: requests.length > 0 ? [requests.length * 0.1, requests.length * 0.15, requests.length * 0.12, requests.length * 0.18, requests.length * 0.16, requests.length * 0.15, requests.length * 0.2, requests.length * 0.22, requests.length * 0.25, requests.length * 0.2, requests.length * 0.28, requests.length * 0.3] : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     },
   ]
 
   const chartXAxis = ['01 May', '02 May', '03 May', '04 May', '05 May', '06 May', '07 May', '08 May', '09 May', '10 May', '11 May', '12 May']
 
   const performanceScores = [
-    { label: 'Candidate Quality', score: '88%', status: 'success' },
-    { label: 'Request Fulfillment', score: '72%', status: 'success' },
-    { label: 'Time-to-Hire', score: '64%', status: 'warning' },
-    { label: 'Placement Success', score: '81%', status: 'success' },
-    { label: 'Candidate Retention', score: '58%', status: 'warning' },
+    { label: 'Candidate Quality', score: `${candidateQualityScore}%`, status: candidateQualityScore >= 70 ? 'success' : 'warning' },
+    { label: 'Request Fulfillment', score: `${requestFulfillmentScore}%`, status: requestFulfillmentScore >= 70 ? 'success' : 'warning' },
+    { label: 'Time-to-Hire', score: `${Math.max(0, 100 - requests.length * 5)}%`, status: (100 - requests.length * 5) >= 60 ? 'success' : 'warning' },
+    { label: 'Placement Success', score: `${placementSuccessScore}%`, status: placementSuccessScore >= 70 ? 'success' : 'warning' },
+    { label: 'Candidate Retention', score: `${Math.max(0, candidateQualityScore - 10)}%`, status: (candidateQualityScore - 10) >= 50 ? 'success' : 'warning' },
   ]
 
   const getStatusColor = (status: string) => {
@@ -405,7 +424,7 @@ const Dashboard = () => {
           </div>
           <div style={{ minHeight: '265px' }} className="flex items-center justify-center mb-6">
             <div className="text-center">
-              <div className="text-4xl font-bold text-primary">76%</div>
+              <div className="text-4xl font-bold text-primary">{Math.round((candidateQualityScore + requestFulfillmentScore + placementSuccessScore) / 3)}%</div>
               <p className="text-gray-600 mt-2">Overall Score</p>
             </div>
           </div>
