@@ -5,7 +5,7 @@ import Tag from '@/components/ui/Tag'
 import Segment from '@/components/ui/Segment'
 import Avatar from '@/components/ui/Avatar'
 import Chart from '@/components/shared/Chart'
-import CountryMap, { countriesData, CountryData } from '@/components/shared/CountryMap'
+import CountryMap, { countriesData, CountryData, getCountryCoordinates } from '@/components/shared/CountryMap'
 
 interface KPI {
   title: string
@@ -142,10 +142,10 @@ const Dashboard = () => {
     const total = sortedLocations.reduce((sum, [_, count]) => sum + count, 0)
 
     if (total > 0 && sortedLocations.length > 0) {
-      // Create dynamic country data from actual data
-      const updated: CountryData[] = sortedLocations.map(([name, count], index) => ({
+      // Create dynamic country data from actual data with correct coordinates
+      const updated: CountryData[] = sortedLocations.map(([name, count]) => ({
         name,
-        coordinates: countriesData[index]?.coordinates || [0, 0],
+        coordinates: getCountryCoordinates(name),
         percentage: (count / total) * 100,
       }))
       setTopCountries(updated)

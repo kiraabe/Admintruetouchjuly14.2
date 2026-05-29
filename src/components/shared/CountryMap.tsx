@@ -8,6 +8,34 @@ export interface CountryData {
   percentage: number
 }
 
+export const countryCoordinates: { [key: string]: [number, number] } = {
+  'United States': [-95.7129, 37.0902],
+  'USA': [-95.7129, 37.0902],
+  'US': [-95.7129, 37.0902],
+  'Brazil': [-51.9253, -14.2350],
+  'India': [78.9629, 20.5937],
+  'United Kingdom': [-2.2426, 55.3781],
+  'UK': [-2.2426, 55.3781],
+  'Turkey': [35.2433, 38.9637],
+  'Germany': [10.4515, 51.1657],
+  'France': [2.2137, 46.2276],
+  'Japan': [138.2529, 36.2048],
+  'Canada': [-95.7129, 56.1304],
+  'Australia': [133.7751, -25.2744],
+  'China': [104.1954, 35.8617],
+  'Mexico': [-102.5528, 23.6345],
+  'Spain': [-3.7492, 40.4637],
+  'Italy': [12.5674, 41.8719],
+  'South Africa': [24.9849, -30.5595],
+  'Nigeria': [8.6753, 9.0820],
+  'Argentina': [-63.6167, -38.4161],
+  'Indonesia': [113.9213, -2.5489],
+  'Russia': [105.3188, 61.5240],
+  'Singapore': [103.8198, 1.3521],
+  'Dubai': [55.2708, 25.2048],
+  'UAE': [53.8478, 23.4241],
+}
+
 export const countriesData: CountryData[] = [
   { name: 'United States', coordinates: [-95.7129, 37.0902], percentage: 38.61 },
   { name: 'Brazil', coordinates: [-51.9253, -14.2350], percentage: 32.79 },
@@ -15,6 +43,10 @@ export const countriesData: CountryData[] = [
   { name: 'United Kingdom', coordinates: [-2.2426, 55.3781], percentage: 17.42 },
   { name: 'Turkey', coordinates: [35.2433, 38.9637], percentage: 12.85 },
 ]
+
+export const getCountryCoordinates = (countryName: string): [number, number] => {
+  return countryCoordinates[countryName] || [0, 0]
+}
 
 interface CountryMapProps {
   selectedCountry?: string
