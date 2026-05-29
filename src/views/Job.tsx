@@ -340,7 +340,7 @@ const Job = () => {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Job description"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              rows={5}
+              rows={3}
             />
           </div>
 
@@ -432,7 +432,7 @@ const Job = () => {
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Job description"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-              rows={5}
+              rows={3}
             />
           </div>
 
