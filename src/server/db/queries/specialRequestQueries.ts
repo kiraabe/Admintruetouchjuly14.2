@@ -51,8 +51,8 @@ export async function ensureSpecialRequestTableExists() {
 
 export async function getAllSpecialRequests() {
   const result = await pool.query(`
-    SELECT * FROM special_requests
-    ORDER BY created_at DESC
+    SELECT sr.* FROM special_requests sr
+    ORDER BY sr.created_at DESC
   `)
   return result.rows
 }
