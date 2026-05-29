@@ -347,6 +347,13 @@ const EditCandidate = () => {
     newErrors.name = validateName(formData.name)
     newErrors.phone_number = validatePhone(formData.phone_number)
 
+    if (formData.passport_number) {
+      const passportRegex = /^E\d{6}$/
+      if (!passportRegex.test(formData.passport_number)) {
+        newErrors.passport_number = 'Invalid passport number. Expected format: E123456'
+      }
+    }
+
     if (formData.date_of_birth) {
       newErrors.date_of_birth = validateDateOfBirth(formData.date_of_birth)
     }
@@ -511,9 +518,29 @@ const EditCandidate = () => {
                           <label className="form-label mb-2">Passport Number</label>
                           <Input
                             value={formData.passport_number}
-                            onChange={(e) => setFormData({ ...formData, passport_number: e.target.value })}
-                            placeholder="Passport Number"
+                            onChange={(e) => {
+                              let value = e.target.value.toUpperCase()
+                              value = value.replace(/[^A-Z0-9]/g, '')
+                              if (value.length <= 7) {
+                                setFormData({ ...formData, passport_number: value })
+                                if (fieldErrors.passport_number) {
+                                  setFieldErrors({ ...fieldErrors, passport_number: '' })
+                                }
+                              }
+                            }}
+                            onBlur={() => {
+                              const passportRegex = /^E\d{6}$/
+                              if (formData.passport_number && !passportRegex.test(formData.passport_number)) {
+                                setFieldErrors({ ...fieldErrors, passport_number: 'Invalid passport number. Expected format: E123456' })
+                              }
+                            }}
+                            placeholder="E123456"
+                            maxLength={7}
+                            className={fieldErrors.passport_number ? 'border-red-500' : ''}
                           />
+                          {fieldErrors.passport_number && (
+                            <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.passport_number}</p>
+                          )}
                         </div>
 
                         <div>
