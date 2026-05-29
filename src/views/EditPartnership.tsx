@@ -32,6 +32,7 @@ const EditPartnership = () => {
   const [companyLogoPreview, setCompanyLogoPreview] = useState('')
   const [companyLogo, setCompanyLogo] = useState<File | null>(null)
   const [licenseDocument, setLicenseDocument] = useState<File | null>(null)
+  const [existingLicenseDocument, setExistingLicenseDocument] = useState<string | null>(null)
 
   const [formData, setFormData] = useState({
     company_name: '',
@@ -84,6 +85,9 @@ const EditPartnership = () => {
         })
         if (partner.company_logo) {
           setCompanyLogoPreview(partner.company_logo)
+        }
+        if (partner.license_document) {
+          setExistingLicenseDocument(partner.license_document)
         }
       } else {
         toast.error('Failed to load partnership')
@@ -465,6 +469,11 @@ const EditPartnership = () => {
                         {licenseDocument && (
                           <p className="text-sm text-gray-600 dark:text-gray-400">
                             Selected: {licenseDocument.name}
+                          </p>
+                        )}
+                        {!licenseDocument && existingLicenseDocument && (
+                          <p className="text-sm text-gray-600 dark:text-gray-400">
+                            Current: <a href={existingLicenseDocument} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">View Document</a>
                           </p>
                         )}
                       </div>
