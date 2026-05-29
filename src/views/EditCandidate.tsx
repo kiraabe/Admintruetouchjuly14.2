@@ -216,7 +216,7 @@ const EditCandidate = () => {
   }
 
   const validateDateOfBirth = (dob: string): string => {
-    if (!dob) return ''
+    if (!dob) return 'Date of birth is required'
     const birthDate = new Date(dob)
     const today = new Date()
     let age = today.getFullYear() - birthDate.getFullYear()
@@ -347,15 +347,59 @@ const EditCandidate = () => {
     newErrors.name = validateName(formData.name)
     newErrors.phone_number = validatePhone(formData.phone_number)
 
-    if (formData.passport_number) {
+    if (!formData.passport_number) {
+      newErrors.passport_number = 'Passport number is required'
+    } else {
       const passportRegex = /^E\d{6}$/
       if (!passportRegex.test(formData.passport_number)) {
         newErrors.passport_number = 'Invalid passport number. Expected format: E123456'
       }
     }
 
-    if (formData.date_of_birth) {
-      newErrors.date_of_birth = validateDateOfBirth(formData.date_of_birth)
+    if (!formData.gender) {
+      newErrors.gender = 'Gender is required'
+    }
+
+    newErrors.date_of_birth = validateDateOfBirth(formData.date_of_birth)
+
+    if (!formData.nationality) {
+      newErrors.nationality = 'Nationality is required'
+    }
+
+    if (!formData.religion) {
+      newErrors.religion = 'Religion is required'
+    }
+
+    if (!formData.marital_status) {
+      newErrors.marital_status = 'Marital status is required'
+    }
+
+    if (!formData.job_category) {
+      newErrors.job_category = 'Job category is required'
+    }
+
+    if (!formData.education_level) {
+      newErrors.education_level = 'Education level is required'
+    }
+
+    if (!formData.medical_status) {
+      newErrors.medical_status = 'Medical status is required'
+    }
+
+    if (selectedLanguages.length === 0) {
+      newErrors.language_skills = 'At least one language is required'
+    }
+
+    if (!formData.country) {
+      newErrors.country = 'Country is required'
+    }
+
+    if (!formData.city) {
+      newErrors.city = 'City is required'
+    }
+
+    if (!formData.current_location) {
+      newErrors.current_location = 'Current location is required'
     }
 
     if (!profilePicture && !profilePicturePreview) {
@@ -515,7 +559,7 @@ const EditCandidate = () => {
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">Passport Number</label>
+                          <label className="form-label mb-2">Passport Number *</label>
                           <Input
                             value={formData.passport_number}
                             onChange={(e) => {
@@ -544,11 +588,11 @@ const EditCandidate = () => {
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">Gender</label>
+                          <label className="form-label mb-2">Gender *</label>
                           <select
                             value={formData.gender}
                             onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
+                            className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12 ${fieldErrors.gender ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                           >
                             <option value="">Select gender</option>
                             {GENDERS.map((g) => (
@@ -557,10 +601,13 @@ const EditCandidate = () => {
                               </option>
                             ))}
                           </select>
+                          {fieldErrors.gender && (
+                            <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.gender}</p>
+                          )}
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">Date of Birth</label>
+                          <label className="form-label mb-2">Date of Birth *</label>
                           <Input
                             type="date"
                             value={formData.date_of_birth}
@@ -587,20 +634,24 @@ const EditCandidate = () => {
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">Nationality</label>
+                          <label className="form-label mb-2">Nationality *</label>
                           <Input
                             value={formData.nationality}
                             onChange={(e) => setFormData({ ...formData, nationality: e.target.value })}
                             placeholder="Nationality"
+                            className={fieldErrors.nationality ? 'border-red-500' : ''}
                           />
+                          {fieldErrors.nationality && (
+                            <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.nationality}</p>
+                          )}
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">Religion</label>
+                          <label className="form-label mb-2">Religion *</label>
                           <select
                             value={formData.religion}
                             onChange={(e) => setFormData({ ...formData, religion: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
+                            className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12 ${fieldErrors.religion ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                           >
                             <option value="">Select religion</option>
                             {RELIGIONS.map((r) => (
@@ -609,14 +660,17 @@ const EditCandidate = () => {
                               </option>
                             ))}
                           </select>
+                          {fieldErrors.religion && (
+                            <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.religion}</p>
+                          )}
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">Marital Status</label>
+                          <label className="form-label mb-2">Marital Status *</label>
                           <select
                             value={formData.marital_status}
                             onChange={(e) => setFormData({ ...formData, marital_status: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
+                            className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12 ${fieldErrors.marital_status ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                           >
                             <option value="">Select status</option>
                             {MARITAL_STATUS.map((s) => (
@@ -625,14 +679,17 @@ const EditCandidate = () => {
                               </option>
                             ))}
                           </select>
+                          {fieldErrors.marital_status && (
+                            <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.marital_status}</p>
+                          )}
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">Job Category</label>
+                          <label className="form-label mb-2">Job Category *</label>
                           <select
                             value={formData.job_category}
                             onChange={(e) => handleJobCategoryChange(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
+                            className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12 ${fieldErrors.job_category ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                           >
                             <option value="">Select job category</option>
                             {JOB_CATEGORIES.map((cat) => (
@@ -641,14 +698,17 @@ const EditCandidate = () => {
                               </option>
                             ))}
                           </select>
+                          {fieldErrors.job_category && (
+                            <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.job_category}</p>
+                          )}
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">Education Level</label>
+                          <label className="form-label mb-2">Education Level *</label>
                           <select
                             value={formData.education_level}
                             onChange={(e) => setFormData({ ...formData, education_level: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
+                            className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12 ${fieldErrors.education_level ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                           >
                             <option value="">Select education level</option>
                             {EDUCATION_LEVELS.map((level) => (
@@ -657,14 +717,17 @@ const EditCandidate = () => {
                               </option>
                             ))}
                           </select>
+                          {fieldErrors.education_level && (
+                            <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.education_level}</p>
+                          )}
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">Medical Status</label>
+                          <label className="form-label mb-2">Medical Status *</label>
                           <select
                             value={formData.medical_status}
                             onChange={(e) => setFormData({ ...formData, medical_status: e.target.value })}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
+                            className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12 ${fieldErrors.medical_status ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                           >
                             <option value="">Select medical status</option>
                             {MEDICAL_STATUS.map((status) => (
@@ -673,10 +736,13 @@ const EditCandidate = () => {
                               </option>
                             ))}
                           </select>
+                          {fieldErrors.medical_status && (
+                            <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.medical_status}</p>
+                          )}
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">Language Skills</label>
+                          <label className="form-label mb-2">Language Skills *</label>
                           <div className="space-y-2">
                             <div className="relative">
                               <Input
@@ -685,6 +751,7 @@ const EditCandidate = () => {
                                 placeholder="Type to search and add languages..."
                                 onFocus={() => languageSearchInput && setShowLanguageSuggestions(true)}
                                 onBlur={() => setTimeout(() => setShowLanguageSuggestions(false), 200)}
+                                className={fieldErrors.language_skills ? 'border-red-500' : ''}
                               />
                               {showLanguageSuggestions && languageSuggestions.length > 0 && (
                                 <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
@@ -721,6 +788,9 @@ const EditCandidate = () => {
                               </div>
                             )}
                           </div>
+                          {fieldErrors.language_skills && (
+                            <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.language_skills}</p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -757,11 +827,11 @@ const EditCandidate = () => {
                       <h4 className="mb-6 font-semibold">Location Information</h4>
                       <div className="space-y-4">
                         <div>
-                          <label className="form-label mb-2">Country</label>
+                          <label className="form-label mb-2">Country *</label>
                           <select
                             value={formData.country}
                             onChange={(e) => handleCountryChange(e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
+                            className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12 ${fieldErrors.country ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                           >
                             <option value="">Select country</option>
                             {COUNTRIES.map((c) => (
@@ -770,15 +840,18 @@ const EditCandidate = () => {
                               </option>
                             ))}
                           </select>
+                          {fieldErrors.country && (
+                            <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.country}</p>
+                          )}
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">City</label>
+                          <label className="form-label mb-2">City *</label>
                           {formData.country ? (
                             <select
                               value={formData.city}
                               onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
+                              className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12 ${fieldErrors.city ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                             >
                               <option value="">Select city</option>
                               {filteredLocations.map((city) => (
@@ -790,15 +863,22 @@ const EditCandidate = () => {
                           ) : (
                             <Input placeholder="Select country first" disabled />
                           )}
+                          {fieldErrors.city && (
+                            <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.city}</p>
+                          )}
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">Current Location</label>
+                          <label className="form-label mb-2">Current Location *</label>
                           <Input
                             value={formData.current_location}
                             onChange={(e) => setFormData({ ...formData, current_location: e.target.value })}
                             placeholder="Current Location"
+                            className={fieldErrors.current_location ? 'border-red-500' : ''}
                           />
+                          {fieldErrors.current_location && (
+                            <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.current_location}</p>
+                          )}
                         </div>
                       </div>
                     </div>
