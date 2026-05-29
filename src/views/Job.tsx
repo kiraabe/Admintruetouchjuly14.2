@@ -334,15 +334,14 @@ const Job = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Description (max 78 chars)</label>
-            <Input
-              type="text"
-              maxLength={78}
+            <label className="block text-sm font-medium mb-1">Description</label>
+            <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Job description"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              rows={5}
             />
-            <p className="text-xs text-gray-500 mt-1">{formData.description.length}/78</p>
           </div>
 
           <div>
@@ -427,15 +426,14 @@ const Job = () => {
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Description (max 78 chars)</label>
-            <Input
-              type="text"
-              maxLength={78}
+            <label className="block text-sm font-medium mb-1">Description</label>
+            <textarea
               value={formData.description}
               onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               placeholder="Job description"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+              rows={5}
             />
-            <p className="text-xs text-gray-500 mt-1">{formData.description.length}/78</p>
           </div>
 
           <div>
