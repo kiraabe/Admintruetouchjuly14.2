@@ -102,5 +102,11 @@ export const protectedRoutes: Routes = [
         component: lazy(() => import('@/views/partnership/SpecialRequest')),
         authority: [],
     },
+    {
+        key: 'contactUs',
+        path: '/contact-us',
+        component: lazy(() => import('@/views/ContactUs')),
+        authority: [],
+    },
     ...othersRoute,
 ]
