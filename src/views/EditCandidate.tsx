@@ -90,6 +90,8 @@ const EditCandidate = () => {
   const [languageSuggestions, setLanguageSuggestions] = useState<string[]>([])
   const [showLanguageSuggestions, setShowLanguageSuggestions] = useState(false)
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
+  const [selectedLanguages, setSelectedLanguages] = useState<string[]>([])
+  const [languageSearchInput, setLanguageSearchInput] = useState('')
 
   const [formData, setFormData] = useState({
     name: '',
@@ -104,7 +106,6 @@ const EditCandidate = () => {
     job_category: '',
     skill_level: '',
     education_level: '',
-    language_skills: '',
     country: '',
     city: '',
     current_location: '',
@@ -148,7 +149,6 @@ const EditCandidate = () => {
           job_category: cand.job_category || '',
           skill_level: cand.skill_level || '',
           education_level: cand.education_level || '',
-          language_skills: cand.language_skills || '',
           country: cand.country || '',
           city: cand.city || '',
           current_location: cand.current_location || '',
@@ -158,6 +158,11 @@ const EditCandidate = () => {
         if (cand.skill_level) {
           const skills = cand.skill_level.split(',').map((s: string) => s.trim())
           setSelectedSkills(skills)
+        }
+
+        if (cand.language_skills) {
+          const languages = cand.language_skills.split(',').map((l: string) => l.trim())
+          setSelectedLanguages(languages)
         }
 
         if (cand.country) {
@@ -240,12 +245,12 @@ const EditCandidate = () => {
     })
   }
 
-  const handleLanguageInput = (value: string) => {
-    handleFieldChange('language_skills', value)
-    
+  const handleLanguageSearch = (value: string) => {
+    setLanguageSearchInput(value)
+
     if (value.trim().length > 0) {
       const suggestions = COMMON_LANGUAGES.filter(lang =>
-        lang.toLowerCase().includes(value.toLowerCase())
+        lang.toLowerCase().includes(value.toLowerCase()) && !selectedLanguages.includes(lang)
       )
       setLanguageSuggestions(suggestions)
       setShowLanguageSuggestions(true)
@@ -256,12 +261,16 @@ const EditCandidate = () => {
   }
 
   const selectLanguage = (language: string) => {
-    const current = formData.language_skills.split(',').map(l => l.trim()).filter(l => l)
-    if (!current.includes(language)) {
-      const updated = [...current, language].join(', ')
-      handleFieldChange('language_skills', updated)
+    if (!selectedLanguages.includes(language)) {
+      setSelectedLanguages([...selectedLanguages, language])
+      setLanguageSearchInput('')
+      setLanguageSuggestions([])
+      setShowLanguageSuggestions(false)
     }
-    setShowLanguageSuggestions(false)
+  }
+
+  const removeLanguage = (language: string) => {
+    setSelectedLanguages(selectedLanguages.filter(l => l !== language))
   }
 
   const handleJobCategoryChange = (category: string) => {
@@ -371,6 +380,10 @@ const EditCandidate = () => {
 
       if (selectedSkills.length > 0) {
         formDataToSend.append('skill_level', selectedSkills.join(', '))
+      }
+
+      if (selectedLanguages.length > 0) {
+        formDataToSend.append('language_skills', selectedLanguages.join(', '))
       }
 
       if (profilePicture) {
@@ -649,30 +662,50 @@ const EditCandidate = () => {
 
                         <div>
                           <label className="form-label mb-2">Language Skills</label>
-                          <div className="relative">
-                            <Input
-                              value={formData.language_skills}
-                              onChange={(e) => handleLanguageInput(e.target.value)}
-                              placeholder="Type to search languages..."
-                              onFocus={() => formData.language_skills && setShowLanguageSuggestions(true)}
-                              onBlur={() => setTimeout(() => setShowLanguageSuggestions(false), 200)}
-                            />
-                            {showLanguageSuggestions && languageSuggestions.length > 0 && (
-                              <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
-                                {languageSuggestions.map((lang) => (
-                                  <button
-                                    key={lang}
-                                    type="button"
-                                    onClick={() => selectLanguage(lang)}
-                                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100"
-                                  >
-                                    {lang}
-                                  </button>
+                          <div className="space-y-2">
+                            <div className="relative">
+                              <Input
+                                value={languageSearchInput}
+                                onChange={(e) => handleLanguageSearch(e.target.value)}
+                                placeholder="Type to search and add languages..."
+                                onFocus={() => languageSearchInput && setShowLanguageSuggestions(true)}
+                                onBlur={() => setTimeout(() => setShowLanguageSuggestions(false), 200)}
+                              />
+                              {showLanguageSuggestions && languageSuggestions.length > 0 && (
+                                <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg z-10 max-h-48 overflow-y-auto">
+                                  {languageSuggestions.map((lang) => (
+                                    <button
+                                      key={lang}
+                                      type="button"
+                                      onClick={() => selectLanguage(lang)}
+                                      className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100"
+                                    >
+                                      {lang}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                            {selectedLanguages.length > 0 && (
+                              <div className="flex flex-wrap gap-2 pt-2">
+                                {selectedLanguages.map((lang) => (
+                                  <div key={lang} className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 border border-primary/30 rounded-full text-sm">
+                                    <span>{lang}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => removeLanguage(lang)}
+                                      className="text-primary hover:text-primary/80"
+                                      title="Remove language"
+                                    >
+                                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                                      </svg>
+                                    </button>
+                                  </div>
                                 ))}
                               </div>
                             )}
                           </div>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Separate languages with comma</p>
                         </div>
                       </div>
                     </div>
