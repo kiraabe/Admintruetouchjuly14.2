@@ -42,7 +42,7 @@ const EditPartnership = () => {
     contact_person_name: '',
     phone_number: '',
     service_city: '',
-    status: 'pending',
+    status: isNewPartnership ? 'active' : 'pending',
   })
 
   const businessCategories = ['Agency', 'Recruitment', 'Referral', 'Other']
@@ -383,24 +383,26 @@ const EditPartnership = () => {
                           </select>
                         </div>
 
-                        <div>
-                          <label className="form-label mb-2">Status *</label>
-                          <select
-                            value={formData.status}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                status: e.target.value as 'pending' | 'active' | 'inactive',
-                              })
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
-                            required
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="active">Active</option>
-                            <option value="inactive">Inactive</option>
-                          </select>
-                        </div>
+                        {!isNewPartnership && (
+                          <div>
+                            <label className="form-label mb-2">Status *</label>
+                            <select
+                              value={formData.status}
+                              onChange={(e) =>
+                                setFormData({
+                                  ...formData,
+                                  status: e.target.value as 'pending' | 'active' | 'inactive',
+                                })
+                              }
+                              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
+                              required
+                            >
+                              <option value="pending">Pending</option>
+                              <option value="active">Active</option>
+                              <option value="inactive">Inactive</option>
+                            </select>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </Card>
