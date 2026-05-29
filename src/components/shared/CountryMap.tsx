@@ -34,7 +34,7 @@ export const countryCoordinates: { [key: string]: [number, number] } = {
   'Singapore': [103.8198, 1.3521],
   'Dubai': [55.2708, 25.2048],
   'UAE': [53.8478, 23.4241],
-  'Ethiopia': [9.1450, 9.1450],
+  'Ethiopia': [38.3365, 9.1450],
   'Ajman': [55.4671, 25.4052],
   'Abu Dhabi': [54.3773, 24.4539],
   'Abudhabi': [54.3773, 24.4539],
