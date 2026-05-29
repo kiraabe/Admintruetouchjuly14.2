@@ -76,6 +76,8 @@ const EmployeeRequest = () => {
 
   useEffect(() => {
     setCurrentPage(1)
+    setFilteredRequests([])
+    setRequests([])
     fetchRequests(1)
   }, [activeTab])
 
