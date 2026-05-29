@@ -1056,9 +1056,9 @@ const EmployeeRequest = () => {
       </Dialog>
 
       {/* Details Modal */}
-      <Dialog isOpen={showDetailsModal} onClose={() => setShowDetailsModal(false)}>
+      <Dialog isOpen={showDetailsModal} onClose={() => setShowDetailsModal(false)} width="90vw" height="90vh">
         {selectedRequest && (
-          <div className="space-y-4 max-h-[80vh] overflow-y-auto w-full max-w-3xl">
+          <div className="space-y-4 w-full h-full">
             <div className="mb-4">
               <div className="flex items-center gap-4">
                 <h2 className="text-lg font-bold">Request Details</h2>
