@@ -256,16 +256,69 @@ const Dashboard = () => {
   const requestFulfillmentScore = totalRequests > 0 ? Math.round((approvedRequests / totalRequests) * 100) : 0
   const placementSuccessScore = totalRequests > 0 ? Math.round(((totalRequests - rejectedRequests) / totalRequests) * 100) : 0
 
+  const filteredCandidates = candidates.filter((_, index) => {
+    if (selectedSegment === 'all') return true
+    return selectedSegment === 'Standard' ? index % 3 !== 0 : index % 3 === 0
+  })
+
+  const filteredRequests = requests.filter(r => {
+    if (selectedSegment === 'all') return true
+    return r.request_type === selectedSegment
+  })
+
   const chartSeries = [
     {
       name: 'Candidates Matched',
-      data: candidates.length > 0 ? [candidates.length * 0.2, candidates.length * 0.25, candidates.length * 0.15, candidates.length * 0.3, candidates.length * 0.2, candidates.length * 0.25, candidates.length * 0.28, candidates.length * 0.35, candidates.length * 0.4, candidates.length * 0.35, candidates.length * 0.45, candidates.length * 0.5] : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      data: filteredCandidates.length > 0 ? [
+        Math.round(filteredCandidates.length * 0.2),
+        Math.round(filteredCandidates.length * 0.25),
+        Math.round(filteredCandidates.length * 0.15),
+        Math.round(filteredCandidates.length * 0.3),
+        Math.round(filteredCandidates.length * 0.2),
+        Math.round(filteredCandidates.length * 0.25),
+        Math.round(filteredCandidates.length * 0.28),
+        Math.round(filteredCandidates.length * 0.35),
+        Math.round(filteredCandidates.length * 0.4),
+        Math.round(filteredCandidates.length * 0.35),
+        Math.round(filteredCandidates.length * 0.45),
+        Math.round(filteredCandidates.length * 0.5)
+      ] : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     },
     {
       name: 'Requests Fulfilled',
-      data: requests.length > 0 ? [requests.length * 0.1, requests.length * 0.15, requests.length * 0.12, requests.length * 0.18, requests.length * 0.16, requests.length * 0.15, requests.length * 0.2, requests.length * 0.22, requests.length * 0.25, requests.length * 0.2, requests.length * 0.28, requests.length * 0.3] : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      data: filteredRequests.length > 0 ? [
+        Math.round(filteredRequests.length * 0.1),
+        Math.round(filteredRequests.length * 0.15),
+        Math.round(filteredRequests.length * 0.12),
+        Math.round(filteredRequests.length * 0.18),
+        Math.round(filteredRequests.length * 0.16),
+        Math.round(filteredRequests.length * 0.15),
+        Math.round(filteredRequests.length * 0.2),
+        Math.round(filteredRequests.length * 0.22),
+        Math.round(filteredRequests.length * 0.25),
+        Math.round(filteredRequests.length * 0.2),
+        Math.round(filteredRequests.length * 0.28),
+        Math.round(filteredRequests.length * 0.3)
+      ] : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
     },
   ]
+
+  const maxVal = Math.max(
+    ...(filteredCandidates.length > 0 ? [filteredCandidates.length * 0.5] : [0]),
+    ...(filteredRequests.length > 0 ? [filteredRequests.length * 0.3] : [0])
+  )
+  const chartMax = Math.round(maxVal)
+
+  const chartOptions = {
+    yaxis: {
+      labels: {
+        formatter: (val: number) => {
+          return val.toFixed(0)
+        }
+      },
+      ...(chartMax > 0 && chartMax <= 10 ? { tickAmount: chartMax } : {})
+    }
+  }
 
   const chartXAxis = ['01 May', '02 May', '03 May', '04 May', '05 May', '06 May', '07 May', '08 May', '09 May', '10 May', '11 May', '12 May']
 
@@ -378,16 +431,16 @@ const Dashboard = () => {
                 <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'all' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('all')}>
                   All
                 </button>
-                <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'campaign' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('campaign')}>
+                <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'Standard' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('Standard')}>
                   Standard
                 </button>
-                <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'email' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('email')}>
+                <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'Special' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('Special')}>
                   Special
                 </button>
               </Segment>
             </div>
             <div style={{ minHeight: '465px' }}>
-              <Chart type="line" height={450} series={chartSeries} xAxis={chartXAxis} />
+              <Chart type="line" height={450} series={chartSeries} xAxis={chartXAxis} customOptions={chartOptions} />
             </div>
           </Card>
         </div>
