@@ -5,7 +5,7 @@ import Tag from '@/components/ui/Tag'
 import Segment from '@/components/ui/Segment'
 import Avatar from '@/components/ui/Avatar'
 import Chart from '@/components/shared/Chart'
-import CountryMap, { countriesData } from '@/components/shared/CountryMap'
+import CountryMap, { countriesData, CountryData } from '@/components/shared/CountryMap'
 
 interface KPI {
   title: string
@@ -31,6 +31,14 @@ interface Candidate {
   candidate_id: string
   name: string
   status: string
+  country?: string
+}
+
+interface Partnership {
+  partner_id: string
+  service_city?: string
+  company_name?: string
+  status?: string
 }
 
 interface EmployeeRequest {
@@ -47,10 +55,12 @@ interface EmployeeRequest {
 const Dashboard = () => {
   const [selectedSegment, setSelectedSegment] = useState('all')
   const [candidates, setCandidates] = useState<Candidate[]>([])
+  const [partnerships, setPartnerships] = useState<Partnership[]>([])
   const [requests, setRequests] = useState<EmployeeRequest[]>([])
   const [kpis, setKpis] = useState<KPI[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCountry, setSelectedCountry] = useState<string>(countriesData[0].name)
+  const [topCountries, setTopCountries] = useState<CountryData[]>(countriesData)
 
   useEffect(() => {
     fetchData()
@@ -58,16 +68,19 @@ const Dashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [candidatesRes, requestsRes] = await Promise.all([
+      const [candidatesRes, requestsRes, partnershipsRes] = await Promise.all([
         fetch('/api/candidates'),
         fetch('/api/employee-requests'),
+        fetch('/api/partnerships'),
       ])
 
       const candidatesText = await candidatesRes.text()
       const requestsText = await requestsRes.text()
+      const partnershipsText = await partnershipsRes.text()
 
       let candidatesData: Candidate[] = []
       let requestsData: EmployeeRequest[] = []
+      let partnershipsData: Partnership[] = []
 
       if (candidatesText) {
         const parsed = JSON.parse(candidatesText)
@@ -83,13 +96,78 @@ const Dashboard = () => {
         }
       }
 
+      if (partnershipsText) {
+        const parsed = JSON.parse(partnershipsText)
+        if (parsed.success) {
+          partnershipsData = parsed.data || []
+        }
+      }
+
       setCandidates(candidatesData)
+      setPartnerships(partnershipsData)
       setRequests(requestsData)
       calculateKPIs(candidatesData, requestsData)
+      aggregateTopCountries(candidatesData, partnershipsData)
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const aggregateTopCountries = (candidatesData: Candidate[], partnershipsData: Partnership[]) => {
+    const locationMap: { [key: string]: number } = {}
+
+    // Count candidates by country
+    candidatesData.forEach((candidate) => {
+      if (candidate.country) {
+        locationMap[candidate.country] = (locationMap[candidate.country] || 0) + 1
+      }
+    })
+
+    // Map partnership cities to countries and count
+    const cityToCountryMap: { [key: string]: string } = {
+      'New York': 'United States',
+      'Los Angeles': 'United States',
+      'Chicago': 'United States',
+      'Houston': 'United States',
+      'Phoenix': 'United States',
+      'São Paulo': 'Brazil',
+      'Rio de Janeiro': 'Brazil',
+      'Salvador': 'Brazil',
+      'Brasília': 'Brazil',
+      'Mumbai': 'India',
+      'Delhi': 'India',
+      'Bangalore': 'India',
+      'Chennai': 'India',
+      'Kolkata': 'India',
+      'London': 'United Kingdom',
+      'Manchester': 'United Kingdom',
+      'Birmingham': 'United Kingdom',
+      'Leeds': 'United Kingdom',
+      'Istanbul': 'Turkey',
+      'Ankara': 'Turkey',
+      'Izmir': 'Turkey',
+      'Bursa': 'Turkey',
+    }
+
+    partnershipsData.forEach((partnership) => {
+      if (partnership.service_city) {
+        const country = cityToCountryMap[partnership.service_city]
+        if (country) {
+          locationMap[country] = (locationMap[country] || 0) + 1
+        }
+      }
+    })
+
+    // Calculate percentages and update countries data
+    const total = Object.values(locationMap).reduce((sum, count) => sum + count, 0)
+    if (total > 0) {
+      const updated = countriesData.map((country) => ({
+        ...country,
+        percentage: total > 0 ? (locationMap[country.name] || 0) / total * 100 : country.percentage,
+      }))
+      setTopCountries(updated)
     }
   }
 
@@ -349,10 +427,11 @@ const Dashboard = () => {
             <CountryMap
               selectedCountry={selectedCountry}
               onCountryClick={setSelectedCountry}
+              data={topCountries}
             />
           </div>
           <div className="flex flex-col justify-center px-4 2xl:min-w-[340px] xl:w-[300px] w-full gap-2">
-            {countriesData.map((item) => {
+            {topCountries.map((item) => {
               const flags: { [key: string]: string } = {
                 'United States': '🇺🇸',
                 'Brazil': '🇧🇷',

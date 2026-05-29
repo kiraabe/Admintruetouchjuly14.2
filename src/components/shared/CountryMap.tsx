@@ -19,9 +19,11 @@ export const countriesData: CountryData[] = [
 interface CountryMapProps {
   selectedCountry?: string
   onCountryClick?: (countryName: string) => void
+  data?: CountryData[]
 }
 
-export default function CountryMap({ selectedCountry, onCountryClick }: CountryMapProps) {
+export default function CountryMap({ selectedCountry, onCountryClick, data }: CountryMapProps) {
+  const mapData = data || countriesData
   return (
     <div className="w-full h-full min-h-64">
       <ComposableMap projection="geoMercator">
@@ -57,7 +59,7 @@ export default function CountryMap({ selectedCountry, onCountryClick }: CountryM
             ))
           }
         </Geographies>
-        {countriesData.map((country) => {
+        {mapData.map((country) => {
           const isSelected = selectedCountry === country.name
           const radius = Math.max(4, country.percentage / 10)
 
