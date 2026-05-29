@@ -6,7 +6,8 @@ import Dialog from '@/components/ui/Dialog'
 import { toast } from 'sonner'
 
 interface ContactMessage {
-  id: string
+  id?: number
+  contact_id: string
   name: string
   email: string
   phone?: string
@@ -107,9 +108,9 @@ const ContactUs = () => {
     }
   }
 
-  const handleChangeStatus = async (messageId: string, newStatus: ContactMessage['status']) => {
+  const handleChangeStatus = async (contactId: string, newStatus: ContactMessage['status']) => {
     try {
-      const response = await fetch(`/api/contact-us/${messageId}`, {
+      const response = await fetch(`/api/contact-us/${contactId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
@@ -183,7 +184,7 @@ const ContactUs = () => {
               </thead>
               <tbody>
                 {paginatedMessages.map((msg) => (
-                  <tr key={msg.id} className="border-b dark:border-gray-700">
+                  <tr key={msg.contact_id} className="border-b dark:border-gray-700">
                     <td className="px-4 py-3">{msg.name}</td>
                     <td className="px-4 py-3">{msg.email}</td>
                     <td className="px-4 py-3">{msg.subject}</td>
@@ -266,7 +267,7 @@ const ContactUs = () => {
                     <Button
                       key={status}
                       size="sm"
-                      onClick={() => handleChangeStatus(selectedMessage.id, status)}
+                      onClick={() => handleChangeStatus(selectedMessage.contact_id, status)}
                       className={selectedMessage.status === status ? 'bg-blue-600' : ''}
                     >
                       {status}
