@@ -34,6 +34,41 @@ export const countryCoordinates: { [key: string]: [number, number] } = {
   'Singapore': [103.8198, 1.3521],
   'Dubai': [55.2708, 25.2048],
   'UAE': [53.8478, 23.4241],
+  'Ethiopia': [9.1450, 9.1450],
+  'Ajman': [55.4671, 25.4052],
+  'Abu Dhabi': [54.3773, 24.4539],
+  'Abudhabi': [54.3773, 24.4539],
+  'Pakistan': [69.3451, 30.3753],
+  'Thailand': [100.9925, 15.8700],
+  'Malaysia': [101.6869, 4.2105],
+  'Philippines': [121.7740, 12.8797],
+  'Vietnam': [105.8581, 20.8517],
+  'Bangladesh': [90.3563, 23.6850],
+  'Sri Lanka': [80.7718, 7.8731],
+  'Nepal': [84.1240, 28.3949],
+  'Egypt': [30.8025, 26.8206],
+  'Kenya': [37.9083, -0.0236],
+  'Ghana': [-2.3577, 7.3697],
+  'Uganda': [32.2903, 1.3733],
+  'Tanzania': [34.8888, -6.3690],
+  'Morocco': [-3.3591, 31.7917],
+  'Poland': [19.1451, 51.9194],
+  'Netherlands': [5.2913, 52.1326],
+  'Belgium': [4.4699, 50.5039],
+  'Sweden': [18.6435, 60.1282],
+  'Norway': [8.4689, 60.4720],
+  'Denmark': [9.5018, 56.2639],
+  'Greece': [21.8243, 39.0742],
+  'Portugal': [-8.2245, 39.3999],
+  'Austria': [14.5501, 47.5162],
+  'Switzerland': [8.2275, 46.8182],
+  'Israel': [34.8516, 31.0461],
+  'Saudi Arabia': [45.0792, 23.8859],
+  'Kuwait': [47.4829, 29.3117],
+  'Qatar': [51.1694, 25.3548],
+  'Oman': [55.9754, 21.4735],
+  'Jordan': [36.2384, 30.5852],
+  'Lebanon': [35.8623, 33.8547],
 }
 
 export const countriesData: CountryData[] = [
@@ -45,7 +80,23 @@ export const countriesData: CountryData[] = [
 ]
 
 export const getCountryCoordinates = (countryName: string): [number, number] => {
-  return countryCoordinates[countryName] || [0, 0]
+  if (!countryName) return [0, 0]
+
+  // Try exact match first
+  if (countryCoordinates[countryName]) {
+    return countryCoordinates[countryName]
+  }
+
+  // Try case-insensitive match
+  const normalized = countryName.trim()
+  for (const [key, coords] of Object.entries(countryCoordinates)) {
+    if (key.toLowerCase() === normalized.toLowerCase()) {
+      return coords
+    }
+  }
+
+  // Fallback to [0, 0] for unmapped locations
+  return [0, 0]
 }
 
 interface CountryMapProps {
