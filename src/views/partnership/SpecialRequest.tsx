@@ -575,7 +575,7 @@ const SpecialRequest = () => {
         <div className="mb-4">
           <h2 className="text-lg font-bold">Create New Special Request</h2>
         </div>
-        <div className="max-h-96 overflow-y-auto">
+        <div className="max-h-none overflow-y-auto">
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="form-label">Company Name</label>
