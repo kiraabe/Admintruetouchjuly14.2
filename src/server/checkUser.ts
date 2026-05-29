@@ -1,4 +1,4 @@
-import pool from './db/config'
+import pool from './db/config.js'
 
 async function checkUser() {
   try {

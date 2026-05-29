@@ -1,7 +1,7 @@
 import express from 'express'
 import jwt from 'jsonwebtoken'
-import { signIn } from './signIn'
-import { signUp } from './signUp'
+import { signIn } from './signIn.js'
+import { signUp } from './signUp.js'
 import { authMiddleware } from '../../middleware/auth'
 import { validateSession } from '../../middleware/validateSession'
 
