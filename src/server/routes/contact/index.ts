@@ -1,20 +1,30 @@
 import { Router, type Request, type Response } from 'express'
-import {
-  getContactMessages,
-  getContactMessageById,
-  createContactMessage,
-  updateContactStatus,
-  deleteContactMessage,
-} from '../../db/queries/contactQueries.ts'
 
 const router = Router()
 
+let pool: any = null
+
+async function initPool() {
+  if (!pool) {
+    try {
+      const poolModule = await import('../../db/config.ts')
+      pool = poolModule.default
+    } catch (err) {
+      console.error('Failed to load db config:', err)
+      throw new Error('Database connection not available')
+    }
+  }
+  return pool
+}
+
+// GET all contact messages
 router.get('/', async (req: Request, res: Response) => {
   try {
-    const messages = await getContactMessages()
+    const dbPool = await initPool()
+    const result = await dbPool.query('SELECT * FROM contact_us ORDER BY created_at DESC')
     res.json({
       success: true,
-      data: messages,
+      data: result.rows,
     })
   } catch (error) {
     console.error('Error fetching contact messages:', error)
@@ -25,12 +35,14 @@ router.get('/', async (req: Request, res: Response) => {
   }
 })
 
+// GET single contact message
 router.get('/:contactId', async (req: Request, res: Response) => {
   try {
+    const dbPool = await initPool()
     const { contactId } = req.params
-    const message = await getContactMessageById(contactId)
+    const result = await dbPool.query('SELECT * FROM contact_us WHERE contact_id = $1', [contactId])
 
-    if (!message) {
+    if (!result.rows[0]) {
       return res.status(404).json({
         success: false,
         error: 'Contact message not found',
@@ -39,7 +51,7 @@ router.get('/:contactId', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: message,
+      data: result.rows[0],
     })
   } catch (error) {
     console.error('Error fetching contact message:', error)
@@ -50,22 +62,27 @@ router.get('/:contactId', async (req: Request, res: Response) => {
   }
 })
 
+// POST create contact message
 router.post('/', async (req: Request, res: Response) => {
   try {
+    const dbPool = await initPool()
     const { name, email, phone, subject, message } = req.body
 
     if (!name || !email || !subject || !message) {
       return res.status(400).json({
         success: false,
-        error: 'Missing required fields',
+        error: 'Missing required fields: name, email, subject, message',
       })
     }
 
-    const newMessage = await createContactMessage(name, email, subject, message, phone)
+    const result = await dbPool.query(
+      'INSERT INTO contact_us (name, email, phone, subject, message, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [name, email, phone || null, subject, message, 'new']
+    )
 
     res.status(201).json({
       success: true,
-      data: newMessage,
+      data: result.rows[0],
     })
   } catch (error) {
     console.error('Error creating contact message:', error)
@@ -76,8 +93,10 @@ router.post('/', async (req: Request, res: Response) => {
   }
 })
 
+// PATCH update contact message status
 router.patch('/:contactId', async (req: Request, res: Response) => {
   try {
+    const dbPool = await initPool()
     const { contactId } = req.params
     const { status } = req.body
 
@@ -88,9 +107,12 @@ router.patch('/:contactId', async (req: Request, res: Response) => {
       })
     }
 
-    const updatedMessage = await updateContactStatus(contactId, status)
+    const result = await dbPool.query(
+      'UPDATE contact_us SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE contact_id = $2 RETURNING *',
+      [status, contactId]
+    )
 
-    if (!updatedMessage) {
+    if (!result.rows[0]) {
       return res.status(404).json({
         success: false,
         error: 'Contact message not found',
@@ -99,7 +121,7 @@ router.patch('/:contactId', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: updatedMessage,
+      data: result.rows[0],
     })
   } catch (error) {
     console.error('Error updating contact message:', error)
@@ -110,13 +132,15 @@ router.patch('/:contactId', async (req: Request, res: Response) => {
   }
 })
 
+// DELETE contact message
 router.delete('/:contactId', async (req: Request, res: Response) => {
   try {
+    const dbPool = await initPool()
     const { contactId } = req.params
 
-    const deletedMessage = await deleteContactMessage(contactId)
+    const result = await dbPool.query('DELETE FROM contact_us WHERE contact_id = $1 RETURNING *', [contactId])
 
-    if (!deletedMessage) {
+    if (!result.rows[0]) {
       return res.status(404).json({
         success: false,
         error: 'Contact message not found',
@@ -125,7 +149,7 @@ router.delete('/:contactId', async (req: Request, res: Response) => {
 
     res.json({
       success: true,
-      data: deletedMessage,
+      data: result.rows[0],
     })
   } catch (error) {
     console.error('Error deleting contact message:', error)
@@ -136,8 +160,10 @@ router.delete('/:contactId', async (req: Request, res: Response) => {
   }
 })
 
+// POST send reply to contact message
 router.post('/:contactId/reply', async (req: Request, res: Response) => {
   try {
+    const dbPool = await initPool()
     const { contactId } = req.params
     const { reply } = req.body
 
@@ -148,10 +174,12 @@ router.post('/:contactId/reply', async (req: Request, res: Response) => {
       })
     }
 
-    // Update status to replied
-    const updatedMessage = await updateContactStatus(contactId, 'replied')
+    const result = await dbPool.query(
+      'UPDATE contact_us SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE contact_id = $2 RETURNING *',
+      ['replied', contactId]
+    )
 
-    if (!updatedMessage) {
+    if (!result.rows[0]) {
       return res.status(404).json({
         success: false,
         error: 'Contact message not found',
@@ -161,7 +189,7 @@ router.post('/:contactId/reply', async (req: Request, res: Response) => {
     res.json({
       success: true,
       message: 'Reply sent successfully',
-      data: updatedMessage,
+      data: result.rows[0],
     })
   } catch (error) {
     console.error('Error sending reply:', error)
