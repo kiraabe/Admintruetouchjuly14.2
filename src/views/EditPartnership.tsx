@@ -140,8 +140,15 @@ const EditPartnership = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.company_name || !formData.business_email || !formData.license_number) {
+    if (!formData.company_name || !formData.business_email || !formData.license_number ||
+        !formData.business_category || !formData.contact_person_name || !formData.phone_number ||
+        !formData.service_city || !formData.status) {
       toast.error('Please fill in all required fields')
+      return
+    }
+
+    if (isNewPartnership && !licenseDocument) {
+      toast.error('License document is required')
       return
     }
 
@@ -285,11 +292,12 @@ const EditPartnership = () => {
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">Business Category</label>
+                          <label className="form-label mb-2">Business Category *</label>
                           <select
                             value={formData.business_category}
                             onChange={(e) => handleFieldChange('business_category', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
+                            required
                           >
                             {businessCategories.map((cat) => (
                               <option key={cat} value={cat}>
@@ -330,21 +338,23 @@ const EditPartnership = () => {
                       <h4 className="mb-6 font-semibold">Contact Person</h4>
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <label className="form-label mb-2">Full Name</label>
+                          <label className="form-label mb-2">Full Name *</label>
                           <Input
                             value={formData.contact_person_name}
                             onChange={(e) => handleFieldChange('contact_person_name', e.target.value)}
                             placeholder="Contact person name"
+                            required
                           />
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">Phone Number</label>
+                          <label className="form-label mb-2">Phone Number *</label>
                           <Input
                             type="tel"
                             value={formData.phone_number}
                             onChange={(e) => handleFieldChange('phone_number', e.target.value)}
                             placeholder="+971 50 123 4567"
+                            required
                           />
                         </div>
                       </div>
@@ -357,11 +367,12 @@ const EditPartnership = () => {
                       <h4 className="mb-6 font-semibold">Operational Details</h4>
                       <div className="grid md:grid-cols-2 gap-4">
                         <div>
-                          <label className="form-label mb-2">Service City</label>
+                          <label className="form-label mb-2">Service City *</label>
                           <select
                             value={formData.service_city}
                             onChange={(e) => handleFieldChange('service_city', e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
+                            required
                           >
                             <option value="">Select city</option>
                             {serviceCities.map((city) => (
@@ -373,7 +384,7 @@ const EditPartnership = () => {
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">Status</label>
+                          <label className="form-label mb-2">Status *</label>
                           <select
                             value={formData.status}
                             onChange={(e) =>
@@ -383,6 +394,7 @@ const EditPartnership = () => {
                               })
                             }
                             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12"
+                            required
                           >
                             <option value="pending">Pending</option>
                             <option value="active">Active</option>
@@ -447,7 +459,7 @@ const EditPartnership = () => {
                   {/* License Document Section */}
                   <Card className="card-border">
                     <div className="card-body">
-                      <h4 className="mb-6 font-semibold">License Document</h4>
+                      <h4 className="mb-6 font-semibold">License Document {isNewPartnership ? '*' : ''}</h4>
                       <div className="bg-gray-100 dark:bg-gray-700 rounded-lg p-4">
                         <div className="mb-4">
                           <input
@@ -475,6 +487,9 @@ const EditPartnership = () => {
                           <p className="text-sm text-gray-600 dark:text-gray-400">
                             Current: <a href={existingLicenseDocument} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:underline">View Document</a>
                           </p>
+                        )}
+                        {isNewPartnership && !licenseDocument && !existingLicenseDocument && (
+                          <p className="text-sm text-red-500">Required for new partnerships</p>
                         )}
                       </div>
                     </div>
