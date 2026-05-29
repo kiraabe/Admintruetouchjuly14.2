@@ -80,41 +80,41 @@ const ListItem = (props: {
 const searchPageContent = (query: string): SearchResult => {
     const queryLower = query.toLowerCase()
     const results: SearchData[] = []
-    const pageContainer = document.querySelector('[data-loc*="PageContainer"]') || document.querySelector('main')
+    const seenTexts = new Set<string>()
+
+    const pageContainer = document.querySelector('main') || document.querySelector('[role="main"]') || document.body
 
     if (!pageContainer) {
         return { title: 'Page Content', data: [] }
     }
 
-    const walkDOM = (node: Node, path: string = '') => {
-        if (node.nodeType === Node.TEXT_NODE) {
-            const text = node.textContent || ''
-            if (text.toLowerCase().includes(queryLower) && text.trim().length > 0) {
-                const parentElement = node.parentElement
-                if (parentElement && text.length < 100) {
-                    const key = `${path}-${text.substring(0, 30)}`
-                    if (!results.some(r => r.key === key)) {
-                        results.push({
-                            key,
-                            path: '#',
-                            title: text.trim(),
-                            icon: 'document',
-                            category: 'Page Content',
-                            categoryTitle: 'Page Content',
-                        })
-                    }
-                }
-            }
-        } else if (node.nodeType === Node.ELEMENT_NODE) {
-            const element = node as Element
-            Array.from(element.childNodes).forEach((child, index) => {
-                walkDOM(child, `${path}/${element.tagName}[${index}]`)
+    const allElements = pageContainer.querySelectorAll('*')
+    allElements.forEach((element) => {
+        if (results.length >= 10) return
+
+        const text = element.textContent || ''
+        const trimmedText = text.trim()
+
+        if (
+            trimmedText &&
+            trimmedText.length > 0 &&
+            trimmedText.length < 150 &&
+            trimmedText.toLowerCase().includes(queryLower) &&
+            !seenTexts.has(trimmedText)
+        ) {
+            seenTexts.add(trimmedText)
+            results.push({
+                key: trimmedText,
+                path: '#',
+                title: trimmedText,
+                icon: 'document',
+                category: 'Page Content',
+                categoryTitle: 'Page Content',
             })
         }
-    }
+    })
 
-    walkDOM(pageContainer)
-    return { title: 'Page Content', data: results.slice(0, 10) }
+    return { title: 'Page Content', data: results }
 }
 
 const _Search = ({ className }: { className?: string }) => {
@@ -169,13 +169,15 @@ const _Search = ({ className }: { className?: string }) => {
         const panelResults = searchPageContent(query)
         const combinedResults = [
             ...respond,
-            ...(panelResults.length > 0 ? [panelResults] : []),
+            ...(panelResults.data.length > 0 ? [panelResults] : []),
         ]
 
         if (combinedResults.length === 0) {
             setNoResult(true)
+        } else {
+            setNoResult(false)
         }
-        setSearchResult(combinedResults)
+        setSearchResult(combinedResults.length === 0 ? recommendedSearch : combinedResults)
     }
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
