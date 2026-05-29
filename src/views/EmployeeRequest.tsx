@@ -1179,40 +1179,49 @@ const EmployeeRequest = () => {
               </div>
             )}
 
-            <div>
-              <label className="form-label">Status</label>
-              <div className="flex gap-2 items-center">
-                <select
-                  value={selectedRequest.status}
-                  onChange={(e) => {
-                    if (selectedRequest) {
-                      setSelectedRequest({ ...selectedRequest, status: e.target.value })
-                    }
-                  }}
-                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                >
-                  {STATUS_OPTIONS.map((status) => (
-                    <option key={status} value={status}>
-                      {status}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  onClick={() => {
-                    if (selectedRequest && selectedRequest.status !== selectedRequest.status) {
-                      handleUpdateStatus(selectedRequest, selectedRequest.status)
-                    }
-                  }}
-                  className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
-                >
-                  Update
-                </button>
+            {selectedRequest.request_type === 'Standard' && (
+              <div>
+                <label className="form-label">Status</label>
+                <div className="flex gap-2 items-center">
+                  <select
+                    value={selectedRequest.status}
+                    onChange={(e) => {
+                      if (selectedRequest) {
+                        setSelectedRequest({ ...selectedRequest, status: e.target.value })
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  >
+                    {STATUS_OPTIONS.map((status) => (
+                      <option key={status} value={status}>
+                        {status}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    onClick={() => {
+                      if (selectedRequest && selectedRequest.status !== selectedRequest.status) {
+                        handleUpdateStatus(selectedRequest, selectedRequest.status)
+                      }
+                    }}
+                    className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
+                  >
+                    Update
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
+
+            {selectedRequest.request_type === 'Special' && (
+              <div>
+                <label className="form-label">Status</label>
+                <p className="text-gray-700 dark:text-gray-300 px-3 py-2">{selectedRequest.status}</p>
+              </div>
+            )}
 
             <div className="flex gap-2 pt-4">
               <Button onClick={() => setShowDetailsModal(false)}>Close</Button>
-              {selectedRequest.status !== 'Approved' && (
+              {selectedRequest.request_type === 'Standard' && selectedRequest.status !== 'Approved' && (
                 <Button
                   onClick={() => {
                     if (selectedRequest) {
@@ -1224,7 +1233,7 @@ const EmployeeRequest = () => {
                   Approve
                 </Button>
               )}
-              {selectedRequest.status !== 'Rejected' && (
+              {selectedRequest.request_type === 'Standard' && selectedRequest.status !== 'Rejected' && (
                 <Button
                   onClick={() => {
                     if (selectedRequest) {
@@ -1234,6 +1243,14 @@ const EmployeeRequest = () => {
                   className="bg-red-600 hover:bg-red-700 text-white"
                 >
                   Reject
+                </Button>
+              )}
+              {selectedRequest.request_type === 'Special' && (
+                <Button
+                  onClick={() => handleDelete(selectedRequest.request_id)}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  Delete
                 </Button>
               )}
             </div>
