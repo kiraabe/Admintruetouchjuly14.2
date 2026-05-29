@@ -137,10 +137,9 @@ router.delete('/clear', async (req: Request, res: Response) => {
       DELETE FROM notifications
       WHERE created_at < NOW() - INTERVAL '30 days'
       OR readed = true
-      RETURNING COUNT(*) as deleted
     `)
 
-    res.json({ success: true, deleted: result.rows[0]?.deleted || 0 })
+    res.json({ success: true, deleted: result.rowCount || 0 })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
     console.error('Error clearing notifications:', errorMsg)
