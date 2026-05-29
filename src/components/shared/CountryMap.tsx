@@ -136,8 +136,8 @@ export default function CountryMap({ selectedCountry, onCountryClick, data }: Co
   }
 
   return (
-    <div className="w-full h-96 relative flex items-center justify-center bg-gradient-to-b from-blue-50 to-white rounded-lg">
-      <ComposableMap projection="geoNaturalEarth1" width={1000} height={600} style={{ width: '100%', height: '100%' }}>
+    <div className="w-full h-96 relative bg-white rounded-lg overflow-hidden">
+      <ComposableMap projection="geoMercator" width={1200} height={500}>
         <Geographies geography={geoUrl}>
           {({ geographies }) =>
             geographies.map((geo) => (
@@ -199,20 +199,23 @@ export default function CountryMap({ selectedCountry, onCountryClick, data }: Co
               />
               <text
                 textAnchor="middle"
-                y={-radius - 18}
-                style={{
-                  fontSize: '14px',
-                  fill: isSelected ? '#dc2626' : '#2563eb',
-                  fontWeight: 'bold',
-                  pointerEvents: 'none',
-                  textShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                  background: 'white',
-                  paintOrder: 'stroke',
-                  stroke: 'white',
-                  strokeWidth: '3px',
-                  strokeLinecap: 'round',
-                  strokeLinejoin: 'round',
-                }}
+                y={-radius - 20}
+                fontSize="13"
+                fontWeight="bold"
+                fill="white"
+                stroke={isSelected ? '#dc2626' : '#2563eb'}
+                strokeWidth="3"
+                style={{ pointerEvents: 'none' }}
+              >
+                {country.percentage.toFixed(1)}%
+              </text>
+              <text
+                textAnchor="middle"
+                y={-radius - 20}
+                fontSize="13"
+                fontWeight="bold"
+                fill={isSelected ? '#dc2626' : '#2563eb'}
+                style={{ pointerEvents: 'none' }}
               >
                 {country.percentage.toFixed(1)}%
               </text>
