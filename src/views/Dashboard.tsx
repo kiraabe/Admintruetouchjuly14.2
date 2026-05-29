@@ -339,6 +339,42 @@ const Dashboard = () => {
         </Card>
       </div>
 
+      {/* Top Countries */}
+      <Card>
+        <h4 className="text-lg font-bold mb-4">Top Countries</h4>
+        <div className="flex flex-col xl:flex-row items-center gap-4 mt-4">
+          <div className="px-4 flex flex-col justify-center flex-1 w-full">
+            <div className="w-full h-64 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center text-gray-400">
+              <p className="text-sm">Global distribution map</p>
+            </div>
+          </div>
+          <div className="flex flex-col justify-center px-4 2xl:min-w-[340px] xl:w-[300px] w-full gap-2">
+            {[
+              { country: 'United States', flag: '🇺🇸', percentage: 38.61 },
+              { country: 'Brazil', flag: '🇧🇷', percentage: 32.79 },
+              { country: 'India', flag: '🇮🇳', percentage: 26.42 },
+              { country: 'United Kingdom', flag: '🇬🇧', percentage: 17.42 },
+              { country: 'Turkey', flag: '🇹🇷', percentage: 12.85 },
+            ].map((item) => (
+              <div key={item.country} className="flex items-center gap-4 p-3 rounded-xl transition-colors duration-150 hover:bg-gray-50 dark:hover:bg-gray-700">
+                <div className="flex gap-2 text-xl">{item.flag}</div>
+                <div className="flex-1">
+                  <div className="font-semibold text-sm">{item.country}</div>
+                  <div className="progress line">
+                    <div className="progress-wrapper">
+                      <div className="progress-inner transition-colors duration-150">
+                        <div className="progress-bg h-2 bg-primary" style={{ width: `${item.percentage}%` }}></div>
+                      </div>
+                    </div>
+                    <span className="progress-info font-bold text-sm">{item.percentage.toFixed(2)}%</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </Card>
+
       {/* Active Requests Table */}
       <Card>
         <div className="flex items-center justify-between mb-4">
