@@ -8,6 +8,7 @@ import path from 'path'
 import fs from 'fs'
 import bcrypt from 'bcryptjs'
 import pool from './db/config.ts'
+import { validateSession } from './middleware/validateSession.ts'
 import candidatesRouter from './routes/candidates/index.ts'
 import usersRouter from './routes/users/index.ts'
 import partnershipsRouter from './routes/partnerships/index.ts'
@@ -20,11 +21,11 @@ import notificationsRouter from './routes/notifications/index.ts'
 import uploadsRouter from './routes/uploads/index.ts'
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
-const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d'
+const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '30m'
 
-function generateToken(userId: string, email: string): string {
+function generateToken(userId: string, email: string, role: string = 'user'): string {
   const options: any = { expiresIn: JWT_EXPIRES_IN }
-  return jwt.sign({ userId, email }, JWT_SECRET as string, options)
+  return jwt.sign({ user_id: userId, email, role }, JWT_SECRET as string, options)
 }
 
 async function comparePasswords(password: string, hash: string): Promise<boolean> {
@@ -406,7 +407,7 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
 
-    const token = generateToken(user.user_id || user.id.toString(), user.email)
+    const token = generateToken(user.user_id || user.id.toString(), user.email, user.authority)
 
     res.json({
       token,
@@ -423,6 +424,23 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
     const errorMsg = error instanceof Error ? error.message : String(error)
     console.error('Sign in error:', errorMsg, error)
     res.status(500).json({ message: `Internal server error: ${errorMsg}` })
+  }
+})
+
+// Token refresh endpoint
+app.post('/api/auth/refresh', validateSession, (req: any, res: Response) => {
+  try {
+    const newToken = generateToken(req.user.user_id, req.user.email, req.user.role)
+
+    res.json({
+      success: true,
+      token: newToken,
+      message: 'Session extended successfully',
+    })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error('Token refresh error:', errorMsg)
+    res.status(500).json({ error: 'Failed to refresh session' })
   }
 })
 

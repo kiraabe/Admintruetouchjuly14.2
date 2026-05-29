@@ -8,18 +8,28 @@ import Notification from '@/components/template/Notification'
 import Search from '@/components/template/Search'
 import ThemeToggle from '@/components/template/ThemeToggle'
 import LayoutBase from '@/components//template/LayoutBase'
+import SessionTimeoutWarning from '@/components/SessionTimeoutWarning'
 import useResponsive from '@/utils/hooks/useResponsive'
+import { useSessionTimeout } from '@/hooks/useSessionTimeout'
+import SessionService from '@/services/SessionService'
 import { LAYOUT_COLLAPSIBLE_SIDE } from '@/constants/theme.constant'
 import type { CommonProps } from '@/@types/common'
 
 const CollapsibleSide = ({ children }: CommonProps) => {
     const { larger, smaller } = useResponsive()
+    const { showWarning, timeLeft, handleExtendSession } = useSessionTimeout()
 
     return (
         <LayoutBase
             type={LAYOUT_COLLAPSIBLE_SIDE}
             className="app-layout-collapsible-side flex flex-auto flex-col"
         >
+            <SessionTimeoutWarning
+                isOpen={showWarning}
+                timeLeft={timeLeft}
+                onExtend={handleExtendSession}
+                onLogout={SessionService.expireSession}
+            />
             <div className="flex flex-auto min-w-0">
                 {larger.lg && <SideNav />}
                 <div className="flex flex-col flex-auto min-h-screen min-w-0 relative w-full">
