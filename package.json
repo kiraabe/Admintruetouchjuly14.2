@@ -80,6 +80,7 @@
     "swr": "^2.3.0",
     "tailwind-merge": "^3.3.1",
     "uuid": "^14.0.0",
+    "world-atlas": "^2.0.2",
     "yet-another-react-lightbox": "^3.21.7",
     "zod": "^4.1.1",
     "zustand": "^5.0.8"
