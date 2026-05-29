@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { ComposableMap, Geographies, Geography, Marker } from 'react-simple-maps'
 
 const geoUrl = 'https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json'
@@ -84,21 +84,11 @@ export const countriesData: CountryData[] = [
 
 export const getCountryCoordinates = (countryName: string): [number, number] => {
   if (!countryName) return [0, 0]
-
-  // Try exact match first
-  if (countryCoordinates[countryName]) {
-    return countryCoordinates[countryName]
-  }
-
-  // Try case-insensitive match
+  if (countryCoordinates[countryName]) return countryCoordinates[countryName]
   const normalized = countryName.trim()
   for (const [key, coords] of Object.entries(countryCoordinates)) {
-    if (key.toLowerCase() === normalized.toLowerCase()) {
-      return coords
-    }
+    if (key.toLowerCase() === normalized.toLowerCase()) return coords
   }
-
-  // Fallback to [0, 0] for unmapped locations
   return [0, 0]
 }
 
@@ -108,36 +98,45 @@ interface CountryMapProps {
   data?: CountryData[]
 }
 
-interface TooltipPosition {
+interface TooltipState {
+  country: string
   x: number
   y: number
 }
 
 export default function CountryMap({ selectedCountry, onCountryClick, data }: CountryMapProps) {
   const mapData = data || countriesData
-  const [hoveredCountry, setHoveredCountry] = useState<string | null>(null)
-  const [tooltipPos, setTooltipPos] = useState<TooltipPosition>({ x: 0, y: 0 })
+  const [tooltip, setTooltip] = useState<TooltipState | null>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const handleMarkerHover = (e: React.MouseEvent, countryName: string) => {
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-    setTooltipPos({
-      x: rect.x,
-      y: rect.y - 50,
+    if (!containerRef.current) return
+    const containerRect = containerRef.current.getBoundingClientRect()
+    const markerRect = (e.currentTarget as SVGElement).getBoundingClientRect()
+    setTooltip({
+      country: countryName,
+      // Position relative to the container, centered on the marker
+      x: markerRect.left - containerRect.left + markerRect.width / 2,
+      y: markerRect.top - containerRect.top,
     })
-    setHoveredCountry(countryName)
   }
 
-  const handleMarkerLeave = () => {
-    setHoveredCountry(null)
-  }
-
-  const getCountryInfo = (countryName: string) => {
-    return mapData.find(c => c.name === countryName)
-  }
+  const getCountryInfo = (countryName: string) =>
+    mapData.find((c) => c.name === countryName)
 
   return (
-    <div className="w-full h-96 relative bg-white rounded-lg overflow-hidden">
-      <ComposableMap projection="geoMercator" width={1200} height={500}>
+    <div ref={containerRef} className="w-full h-96 relative bg-white rounded-lg overflow-hidden">
+      <ComposableMap
+        projection="geoMercator"
+        projectionConfig={{
+          // Center the map on the world view properly
+          scale: 140,
+          center: [0, 20], // slight northward offset so Antarctica doesn't waste space
+        }}
+        width={800}
+        height={400}
+        style={{ width: '100%', height: '100%' }}
+      >
         <Geographies geography={geoUrl}>
           {({ geographies }) =>
             geographies.map((geo) => (
@@ -145,76 +144,55 @@ export default function CountryMap({ selectedCountry, onCountryClick, data }: Co
                 key={geo.rsmKey}
                 geography={geo}
                 style={{
-                  default: {
-                    fill: '#f3f4f6',
-                    stroke: '#d1d5db',
-                    strokeWidth: 0.75,
-                    outline: 'none',
-                    cursor: 'pointer',
-                  },
-                  hover: {
-                    fill: '#e5e7eb',
-                    stroke: '#9ca3af',
-                    strokeWidth: 0.75,
-                    outline: 'none',
-                    cursor: 'pointer',
-                  },
-                  pressed: {
-                    fill: '#d1d5db',
-                    stroke: '#6b7280',
-                    strokeWidth: 0.75,
-                    outline: 'none',
-                  },
+                  default: { fill: '#f3f4f6', stroke: '#d1d5db', strokeWidth: 0.5, outline: 'none' },
+                  hover:   { fill: '#e5e7eb', stroke: '#9ca3af', strokeWidth: 0.5, outline: 'none' },
+                  pressed: { fill: '#d1d5db', stroke: '#6b7280', strokeWidth: 0.5, outline: 'none' },
                 }}
               />
             ))
           }
         </Geographies>
+
         {mapData.map((country) => {
           const isSelected = selectedCountry === country.name
-          const radius = Math.max(8, country.percentage / 5)
+          const radius = Math.max(6, country.percentage / 6)
 
           return (
             <Marker
               key={country.name}
               coordinates={country.coordinates}
               onClick={() => onCountryClick?.(country.name)}
+              onMouseEnter={(e) => handleMarkerHover(e as unknown as React.MouseEvent, country.name)}
+              onMouseLeave={() => setTooltip(null)}
               style={{ cursor: 'pointer' }}
-              onMouseEnter={(e) => handleMarkerHover(e, country.name)}
-              onMouseLeave={handleMarkerLeave}
             >
+              {/* Pulse ring for selected */}
+              {isSelected && (
+                <circle
+                  r={radius + 5}
+                  fill="none"
+                  stroke="#ef4444"
+                  strokeWidth={1.5}
+                  opacity={0.5}
+                />
+              )}
+              {/* Main dot */}
               <circle
                 r={isSelected ? radius + 2 : radius}
                 fill={isSelected ? '#6b7280' : '#9ca3af'}
                 opacity={isSelected ? 1 : 0.8}
                 style={{ transition: 'all 200ms ease' }}
               />
-              <circle
-                r={radius + 1}
-                fill="none"
-                stroke={isSelected ? '#ef4444' : 'transparent'}
-                strokeWidth={2}
-                opacity={0.5}
-                style={{ transition: 'all 200ms ease' }}
-              />
+              {/* Percentage label */}
               <text
                 textAnchor="middle"
-                y={-radius - 20}
-                fontSize="13"
-                fontWeight="bold"
-                fill="white"
-                stroke={isSelected ? '#dc2626' : '#2563eb'}
-                strokeWidth="3"
-                style={{ pointerEvents: 'none' }}
-              >
-                {country.percentage.toFixed(1)}%
-              </text>
-              <text
-                textAnchor="middle"
-                y={-radius - 20}
-                fontSize="13"
+                y={-(radius + 6)}
+                fontSize="10"
                 fontWeight="bold"
                 fill={isSelected ? '#dc2626' : '#2563eb'}
+                stroke="white"
+                strokeWidth="2.5"
+                paintOrder="stroke"
                 style={{ pointerEvents: 'none' }}
               >
                 {country.percentage.toFixed(1)}%
@@ -224,27 +202,42 @@ export default function CountryMap({ selectedCountry, onCountryClick, data }: Co
         })}
       </ComposableMap>
 
-      {hoveredCountry && (
+      {/* Tooltip — positioned relative to container */}
+      {tooltip && (
         <div
           className="absolute bg-gray-800 text-white px-3 py-2 rounded-lg shadow-lg text-sm z-50 pointer-events-none"
           style={{
-            left: `${tooltipPos.x}px`,
-            top: `${tooltipPos.y}px`,
-            transform: 'translate(-50%, -100%)',
+            left: tooltip.x,
+            top: tooltip.y,
+            transform: 'translate(-50%, calc(-100% - 8px))',
           }}
         >
-          <div className="font-semibold mb-1">{hoveredCountry}</div>
-          {getCountryInfo(hoveredCountry) && (
-            <>
-              <div className="text-gray-300">Share: {getCountryInfo(hoveredCountry)!.percentage.toFixed(2)}%</div>
-              {getCountryInfo(hoveredCountry)!.candidates !== undefined && (
-                <div className="text-blue-300">Candidates: {getCountryInfo(hoveredCountry)!.candidates}</div>
-              )}
-              {getCountryInfo(hoveredCountry)!.partnerships !== undefined && (
-                <div className="text-green-300">Partnerships: {getCountryInfo(hoveredCountry)!.partnerships}</div>
-              )}
-            </>
-          )}
+          <div className="font-semibold mb-1">{tooltip.country}</div>
+          {getCountryInfo(tooltip.country) && (() => {
+            const info = getCountryInfo(tooltip.country)!
+            return (
+              <>
+                <div className="text-gray-300">Share: {info.percentage.toFixed(2)}%</div>
+                {info.candidates !== undefined && (
+                  <div className="text-blue-300">Candidates: {info.candidates}</div>
+                )}
+                {info.partnerships !== undefined && (
+                  <div className="text-green-300">Partnerships: {info.partnerships}</div>
+                )}
+              </>
+            )
+          })()}
+          {/* Arrow */}
+          <div
+            className="absolute left-1/2 -translate-x-1/2 bottom-0 translate-y-full"
+            style={{
+              width: 0,
+              height: 0,
+              borderLeft: '6px solid transparent',
+              borderRight: '6px solid transparent',
+              borderTop: '6px solid #1f2937',
+            }}
+          />
         </div>
       )}
     </div>
