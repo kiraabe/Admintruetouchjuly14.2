@@ -12,7 +12,7 @@ export const countriesData: CountryData[] = [
   { name: 'United States', coordinates: [-95.7129, 37.0902], percentage: 38.61 },
   { name: 'Brazil', coordinates: [-51.9253, -14.2350], percentage: 32.79 },
   { name: 'India', coordinates: [78.9629, 20.5937], percentage: 26.42 },
-  { name: 'United Kingdom', coordinates: [-3.4360, 55.3781], percentage: 17.42 },
+  { name: 'United Kingdom', coordinates: [-2.2426, 55.3781], percentage: 17.42 },
   { name: 'Turkey', coordinates: [35.2433, 38.9637], percentage: 12.85 },
 ]
 
