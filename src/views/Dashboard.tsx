@@ -116,62 +116,37 @@ const Dashboard = () => {
   }
 
   const aggregateTopCountries = (candidatesData: Candidate[], partnershipsData: Partnership[]) => {
-    const locationMap: { [key: string]: number } = {
-      'United States': 0,
-      'Brazil': 0,
-      'India': 0,
-      'United Kingdom': 0,
-      'Turkey': 0,
-    }
+    const locationMap: { [key: string]: number } = {}
 
     // Count candidates by country
     candidatesData.forEach((candidate) => {
       const country = candidate.country?.trim()
-      if (country && locationMap.hasOwnProperty(country)) {
-        locationMap[country]++
+      if (country) {
+        locationMap[country] = (locationMap[country] || 0) + 1
       }
     })
 
-    // Map partnership cities to countries and count
-    const cityToCountryMap: { [key: string]: string } = {
-      'New York': 'United States',
-      'Los Angeles': 'United States',
-      'Chicago': 'United States',
-      'Houston': 'United States',
-      'Phoenix': 'United States',
-      'São Paulo': 'Brazil',
-      'Rio de Janeiro': 'Brazil',
-      'Salvador': 'Brazil',
-      'Brasília': 'Brazil',
-      'Mumbai': 'India',
-      'Delhi': 'India',
-      'Bangalore': 'India',
-      'Chennai': 'India',
-      'Kolkata': 'India',
-      'London': 'United Kingdom',
-      'Manchester': 'United Kingdom',
-      'Birmingham': 'United Kingdom',
-      'Leeds': 'United Kingdom',
-      'Istanbul': 'Turkey',
-      'Ankara': 'Turkey',
-      'Izmir': 'Turkey',
-      'Bursa': 'Turkey',
-    }
-
+    // Count partnerships by service city (treating city as proxy for country)
     partnershipsData.forEach((partnership) => {
       const city = partnership.service_city?.trim()
-      if (city && cityToCountryMap[city]) {
-        const country = cityToCountryMap[city]
-        locationMap[country]++
+      if (city) {
+        locationMap[city] = (locationMap[city] || 0) + 1
       }
     })
 
-    // Calculate percentages and update countries data
-    const total = Object.values(locationMap).reduce((sum, count) => sum + count, 0)
-    if (total > 0) {
-      const updated = countriesData.map((country) => ({
-        ...country,
-        percentage: (locationMap[country.name] || 0) / total * 100,
+    // Get top 5 countries/locations by count
+    const sortedLocations = Object.entries(locationMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+
+    const total = sortedLocations.reduce((sum, [_, count]) => sum + count, 0)
+
+    if (total > 0 && sortedLocations.length > 0) {
+      // Create dynamic country data from actual data
+      const updated: CountryData[] = sortedLocations.map(([name, count], index) => ({
+        name,
+        coordinates: countriesData[index]?.coordinates || [0, 0],
+        percentage: (count / total) * 100,
       }))
       setTopCountries(updated)
     }
