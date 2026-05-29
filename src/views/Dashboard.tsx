@@ -483,8 +483,8 @@ const Dashboard = () => {
       {/* Top Countries */}
       <Card>
         <h4 className="text-lg font-bold mb-4">Top Countries</h4>
-        <div className="flex flex-col xl:flex-row items-center gap-4 mt-4">
-          <div className="px-4 flex flex-col justify-center flex-1 w-full">
+        <div className="flex flex-col xl:flex-row gap-6 mt-4">
+          <div className="flex-1 w-full overflow-hidden rounded-lg">
             <CountryMap
               selectedCountry={selectedCountry}
               onCountryClick={setSelectedCountry}

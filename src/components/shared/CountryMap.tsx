@@ -136,8 +136,8 @@ export default function CountryMap({ selectedCountry, onCountryClick, data }: Co
   }
 
   return (
-    <div className="w-full h-full min-h-64 relative">
-      <ComposableMap projection="geoMercator">
+    <div className="w-full h-96 relative">
+      <ComposableMap projection="geoMercator" width={800} height={500}>
         <Geographies geography={geoUrl}>
           {({ geographies }) =>
             geographies.map((geo) => (
