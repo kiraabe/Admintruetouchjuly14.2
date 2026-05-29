@@ -136,8 +136,8 @@ export default function CountryMap({ selectedCountry, onCountryClick, data }: Co
   }
 
   return (
-    <div className="w-full h-96 relative">
-      <ComposableMap projection="geoMercator" width={800} height={500}>
+    <div className="w-full h-96 relative flex items-center justify-center bg-gradient-to-b from-blue-50 to-white rounded-lg">
+      <ComposableMap projection="geoNaturalEarth1" width={1000} height={600} style={{ width: '100%', height: '100%' }}>
         <Geographies geography={geoUrl}>
           {({ geographies }) =>
             geographies.map((geo) => (
@@ -172,7 +172,7 @@ export default function CountryMap({ selectedCountry, onCountryClick, data }: Co
         </Geographies>
         {mapData.map((country) => {
           const isSelected = selectedCountry === country.name
-          const radius = Math.max(4, country.percentage / 10)
+          const radius = Math.max(8, country.percentage / 5)
 
           return (
             <Marker
@@ -199,12 +199,19 @@ export default function CountryMap({ selectedCountry, onCountryClick, data }: Co
               />
               <text
                 textAnchor="middle"
-                y={-radius - 12}
+                y={-radius - 18}
                 style={{
-                  fontSize: '10px',
-                  fill: isSelected ? '#dc2626' : '#1e40af',
+                  fontSize: '14px',
+                  fill: isSelected ? '#dc2626' : '#2563eb',
                   fontWeight: 'bold',
                   pointerEvents: 'none',
+                  textShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  background: 'white',
+                  paintOrder: 'stroke',
+                  stroke: 'white',
+                  strokeWidth: '3px',
+                  strokeLinecap: 'round',
+                  strokeLinejoin: 'round',
                 }}
               >
                 {country.percentage.toFixed(1)}%
