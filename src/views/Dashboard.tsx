@@ -360,22 +360,22 @@ const Dashboard = () => {
                 'United Kingdom': '🇬🇧',
                 'Turkey': '🇹🇷',
               }
-              const isSelected = selectedCountry === item.country
+              const isSelected = selectedCountry === item.name
 
               return (
                 <div
-                  key={item.country}
-                  onClick={() => setSelectedCountry(item.country)}
+                  key={item.name}
+                  onClick={() => setSelectedCountry(item.name)}
                   className={`flex items-center gap-4 p-3 rounded-xl transition-all duration-150 cursor-pointer ${
                     isSelected
                       ? 'bg-primary bg-opacity-10 border border-primary'
                       : 'hover:bg-gray-50 dark:hover:bg-gray-700'
                   }`}
                 >
-                  <div className="flex gap-2 text-xl">{flags[item.country]}</div>
+                  <div className="flex gap-2 text-xl">{flags[item.name]}</div>
                   <div className="flex-1">
                     <div className={`font-semibold text-sm ${isSelected ? 'text-primary' : ''}`}>
-                      {item.country}
+                      {item.name}
                     </div>
                     <div className="progress line">
                       <div className="progress-wrapper">
