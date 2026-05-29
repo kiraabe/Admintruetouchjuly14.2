@@ -79,14 +79,14 @@ export async function apiCreateNotification(data: {
 
 export async function apiMarkNotificationAsRead(notificationId: string) {
     return ApiService.fetchDataWithAxios({
-        url: `/mark-read/${notificationId}`,
+        url: `/notification/mark-read/${notificationId}`,
         method: 'put'
     })
 }
 
 export async function apiMarkAllNotificationsAsRead() {
     return ApiService.fetchDataWithAxios({
-        url: '/mark-all-read',
+        url: '/notification/mark-all-read',
         method: 'put'
     })
 }
