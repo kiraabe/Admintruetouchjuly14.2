@@ -12,6 +12,8 @@ import { HiOutlineMailOpen, HiOutlineTrash } from 'react-icons/hi'
 import {
     apiGetNotificationList,
     apiGetNotificationCount,
+    apiMarkNotificationAsRead,
+    apiMarkAllNotificationsAsRead,
 } from '@/services/CommonService'
 import isLastChild from '@/utils/isLastChild'
 import useResponsive from '@/utils/hooks/useResponsive'
@@ -86,31 +88,41 @@ const _Notification = ({ className }: { className?: string }) => {
         }
     }
 
-    const onMarkAllAsRead = () => {
-        const list = notificationList.map((item: NotificationList) => {
-            if (!item.readed) {
-                item.readed = true
-            }
-            return item
-        })
-        setNotificationList(list)
-        setUnreadNotification(false)
-        setUnreadCount(0)
+    const onMarkAllAsRead = async () => {
+        try {
+            await apiMarkAllNotificationsAsRead()
+            const list = notificationList.map((item: NotificationList) => {
+                if (!item.readed) {
+                    item.readed = true
+                }
+                return item
+            })
+            setNotificationList(list)
+            setUnreadNotification(false)
+            setUnreadCount(0)
+        } catch (error) {
+            console.error('Error marking all notifications as read:', error)
+        }
     }
 
-    const onMarkAsRead = (id: string) => {
-        const list = notificationList.map((item) => {
-            if (item.id === id) {
-                item.readed = true
-            }
-            return item
-        })
-        setNotificationList(list)
-        const unread = list.filter((item) => !item.readed).length
-        setUnreadCount(unread)
+    const onMarkAsRead = async (id: string) => {
+        try {
+            await apiMarkNotificationAsRead(id)
+            const list = notificationList.map((item) => {
+                if (item.id === id) {
+                    item.readed = true
+                }
+                return item
+            })
+            setNotificationList(list)
+            const unread = list.filter((item) => !item.readed).length
+            setUnreadCount(unread)
 
-        if (unread === 0) {
-            setUnreadNotification(false)
+            if (unread === 0) {
+                setUnreadNotification(false)
+            }
+        } catch (error) {
+            console.error('Error marking notification as read:', error)
         }
     }
 
