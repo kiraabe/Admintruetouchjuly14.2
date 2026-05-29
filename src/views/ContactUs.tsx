@@ -237,7 +237,7 @@ const ContactUs = () => {
             <table className="w-full">
               <thead className="bg-gray-100 dark:bg-gray-700">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold">Name</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold">Username</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold">Email</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold">Subject</th>
                   <th className="px-4 py-3 text-left text-sm font-semibold">Status</th>
