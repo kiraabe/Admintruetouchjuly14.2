@@ -116,12 +116,19 @@ const Dashboard = () => {
   }
 
   const aggregateTopCountries = (candidatesData: Candidate[], partnershipsData: Partnership[]) => {
-    const locationMap: { [key: string]: number } = {}
+    const locationMap: { [key: string]: number } = {
+      'United States': 0,
+      'Brazil': 0,
+      'India': 0,
+      'United Kingdom': 0,
+      'Turkey': 0,
+    }
 
     // Count candidates by country
     candidatesData.forEach((candidate) => {
-      if (candidate.country) {
-        locationMap[candidate.country] = (locationMap[candidate.country] || 0) + 1
+      const country = candidate.country?.trim()
+      if (country && locationMap.hasOwnProperty(country)) {
+        locationMap[country]++
       }
     })
 
@@ -152,11 +159,10 @@ const Dashboard = () => {
     }
 
     partnershipsData.forEach((partnership) => {
-      if (partnership.service_city) {
-        const country = cityToCountryMap[partnership.service_city]
-        if (country) {
-          locationMap[country] = (locationMap[country] || 0) + 1
-        }
+      const city = partnership.service_city?.trim()
+      if (city && cityToCountryMap[city]) {
+        const country = cityToCountryMap[city]
+        locationMap[country]++
       }
     })
 
@@ -165,7 +171,7 @@ const Dashboard = () => {
     if (total > 0) {
       const updated = countriesData.map((country) => ({
         ...country,
-        percentage: total > 0 ? (locationMap[country.name] || 0) / total * 100 : country.percentage,
+        percentage: (locationMap[country.name] || 0) / total * 100,
       }))
       setTopCountries(updated)
     }
