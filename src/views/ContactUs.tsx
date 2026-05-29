@@ -10,7 +10,7 @@ import { useSessionUser } from '@/store/authStore'
 interface ContactMessage {
   id?: number
   contact_id: string
-  name: string
+  username: string
   email: string
   phone?: string
   subject: string
@@ -73,7 +73,7 @@ const ContactUs = () => {
         // Ensure all required fields are present
         const processedMessages = newMessages.map((msg: ContactMessage) => ({
           ...msg,
-          name: msg.name || 'Unknown',
+          username: msg.username || 'Unknown',
           email: msg.email || 'N/A',
           subject: msg.subject || 'No Subject',
           message: msg.message || '',
@@ -84,8 +84,8 @@ const ContactUs = () => {
         processedMessages.forEach((msg) => {
           if (msg.status === 'new') {
             createNotification(
-              msg.name,
-              `New message from ${msg.name}: "${msg.subject}"`,
+              msg.username,
+              `New message from ${msg.username}: "${msg.subject}"`,
               msg.contact_id
             )
           }
@@ -103,7 +103,7 @@ const ContactUs = () => {
 
   const filterMessages = () => {
     const filtered = messages.filter((msg) =>
-      (msg.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (msg.username?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (msg.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
       (msg.subject?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     )
@@ -248,7 +248,7 @@ const ContactUs = () => {
               <tbody>
                 {paginatedMessages.map((msg) => (
                   <tr key={msg.id || msg.contact_id} className="border-b dark:border-gray-700">
-                    <td className="px-4 py-3 font-medium">{msg.name || 'Unknown'}</td>
+                    <td className="px-4 py-3 font-medium">{msg.username || 'Unknown'}</td>
                     <td className="px-4 py-3">{msg.email || 'N/A'}</td>
                     <td className="px-4 py-3">{msg.subject}</td>
                     <td className="px-4 py-3">
@@ -315,7 +315,7 @@ const ContactUs = () => {
             <div className="space-y-4">
               <div>
                 <label className="font-semibold text-gray-600 dark:text-gray-400">From</label>
-                <p>{selectedMessage.name} ({selectedMessage.email})</p>
+                <p>{selectedMessage.username} ({selectedMessage.email})</p>
               </div>
               {selectedMessage.phone && (
                 <div>
@@ -370,7 +370,7 @@ const ContactUs = () => {
       >
         {selectedMessage && (
           <div>
-            <h2 className="text-lg font-bold mb-4">Reply to: {selectedMessage.name}</h2>
+            <h2 className="text-lg font-bold mb-4">Reply to: {selectedMessage.username}</h2>
             <div className="space-y-4">
               <div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Original message:</p>
