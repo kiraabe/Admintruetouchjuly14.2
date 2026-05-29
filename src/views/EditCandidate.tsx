@@ -19,7 +19,6 @@ interface Candidate {
   nationality: string | null
   religion: string | null
   marital_status: string | null
-  occupation: string | null
   job_category: string | null
   skill_level: string | null
   education_level: string | null
@@ -102,7 +101,6 @@ const EditCandidate = () => {
     nationality: '',
     religion: '',
     marital_status: '',
-    occupation: '',
     job_category: '',
     skill_level: '',
     education_level: '',
@@ -145,7 +143,6 @@ const EditCandidate = () => {
           nationality: cand.nationality || '',
           religion: cand.religion || '',
           marital_status: cand.marital_status || '',
-          occupation: cand.occupation || '',
           job_category: cand.job_category || '',
           skill_level: cand.skill_level || '',
           education_level: cand.education_level || '',
@@ -601,15 +598,6 @@ const EditCandidate = () => {
                               </option>
                             ))}
                           </select>
-                        </div>
-
-                        <div>
-                          <label className="form-label mb-2">Occupation</label>
-                          <Input
-                            value={formData.occupation}
-                            onChange={(e) => setFormData({ ...formData, occupation: e.target.value })}
-                            placeholder="Occupation"
-                          />
                         </div>
 
                         <div>
