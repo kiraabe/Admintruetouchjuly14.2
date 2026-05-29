@@ -61,9 +61,9 @@ const ContactUs = () => {
 
   const filterMessages = () => {
     const filtered = messages.filter((msg) =>
-      msg.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      msg.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      msg.subject.toLowerCase().includes(searchTerm.toLowerCase())
+      (msg.name?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (msg.email?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+      (msg.subject?.toLowerCase() || '').includes(searchTerm.toLowerCase())
     )
     setFilteredMessages(filtered)
     setCurrentPage(1)
