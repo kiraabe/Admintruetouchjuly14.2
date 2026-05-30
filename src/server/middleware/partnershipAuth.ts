@@ -30,17 +30,18 @@ export const validatePartnershipSession = (req: PartnershipAuthRequest, res: Res
       return res.status(401).json({ error: 'Session expired' })
     }
 
-    // Only allow partnership users, reject admin tokens
-    if (decoded.role !== 'partnership') {
+    // For partnership users, ensure partnership_user_id is present
+    if (decoded.role === 'partnership') {
+      if (!decoded.partnership_user_id) {
+        console.error('Partnership auth: Missing partnership_user_id for partnership user')
+        return res.status(401).json({ error: 'Invalid token: missing partnership_user_id' })
+      }
+    } else if (decoded.role !== 'admin') {
+      // Only allow partnership or admin users
       console.error('Partnership auth: Invalid role:', decoded.role)
-      return res.status(403).json({ error: 'Forbidden: Admin users cannot access partnership endpoints' })
+      return res.status(403).json({ error: 'Forbidden: Invalid user role' })
     }
-
-    // Ensure partnership_user_id is present
-    if (!decoded.partnership_user_id) {
-      console.error('Partnership auth: Missing partnership_user_id')
-      return res.status(401).json({ error: 'Invalid token: missing partnership_user_id' })
-    }
+    // Note: Admin users are allowed but will be checked by endpoint for partnership_id
 
     req.user = decoded
     req.partnershipUserId = decoded.partnership_user_id
