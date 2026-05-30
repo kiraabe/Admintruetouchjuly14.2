@@ -958,11 +958,11 @@ const EditCandidate = () => {
                                 onClick={async (e) => {
                                   e.preventDefault()
                                   try {
-                                    const downloadUrl = `/uploads/${resumeUrl}`
-                                    const filename = resumeUrl.includes('/') ? resumeUrl.split('/').pop() : resumeUrl
+                                    const downloadUrl = `/uploads/candidates/cvs/${resumeUrl}`
+                                    const filename = resumeUrl.replace(/^\d+-/, '') || 'resume'
                                     const link = document.createElement('a')
                                     link.href = downloadUrl
-                                    link.download = filename?.replace(/^\d+-/, '') || 'resume'
+                                    link.download = filename
                                     document.body.appendChild(link)
                                     link.click()
                                     document.body.removeChild(link)
@@ -971,9 +971,9 @@ const EditCandidate = () => {
                                   }
                                 }}
                                 className="text-sm text-primary hover:underline truncate cursor-pointer"
-                                title={resumeUrl.split('/').pop() || resumeUrl}
+                                title={resumeUrl.replace(/^\d+-/, '')}
                               >
-                                {resumeUrl.split('/').pop()?.replace(/^\d+-/, '') || resumeUrl}
+                                {resumeUrl.replace(/^\d+-/, '')}
                               </a>
                             </div>
                             <button

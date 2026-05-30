@@ -606,7 +606,7 @@ const PartnershipCandidates = () => {
                         </button>
                         {candidate.resume_url && (
                           <a
-                            href={candidate.resume_url.includes('/') ? `/uploads/candidates/cvs/${candidate.resume_url.split('/').pop()}` : `/uploads/candidates/cvs/${candidate.resume_url}`}
+                            href={`/uploads/candidates/cvs/${candidate.resume_url}`}
                             download
                             className="w-full flex items-center gap-2 px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                           >
@@ -830,7 +830,7 @@ const PartnershipCandidates = () => {
               <Button onClick={() => setShowInfoModal(false)} className="flex-1">Close</Button>
               {selectedCandidate.resume_url && (
                 <a
-                  href={selectedCandidate.resume_url.includes('/') ? `/uploads/candidates/cvs/${selectedCandidate.resume_url.split('/').pop()}` : `/uploads/candidates/cvs/${selectedCandidate.resume_url}`}
+                  href={`/uploads/candidates/cvs/${selectedCandidate.resume_url}`}
                   download
                   className="flex-1 flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
                 >
