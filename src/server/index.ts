@@ -24,9 +24,13 @@ import contactRouter from './routes/contact/index'
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '30m'
 
-function generateToken(userId: string, email: string, role: string = 'user'): string {
+function generateToken(userId: string, email: string, role: string = 'user', partnershipUserId?: string): string {
   const options: any = { expiresIn: JWT_EXPIRES_IN }
-  return jwt.sign({ user_id: userId, email, role }, JWT_SECRET as string, options)
+  const payload: any = { user_id: userId, email, role }
+  if (partnershipUserId) {
+    payload.partnership_user_id = partnershipUserId
+  }
+  return jwt.sign(payload, JWT_SECRET as string, options)
 }
 
 async function comparePasswords(password: string, hash: string): Promise<boolean> {
@@ -409,7 +413,7 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
 
-    const token = generateToken(user.user_id || user.id.toString(), user.email, user.authority)
+    const token = generateToken(user.user_id || user.id.toString(), user.email, user.authority, user.partnership_id)
 
     res.json({
       token,
@@ -432,7 +436,7 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
 // Token refresh endpoint
 app.post('/api/auth/refresh', validateSession, (req: any, res: Response) => {
   try {
-    const newToken = generateToken(req.user.user_id, req.user.email, req.user.role)
+    const newToken = generateToken(req.user.user_id, req.user.email, req.user.role, req.user.partnership_user_id)
 
     res.json({
       success: true,

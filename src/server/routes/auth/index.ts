@@ -27,12 +27,17 @@ router.post('/refresh', validateSession, (req: any, res) => {
     const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '30m'
 
     // Generate new token
+    const payload: any = {
+      user_id: req.user.user_id,
+      email: req.user.email,
+      role: req.user.role,
+    }
+    if (req.user.partnership_user_id) {
+      payload.partnership_user_id = req.user.partnership_user_id
+    }
+
     const newToken = jwt.sign(
-      {
-        user_id: req.user.user_id,
-        email: req.user.email,
-        role: req.user.role,
-      },
+      payload,
       JWT_SECRET,
       { expiresIn: JWT_EXPIRES_IN as any }
     )

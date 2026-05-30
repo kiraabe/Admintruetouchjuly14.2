@@ -1,4 +1,6 @@
 import { Router, type Request, type Response } from 'express'
+import { validateAdminSession, validatePartnershipSession } from '../../middleware/partnershipAuth'
+import pool from '../../db/config'
 import {
   getAllStandardRequests,
   getStandardRequestById,
@@ -14,9 +16,36 @@ import {
 
 const router = Router()
 
+async function getPartnershipIdByUserId(userId: string): Promise<string | null> {
+  const result = await pool.query(
+    `SELECT partnership_id FROM users WHERE user_id = $1`,
+    [userId]
+  )
+  return result.rows[0]?.partnership_id || null
+}
+
 router.get('/', async (req, res) => {
   try {
     await ensureStandardRequestTableExists()
+
+    const authHeader = req.headers.authorization
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+    let userPartnershipId: string | null = null
+    let isPartnershipUser = false
+
+    if (token) {
+      try {
+        const jwt = require('jsonwebtoken')
+        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+        const decoded = jwt.verify(token, JWT_SECRET) as any
+        if (decoded.role === 'partnership' && decoded.user_id) {
+          isPartnershipUser = true
+          userPartnershipId = await getPartnershipIdByUserId(decoded.user_id)
+        }
+      } catch (e) {
+        // Token validation failed, continue as unauthenticated
+      }
+    }
 
     const { search, page: pageStr, limit: limitStr, partnership_id, ...filters } = req.query
     const page = Math.max(1, parseInt(pageStr as string) || 1)
@@ -25,14 +54,27 @@ router.get('/', async (req, res) => {
 
     let requests
 
-    if (partnership_id && typeof partnership_id === 'string') {
-      requests = await getStandardRequestsByPartnership(partnership_id)
-    } else if (search && typeof search === 'string') {
-      requests = await searchStandardRequests(search)
-    } else if (Object.keys(filters).length > 0) {
-      requests = await filterStandardRequests({ ...filters, partnership_id })
+    // Partnership users can only see their own requests
+    if (isPartnershipUser && userPartnershipId) {
+      if (search && typeof search === 'string') {
+        requests = await searchStandardRequests(search)
+        requests = requests.filter(r => r.partnership_id === userPartnershipId)
+      } else if (Object.keys(filters).length > 0) {
+        requests = await filterStandardRequests({ ...filters, partnership_id: userPartnershipId })
+      } else {
+        requests = await getStandardRequestsByPartnership(userPartnershipId)
+      }
     } else {
-      requests = await getAllStandardRequests()
+      // Admin users see all requests
+      if (partnership_id && typeof partnership_id === 'string') {
+        requests = await getStandardRequestsByPartnership(partnership_id)
+      } else if (search && typeof search === 'string') {
+        requests = await searchStandardRequests(search)
+      } else if (Object.keys(filters).length > 0) {
+        requests = await filterStandardRequests({ ...filters, partnership_id })
+      } else {
+        requests = await getAllStandardRequests()
+      }
     }
 
     const total = requests?.length || 0
@@ -49,10 +91,35 @@ router.get('/', async (req, res) => {
 router.get('/:requestId', async (req, res) => {
   try {
     await ensureStandardRequestTableExists()
+
+    const authHeader = req.headers.authorization
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+    let userPartnershipId: string | null = null
+    let isPartnershipUser = false
+
+    if (token) {
+      try {
+        const jwt = require('jsonwebtoken')
+        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+        const decoded = jwt.verify(token, JWT_SECRET) as any
+        if (decoded.role === 'partnership' && decoded.user_id) {
+          isPartnershipUser = true
+          userPartnershipId = await getPartnershipIdByUserId(decoded.user_id)
+        }
+      } catch (e) {
+        // Token validation failed, continue as unauthenticated
+      }
+    }
+
     const request = await getStandardRequestWithCandidates(req.params.requestId)
 
     if (!request) {
       return res.status(404).json({ success: false, error: 'Standard request not found' })
+    }
+
+    // Partnership users can only access their own requests
+    if (isPartnershipUser && request.partnership_id !== userPartnershipId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: You do not have access to this request' })
     }
 
     res.json({ success: true, data: request })
@@ -62,7 +129,7 @@ router.get('/:requestId', async (req, res) => {
   }
 })
 
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', validateAdminSession, async (req: Request, res: Response) => {
   try {
     await ensureStandardRequestTableExists()
     const { candidateIds = [], ...data } = req.body
@@ -77,7 +144,30 @@ router.post('/', async (req: Request, res: Response) => {
   }
 })
 
-router.put('/:requestId', async (req: Request, res: Response) => {
+router.post('/own/create', validatePartnershipSession, async (req: Request, res: Response) => {
+  try {
+    await ensureStandardRequestTableExists()
+    const userId = (req as any).user.user_id
+    const partnershipId = await getPartnershipIdByUserId(userId)
+
+    if (!partnershipId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    }
+
+    const { candidateIds = [], ...data } = req.body
+    const requestData = { ...data, partnership_id: partnershipId }
+
+    const request = await createStandardRequest(requestData, candidateIds)
+    res.status(201).json({ success: true, data: request })
+  } catch (error) {
+    console.error('Error creating standard request:', error)
+    const message = error instanceof Error ? error.message : 'Failed to create standard request'
+    const statusCode = message.includes('required') ? 400 : 500
+    res.status(statusCode).json({ success: false, error: message })
+  }
+})
+
+router.put('/:requestId', validateAdminSession, async (req: Request, res: Response) => {
   try {
     await ensureStandardRequestTableExists()
     const data = req.body
@@ -94,9 +184,73 @@ router.put('/:requestId', async (req: Request, res: Response) => {
   }
 })
 
-router.delete('/:requestId', async (req, res) => {
+router.put('/own/:requestId', validatePartnershipSession, async (req: Request, res: Response) => {
   try {
     await ensureStandardRequestTableExists()
+    const userId = (req as any).user.user_id
+    const userPartnershipId = await getPartnershipIdByUserId(userId)
+
+    if (!userPartnershipId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    }
+
+    const existingRequest = await getStandardRequestById(req.params.requestId)
+    if (!existingRequest) {
+      return res.status(404).json({ success: false, error: 'Standard request not found' })
+    }
+
+    if (existingRequest.partnership_id !== userPartnershipId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: You do not have access to this request' })
+    }
+
+    const data = req.body
+    const request = await updateStandardRequest(req.params.requestId, data)
+    if (!request) {
+      return res.status(404).json({ success: false, error: 'Standard request not found' })
+    }
+    res.json({ success: true, data: request })
+  } catch (error) {
+    console.error('Error updating standard request:', error)
+    const message = error instanceof Error ? error.message : 'Failed to update standard request'
+    res.status(500).json({ success: false, error: message })
+  }
+})
+
+router.delete('/:requestId', validateAdminSession, async (req, res) => {
+  try {
+    await ensureStandardRequestTableExists()
+    const success = await deleteStandardRequest(req.params.requestId)
+
+    if (!success) {
+      return res.status(404).json({ success: false, error: 'Standard request not found' })
+    }
+
+    res.json({ success: true })
+  } catch (error) {
+    console.error('Error deleting standard request:', error)
+    res.status(500).json({ success: false, error: 'Failed to delete standard request' })
+  }
+})
+
+router.delete('/own/:requestId', validatePartnershipSession, async (req, res) => {
+  try {
+    await ensureStandardRequestTableExists()
+    const userId = (req as any).user.user_id
+    const userPartnershipId = await getPartnershipIdByUserId(userId)
+
+    if (!userPartnershipId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    }
+
+    const existingRequest = await getStandardRequestById(req.params.requestId)
+    if (!existingRequest) {
+      return res.status(404).json({ success: false, error: 'Standard request not found' })
+    }
+
+    if (existingRequest.partnership_id !== userPartnershipId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: You do not have access to this request' })
+    }
+
     const success = await deleteStandardRequest(req.params.requestId)
 
     if (!success) {

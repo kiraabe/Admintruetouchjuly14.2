@@ -124,3 +124,23 @@ export async function deletePartnership(partnerId: string): Promise<boolean> {
   const result = await pool.query('DELETE FROM partnerships WHERE partner_id = $1', [partnerId])
   return result.rowCount > 0
 }
+
+export async function getPartnershipByUserId(userId: string): Promise<Partnership | null> {
+  const result = await pool.query(
+    `SELECT p.* FROM partnerships p
+     INNER JOIN users u ON p.partner_id = u.partnership_id
+     WHERE u.user_id = $1 LIMIT 1`,
+    [userId]
+  )
+  return result.rows[0] || null
+}
+
+export async function getPartnershipIdByUserId(userId: string): Promise<string | null> {
+  const result = await pool.query(
+    `SELECT p.partner_id FROM partnerships p
+     INNER JOIN users u ON p.partner_id = u.partnership_id
+     WHERE u.user_id = $1 LIMIT 1`,
+    [userId]
+  )
+  return result.rows[0]?.partner_id || null
+}

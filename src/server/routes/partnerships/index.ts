@@ -6,6 +6,7 @@ import fs from 'fs'
 import bcrypt from 'bcryptjs'
 import { randomUUID } from 'crypto'
 import pool from '../../db/config'
+import { validateAdminSession, validatePartnershipSession } from '../../middleware/partnershipAuth'
 import {
   getAllPartnerships,
   getPartnershipById,
@@ -14,6 +15,7 @@ import {
   createPartnership,
   updatePartnership,
   deletePartnership,
+  getPartnershipIdByUserId,
 } from '../../db/queries/partnershipQueries'
 
 declare global {
@@ -75,7 +77,7 @@ const upload = multer({
   },
 })
 
-router.get('/', async (req, res) => {
+router.get('/', validateAdminSession, async (req, res) => {
   try {
     console.log('GET /api/partnerships - start')
     const { search, page: pageStr, limit: limitStr, ...filters } = req.query
@@ -110,7 +112,28 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.get('/:partnerId', async (req, res) => {
+router.get('/own/data', validatePartnershipSession, async (req, res) => {
+  try {
+    const userId = (req as any).user.user_id
+    const partnerId = await getPartnershipIdByUserId(userId)
+
+    if (!partnerId) {
+      return res.status(404).json({ success: false, error: 'Partnership not found' })
+    }
+
+    const partnership = await getPartnershipById(partnerId)
+    if (!partnership) {
+      return res.status(404).json({ success: false, error: 'Partnership not found' })
+    }
+
+    res.json({ success: true, data: partnership })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    res.status(500).json({ success: false, error: errorMsg })
+  }
+})
+
+router.get('/:partnerId', validateAdminSession, async (req, res) => {
   try {
     const partnership = await getPartnershipById(req.params.partnerId)
     if (!partnership) {
@@ -123,7 +146,7 @@ router.get('/:partnerId', async (req, res) => {
   }
 })
 
-router.post('/', upload.fields([
+router.post('/', validateAdminSession, upload.fields([
   { name: 'companyLogo', maxCount: 1 },
   { name: 'licenseDocument', maxCount: 1 },
 ]), async (req, res) => {
@@ -204,7 +227,7 @@ router.post('/', upload.fields([
   }
 })
 
-router.put('/:partnerId', upload.fields([
+router.put('/:partnerId', validateAdminSession, upload.fields([
   { name: 'companyLogo', maxCount: 1 },
   { name: 'licenseDocument', maxCount: 1 },
 ]), async (req, res) => {
@@ -232,7 +255,42 @@ router.put('/:partnerId', upload.fields([
   }
 })
 
-router.delete('/:partnerId', async (req, res) => {
+router.put('/own/data', validatePartnershipSession, upload.fields([
+  { name: 'companyLogo', maxCount: 1 },
+  { name: 'licenseDocument', maxCount: 1 },
+]), async (req, res) => {
+  try {
+    const userId = (req as any).user.user_id
+    const partnerId = await getPartnershipIdByUserId(userId)
+
+    if (!partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    }
+
+    const files = req.files as any
+    const data: any = { ...req.body }
+
+    if (files?.companyLogo?.[0]) {
+      data.company_logo = `/uploads/partnerships/${files.companyLogo[0].filename}`
+    }
+
+    if (files?.licenseDocument?.[0]) {
+      data.license_document = `/uploads/partnerships/${files.licenseDocument[0].filename}`
+    }
+
+    const partnership = await updatePartnership(partnerId, data)
+    if (!partnership) {
+      return res.status(404).json({ success: false, error: 'Partnership not found' })
+    }
+    res.json({ success: true, data: partnership })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error('Error updating own partnership:', errorMsg, error)
+    res.status(500).json({ success: false, error: errorMsg })
+  }
+})
+
+router.delete('/:partnerId', validateAdminSession, async (req, res) => {
   try {
     const deleted = await deletePartnership(req.params.partnerId)
     if (!deleted) {

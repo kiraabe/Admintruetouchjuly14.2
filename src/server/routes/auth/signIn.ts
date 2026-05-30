@@ -24,7 +24,7 @@ export async function signIn(req: Request, res: Response) {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
 
-    const token = generateToken(user.user_id || user.id.toString(), user.email)
+    const token = generateToken(user.user_id || user.id.toString(), user.email, user.authority, user.partnership_id)
 
     res.json({
       token,
@@ -34,6 +34,7 @@ export async function signIn(req: Request, res: Response) {
         authority: [user.authority],
         avatar: user.avatar || '',
         email: user.email,
+        partnershipId: user.partnership_id || null,
       },
     })
   } catch (error) {
