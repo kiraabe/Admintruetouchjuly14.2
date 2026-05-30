@@ -9,6 +9,7 @@ import Tag from '@/components/ui/Tag'
 import { notify } from '@/utils/notification'
 import { apiCreateNotification } from '@/services/CommonService'
 import { useSessionUser } from '@/store/authStore'
+import ApiService from '@/services/ApiService'
 
 interface SpecialRequest {
   request_id: string
@@ -70,13 +71,13 @@ const SpecialRequest = () => {
     if (showAddModal && user.partnershipId) {
       const fetchCompanyInfo = async () => {
         try {
-          const response = await fetch(`/api/partnerships/${user.partnershipId}`)
-          if (response.ok) {
-            const data = await response.json()
-            const name = data.data?.company_name || data.company_name || ''
-            setCompanyName(name)
-            setFormData((prev) => ({ ...prev, company_name: name }))
-          }
+          const data = await ApiService.fetchDataWithAxios<any>({
+            method: 'GET',
+            url: `/partnerships/${user.partnershipId}`,
+          })
+          const name = data.data?.company_name || data.company_name || ''
+          setCompanyName(name)
+          setFormData((prev) => ({ ...prev, company_name: name }))
         } catch (error) {
           console.error('Error fetching company info:', error)
         }

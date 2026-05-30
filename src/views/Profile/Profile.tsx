@@ -4,6 +4,8 @@ import ProfileForm from './components/ProfileForm'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import { notify } from '@/utils/notification'
+import ApiService from '@/services/ApiService'
+import { useState, useEffect } from 'react'
 
 const Profile = () => {
     const { avatar, userName, email, authority, partnershipId } = useSessionUser(
@@ -17,8 +19,10 @@ const Profile = () => {
 
     useEffect(() => {
         if (partnershipId) {
-            fetch(`/api/partnerships/${partnershipId}`)
-                .then((res) => res.json())
+            ApiService.fetchDataWithAxios<any>({
+                method: 'GET',
+                url: `/partnerships/${partnershipId}`,
+            })
                 .then((data) => {
                     if (data.success && data.data) {
                         setPartnershipName(data.data.company_name || '')

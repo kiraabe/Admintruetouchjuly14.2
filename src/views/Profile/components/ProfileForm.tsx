@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { useSessionUser } from '@/store/authStore'
+import ApiService from '@/services/ApiService'
+import { useState, useEffect } from 'react'
 
 interface ProfileData {
     avatar: string
@@ -22,8 +24,10 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
 
     useEffect(() => {
         if (partnershipId) {
-            fetch(`/api/partnerships/${partnershipId}`)
-                .then((res) => res.json())
+            ApiService.fetchDataWithAxios<any>({
+                method: 'GET',
+                url: `/partnerships/${partnershipId}`,
+            })
                 .then((data) => {
                     if (data.success && data.data?.company_logo) {
                         setPartnershipLogo(data.data.company_logo)

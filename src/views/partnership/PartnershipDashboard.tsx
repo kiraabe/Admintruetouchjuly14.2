@@ -6,6 +6,7 @@ import Segment from '@/components/ui/Segment'
 import Avatar from '@/components/ui/Avatar'
 import Chart from '@/components/shared/Chart'
 import { useSessionUser } from '@/store/authStore'
+import ApiService from '@/services/ApiService'
 
 interface KPI {
   title: string
@@ -102,22 +103,13 @@ const PartnershipDashboard = () => {
 
     const fetchData = async () => {
       try {
-        // Build query parameters to filter by special requests
-        const params = new URLSearchParams({
-          request_type: 'Special',
+        const response = await ApiService.fetchDataWithAxios<any>({
+          method: 'GET',
+          url: '/employee-requests',
+          params: { request_type: 'Special' },
         })
 
-        const response = await fetch(`/api/employee-requests?${params.toString()}`)
-        const text = await response.text()
-
-        let requestsData: SpecialRequest[] = []
-        if (text) {
-          const parsed = JSON.parse(text)
-          if (parsed.success) {
-            requestsData = parsed.data || []
-          }
-        }
-
+        const requestsData = response.data || []
         setRequests(requestsData)
         calculateKPIs(requestsData)
       } catch (error) {
