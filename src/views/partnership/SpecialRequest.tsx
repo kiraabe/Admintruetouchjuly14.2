@@ -146,18 +146,10 @@ const SpecialRequest = () => {
   const fetchRequests = async (page: number) => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/special-requests?page=${page}&limit=${pageSize}`)
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-      }
-      const text = await response.text()
-      if (!text) {
-        console.warn('Empty response from /api/special-requests')
-        setRequests([])
-        notify.error('Error', 'Empty response from server')
-        return
-      }
-      const data = JSON.parse(text)
+      const data = await ApiService.fetchDataWithAxios<any>({
+        method: 'GET',
+        url: `/special-requests?page=${page}&limit=${pageSize}`,
+      })
       if (data.success) {
         setRequests(data.data || [])
         setTotalRequests(data.total || 0)
@@ -183,10 +175,10 @@ const SpecialRequest = () => {
     }
 
     try {
-      const response = await fetch('/api/special-requests', {
+      const responseData = await ApiService.fetchDataWithAxios<any>({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        url: '/special-requests',
+        data: {
           company_name: formData.company_name,
           position: formData.position,
           number_of_employees: formData.number_of_employees,
@@ -196,35 +188,30 @@ const SpecialRequest = () => {
           contact_person: 'User',
           email: 'user@example.com',
           phone_number: '',
-        }),
+        },
       })
 
-      if (!response.ok) {
-        throw new Error('Failed to create request')
-      }
-
-      const responseData = await response.json()
       const requestId = responseData.data?.request_id
 
       // Send notification to admin about the special request
       try {
-        const adminResponse = await fetch('/api/users/admin-users')
-        if (adminResponse.ok) {
-          const adminData = await adminResponse.json()
-          if (adminData.data && adminData.data.length > 0) {
-            const adminUserId = adminData.data[0].user_id
-            await apiCreateNotification({
-              target: 'Special Request',
-              description: `New special request for ${formData.position} position from ${formData.company_name}`,
-              type: 1,
-              location: 'special-request',
-              locationLabel: 'Special Request',
-              status: 'Pending',
-              user_id: adminUserId,
-              related_entity_id: requestId,
-              related_entity_type: 'special_request',
-            })
-          }
+        const adminData = await ApiService.fetchDataWithAxios<any>({
+          method: 'GET',
+          url: '/users/admin-users',
+        })
+        if (adminData.data && adminData.data.length > 0) {
+          const adminUserId = adminData.data[0].user_id
+          await apiCreateNotification({
+            target: 'Special Request',
+            description: `New special request for ${formData.position} position from ${formData.company_name}`,
+            type: 1,
+            location: 'special-request',
+            locationLabel: 'Special Request',
+            status: 'Pending',
+            user_id: adminUserId,
+            related_entity_id: requestId,
+            related_entity_type: 'special_request',
+          })
         }
       } catch (notifError) {
         console.error('Failed to create notification:', notifError)
