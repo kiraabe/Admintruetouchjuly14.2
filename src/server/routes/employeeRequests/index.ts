@@ -1,5 +1,7 @@
 import { Router, type Request, type Response } from 'express'
 import pool from '../../db/config'
+import { validatePartnershipSession } from '../../middleware/partnershipAuth'
+import { getPartnershipIdByUserId } from '../../db/queries/partnershipQueries'
 import {
   getAllEmployeeRequests,
   getEmployeeRequestById,
@@ -35,26 +37,43 @@ async function ensureTableExists() {
         required_skills TEXT,
         work_city VARCHAR(255),
         urgency VARCHAR(50),
+        partnership_id UUID REFERENCES partnerships(partner_id) ON DELETE SET NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
+    `)
+
+    // Add partnership_id column if it doesn't exist
+    await pool.query(`
+      ALTER TABLE employee_requests
+      ADD COLUMN IF NOT EXISTS partnership_id UUID REFERENCES partnerships(partner_id) ON DELETE SET NULL
     `)
   } catch (error) {
     console.error('Failed to ensure employee_requests table exists:', error)
   }
 }
 
-router.get('/', async (req, res) => {
+router.get('/', validatePartnershipSession, async (req, res) => {
   try {
     console.log('GET /api/employee-requests - fetching requests')
 
     // Ensure table exists before querying
     await ensureTableExists()
 
+    const userId = (req as any).user.user_id
+    const partnerId = await getPartnershipIdByUserId(userId)
+
+    if (!partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    }
+
     const { search, page: pageStr, limit: limitStr, ...filters } = req.query
     const page = Math.max(1, parseInt(pageStr as string) || 1)
     const limit = Math.min(100, parseInt(limitStr as string) || 10)
     const offset = (page - 1) * limit
+
+    // Add partnership filter to all queries
+    const enhancedFilters = { ...filters, partnership_id: partnerId }
 
     let requests
 
@@ -62,12 +81,14 @@ router.get('/', async (req, res) => {
       if (search && typeof search === 'string') {
         console.log('Searching with term:', search)
         requests = await searchEmployeeRequests(search)
+        // Filter results by partnership
+        requests = requests.filter((r: any) => r.partnership_id === partnerId)
       } else if (Object.keys(filters).length > 0) {
-        console.log('Filtering with:', filters)
-        requests = await filterEmployeeRequests(filters as any)
+        console.log('Filtering with:', enhancedFilters)
+        requests = await filterEmployeeRequests(enhancedFilters as any)
       } else {
-        console.log('Fetching all employee requests')
-        requests = await getAllEmployeeRequests()
+        console.log('Fetching all employee requests for partnership:', partnerId)
+        requests = await filterEmployeeRequests({ partnership_id: partnerId } as any)
       }
       console.log('Successfully fetched', requests.length, 'employee requests')
     } catch (queryError) {
@@ -86,13 +107,24 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.get('/:requestId', async (req, res) => {
+router.get('/:requestId', validatePartnershipSession, async (req, res) => {
   try {
     await ensureTableExists()
+    const userId = (req as any).user.user_id
+    const partnerId = await getPartnershipIdByUserId(userId)
+
+    if (!partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    }
+
     const request = await getEmployeeRequestById(req.params.requestId)
 
     if (!request) {
       return res.status(404).json({ success: false, error: 'Employee request not found' })
+    }
+
+    if (request.partnership_id !== partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: You cannot access this request' })
     }
 
     res.json({ success: true, data: request })
@@ -102,10 +134,17 @@ router.get('/:requestId', async (req, res) => {
   }
 })
 
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', validatePartnershipSession, async (req: Request, res: Response) => {
   try {
     await ensureTableExists()
-    const data = req.body
+    const userId = (req as any).user.user_id
+    const partnerId = await getPartnershipIdByUserId(userId)
+
+    if (!partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    }
+
+    const data = { ...req.body, partnership_id: partnerId }
 
     const request = await createEmployeeRequest(data)
     res.status(201).json({ success: true, data: request })
@@ -117,9 +156,25 @@ router.post('/', async (req: Request, res: Response) => {
   }
 })
 
-router.put('/:requestId', async (req: Request, res: Response) => {
+router.put('/:requestId', validatePartnershipSession, async (req: Request, res: Response) => {
   try {
     await ensureTableExists()
+    const userId = (req as any).user.user_id
+    const partnerId = await getPartnershipIdByUserId(userId)
+
+    if (!partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    }
+
+    const existingRequest = await getEmployeeRequestById(req.params.requestId)
+    if (!existingRequest) {
+      return res.status(404).json({ success: false, error: 'Employee request not found' })
+    }
+
+    if (existingRequest.partnership_id !== partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: You cannot modify this request' })
+    }
+
     const data = req.body
 
     const request = await updateEmployeeRequest(req.params.requestId, data)
@@ -134,9 +189,25 @@ router.put('/:requestId', async (req: Request, res: Response) => {
   }
 })
 
-router.delete('/:requestId', async (req, res) => {
+router.delete('/:requestId', validatePartnershipSession, async (req, res) => {
   try {
     await ensureTableExists()
+    const userId = (req as any).user.user_id
+    const partnerId = await getPartnershipIdByUserId(userId)
+
+    if (!partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    }
+
+    const existingRequest = await getEmployeeRequestById(req.params.requestId)
+    if (!existingRequest) {
+      return res.status(404).json({ success: false, error: 'Employee request not found' })
+    }
+
+    if (existingRequest.partnership_id !== partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: You cannot delete this request' })
+    }
+
     const success = await deleteEmployeeRequest(req.params.requestId)
 
     if (!success) {

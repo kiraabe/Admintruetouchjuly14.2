@@ -133,8 +133,15 @@ router.get('/own/data', validatePartnershipSession, async (req, res) => {
   }
 })
 
-router.get('/:partnerId', validateAdminSession, async (req, res) => {
+router.get('/:partnerId', validatePartnershipSession, async (req, res) => {
   try {
+    const userId = (req as any).user.user_id
+    const userPartnerId = await getPartnershipIdByUserId(userId)
+
+    if (!userPartnerId || userPartnerId !== req.params.partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: You cannot access this partnership' })
+    }
+
     const partnership = await getPartnershipById(req.params.partnerId)
     if (!partnership) {
       return res.status(404).json({ success: false, error: 'Partnership not found' })

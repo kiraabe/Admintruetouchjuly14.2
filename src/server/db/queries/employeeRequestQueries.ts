@@ -18,6 +18,7 @@ interface EmployeeRequest {
   required_skills?: string | null
   work_city?: string | null
   urgency?: string | null
+  partnership_id?: string | null
 }
 
 export async function getAllEmployeeRequests() {
@@ -114,6 +115,7 @@ export async function createEmployeeRequest(data: EmployeeRequest) {
     required_skills,
     work_city,
     urgency,
+    partnership_id,
   } = data
 
   if (!company_name || !contact_person || !email || !position || !number_of_employees) {
@@ -122,10 +124,10 @@ export async function createEmployeeRequest(data: EmployeeRequest) {
 
   const result = await pool.query(
     `INSERT INTO employee_requests
-    (request_type, company_name, contact_person, email, phone_number, position, number_of_employees, start_date, location, status, requirements, notes, salary_range, required_skills, work_city, urgency)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+    (request_type, company_name, contact_person, email, phone_number, position, number_of_employees, start_date, location, status, requirements, notes, salary_range, required_skills, work_city, urgency, partnership_id)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
     RETURNING *`,
-    [request_type, company_name, contact_person, email, phone_number, position, number_of_employees, start_date, location, status, requirements, notes, salary_range, required_skills, work_city, urgency]
+    [request_type, company_name, contact_person, email, phone_number, position, number_of_employees, start_date, location, status, requirements, notes, salary_range, required_skills, work_city, urgency, partnership_id]
   )
   return result.rows[0]
 }
@@ -152,6 +154,7 @@ export async function updateEmployeeRequest(requestId: string, data: Partial<Emp
     'required_skills',
     'work_city',
     'urgency',
+    'partnership_id',
   ]
 
   for (const field of fieldsToUpdate) {
