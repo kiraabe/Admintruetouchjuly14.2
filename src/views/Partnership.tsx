@@ -7,6 +7,7 @@ import Tag from '@/components/ui/Tag'
 import Pagination from '@/components/ui/Pagination'
 import Checkbox from '@/components/ui/Checkbox'
 import { toast } from 'sonner'
+import Cookies from 'js-cookie'
 
 interface Partnership {
   id: number
@@ -39,10 +40,20 @@ const Partnership = () => {
     fetchPartnerships(currentPage)
   }, [currentPage])
 
+  const getAuthHeaders = () => {
+    const token = Cookies.get('token') || localStorage.getItem('token')
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    }
+  }
+
   const fetchPartnerships = async (page: number) => {
     try {
       setIsLoading(true)
-      const response = await fetch(`/api/partnerships?page=${page}&limit=${pageSize}`)
+      const response = await fetch(`/api/partnerships?page=${page}&limit=${pageSize}`, {
+        headers: getAuthHeaders(),
+      })
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
@@ -93,6 +104,7 @@ const Partnership = () => {
     try {
       const response = await fetch(`/api/partnerships/${partnerId}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
       })
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`)
