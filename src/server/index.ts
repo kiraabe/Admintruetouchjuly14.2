@@ -523,8 +523,8 @@ async function startServer() {
         religion VARCHAR(255),
         marital_status VARCHAR(50),
         job_category VARCHAR(255),
-        skill_level VARCHAR(100),
-        education_level VARCHAR(100),
+        skill_level VARCHAR(255),
+        education_level VARCHAR(255),
         language_skills TEXT,
         country VARCHAR(255),
         city VARCHAR(255),
@@ -542,6 +542,18 @@ async function startServer() {
       ALTER TABLE candidates
       ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'available'
     `)
+
+    // Alter candidates table to increase skill_level and education_level VARCHAR size
+    try {
+      await pool.query(`
+        ALTER TABLE candidates
+        ALTER COLUMN skill_level TYPE VARCHAR(255),
+        ALTER COLUMN education_level TYPE VARCHAR(255)
+      `)
+      console.log('✓ Updated skill_level and education_level column sizes')
+    } catch (alterError) {
+      console.log('Note: Candidates table columns may already be correct size')
+    }
 
     try {
       console.log('Creating partnerships table...')
