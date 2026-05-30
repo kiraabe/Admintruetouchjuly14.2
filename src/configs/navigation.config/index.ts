@@ -263,27 +263,6 @@ const partnershipNavigation: NavigationTree[] = [
         ],
     },
     {
-        key: 'contactUsGroup',
-        path: '',
-        title: 'Contact Us',
-        translateKey: 'nav.contactUs',
-        icon: '',
-        type: NAV_ITEM_TYPE_TITLE,
-        authority: [],
-        subMenu: [
-            {
-                key: 'contactUs',
-                path: '/contact-us',
-                title: 'Contact Us',
-                translateKey: 'nav.contactUs',
-                icon: 'singleMenu',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [],
-                subMenu: [],
-            },
-        ],
-    },
-    {
         key: 'settingGroup',
         path: '',
         title: 'Setting',
