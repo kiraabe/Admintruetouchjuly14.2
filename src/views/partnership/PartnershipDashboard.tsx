@@ -112,8 +112,16 @@ const PartnershipDashboard = () => {
         const requestsData = response.data || []
         setRequests(requestsData)
         calculateKPIs(requestsData)
-      } catch (error) {
+      } catch (error: any) {
         console.error('Error fetching data:', error)
+        if (error.response?.status === 401) {
+          console.error('Authentication failed. Token issue or user not authorized.')
+        } else if (error.response?.status === 403) {
+          console.error('Permission denied. User does not have partnership access.')
+        }
+        if (error.response?.data) {
+          console.error('API Response:', error.response.data)
+        }
       } finally {
         setLoading(false)
       }
