@@ -10,6 +10,9 @@ AxiosBase.interceptors.request.use((config) => {
   const token = Cookies.get('token') || localStorage.getItem('token')
   if (token) {
     config.headers.Authorization = `Bearer ${token}`
+    console.log('ApiService: Sending token with Authorization header')
+  } else {
+    console.warn('ApiService: No token found in cookies or localStorage')
   }
   return config
 })

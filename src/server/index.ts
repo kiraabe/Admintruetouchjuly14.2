@@ -24,11 +24,11 @@ import contactRouter from './routes/contact/index'
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '30m'
 
-function generateToken(userId: string, email: string, role: string = 'user', partnershipUserId?: string): string {
+function generateToken(userId: string, email: string, role: string = 'user', partnershipId?: string): string {
   const options: any = { expiresIn: JWT_EXPIRES_IN }
   const payload: any = { user_id: userId, email, role }
-  if (partnershipUserId) {
-    payload.partnership_user_id = partnershipUserId
+  if (partnershipId && role === 'partnership') {
+    payload.partnership_user_id = partnershipId
   }
   return jwt.sign(payload, JWT_SECRET as string, options)
 }
@@ -448,6 +448,20 @@ app.post('/api/auth/refresh', validateSession, (req: any, res: Response) => {
     const errorMsg = error instanceof Error ? error.message : String(error)
     console.error('Token refresh error:', errorMsg)
     res.status(500).json({ error: 'Failed to refresh session' })
+  }
+})
+
+// Debug endpoint to verify token
+app.get('/api/auth/verify', (req: any, res: Response) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1]
+    if (!token) {
+      return res.json({ error: 'No token provided' })
+    }
+    const decoded = jwt.verify(token, JWT_SECRET) as any
+    return res.json({ success: true, decoded })
+  } catch (error) {
+    return res.json({ error: error instanceof Error ? error.message : 'Invalid token' })
   }
 })
 
