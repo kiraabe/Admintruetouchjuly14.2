@@ -138,7 +138,7 @@ const PartnershipDashboard = () => {
     ...request,
   }))
 
-  // Generate chart data based on selected segment and actual requests
+  // Generate chart data based on selected segment and actual requests only
   const getFilteredRequests = () => {
     if (selectedSegment === 'standard') {
       return activeRequests.filter((r) => r.request_type === 'Standard')
@@ -151,31 +151,27 @@ const PartnershipDashboard = () => {
   const filteredRequests = getFilteredRequests()
   const totalFiltered = filteredRequests.length
   const approvedFiltered = filteredRequests.filter((r) => r.status === 'Approved').length
+  const fulfillmentRate = totalFiltered > 0 ? Math.round((approvedFiltered / totalFiltered) * 100) : 0
 
   const chartSeries = [
     {
       name: 'Requests Received',
-      data: Array(12).fill(0).map((_, i) => Math.max(1, Math.floor(totalFiltered / 2 + Math.random() * 10))),
+      data: [totalFiltered, totalFiltered, totalFiltered, totalFiltered, totalFiltered, totalFiltered, totalFiltered, totalFiltered, totalFiltered, totalFiltered, totalFiltered, totalFiltered],
     },
     {
       name: 'Requests Fulfilled',
-      data: Array(12).fill(0).map((_, i) => Math.max(1, Math.floor(approvedFiltered / 2 + Math.random() * 5))),
+      data: [approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered],
     },
   ]
 
   const chartXAxis = ['01 May', '02 May', '03 May', '04 May', '05 May', '06 May', '07 May', '08 May', '09 May', '10 May', '11 May', '12 May']
 
-  // Calculate performance scores based on actual data
-  const fulfillmentRate = totalFiltered > 0 ? Math.round((approvedFiltered / totalFiltered) * 100) : 0
-  const overallScore = Math.round((fulfillmentRate * 0.4 + 85 * 0.3 + 82 * 0.3))
-
+  // Calculate performance scores based on actual data only
   const performanceScores: PartnershipMetric[] = [
-    { label: 'Request Response Time', score: '85%', status: 'success' },
-    { label: 'Fulfillment Rate', score: `${fulfillmentRate}%`, status: fulfillmentRate >= 75 ? 'success' : 'warning' },
-    { label: 'Quality of Submissions', score: '82%', status: 'success' },
-    { label: 'Partner Satisfaction', score: '75%', status: 'warning' },
-    { label: 'Repeat Order Rate', score: '68%', status: 'warning' },
+    { label: 'Fulfillment Rate', score: `${fulfillmentRate}%`, status: fulfillmentRate >= 75 ? 'success' : fulfillmentRate >= 50 ? 'warning' : 'error' },
   ]
+
+  const overallScore = fulfillmentRate
 
   const getStatusColor = (status: string) => {
     switch (status) {
