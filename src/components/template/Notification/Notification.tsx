@@ -14,6 +14,7 @@ import {
     apiGetNotificationCount,
     apiMarkNotificationAsRead,
     apiMarkAllNotificationsAsRead,
+    apiClearAllNotifications,
 } from '@/services/CommonService'
 import isLastChild from '@/utils/isLastChild'
 import useResponsive from '@/utils/hooks/useResponsive'
@@ -126,11 +127,16 @@ const _Notification = ({ className }: { className?: string }) => {
         }
     }
 
-    const onClearNotifications = () => {
-        setNotificationList([])
-        setUnreadNotification(false)
-        setUnreadCount(0)
-        setNoResult(true)
+    const onClearNotifications = async () => {
+        try {
+            await apiClearAllNotifications()
+            setNotificationList([])
+            setUnreadNotification(false)
+            setUnreadCount(0)
+            setNoResult(true)
+        } catch (error) {
+            console.error('Error clearing notifications:', error)
+        }
     }
 
     const notificationDropdownRef = useRef<DropdownRef>(null)

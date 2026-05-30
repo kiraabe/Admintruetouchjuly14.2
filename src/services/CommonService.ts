@@ -85,8 +85,35 @@ export async function apiMarkNotificationAsRead(notificationId: string) {
 }
 
 export async function apiMarkAllNotificationsAsRead() {
+    const { user } = useSessionUser.getState()
+
+    if (!user.userId) {
+        console.warn('User ID not available for marking all notifications as read')
+        return
+    }
+
     return ApiService.fetchDataWithAxios({
         url: '/notification/mark-all-read',
-        method: 'put'
+        method: 'put',
+        params: {
+            user_id: user.userId
+        }
+    })
+}
+
+export async function apiClearAllNotifications() {
+    const { user } = useSessionUser.getState()
+
+    if (!user.userId) {
+        console.warn('User ID not available for clearing notifications')
+        return
+    }
+
+    return ApiService.fetchDataWithAxios({
+        url: '/notification/clear',
+        method: 'delete',
+        params: {
+            user_id: user.userId
+        }
     })
 }

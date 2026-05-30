@@ -115,11 +115,17 @@ router.put('/mark-read/:notificationId', async (req: Request, res: Response) => 
 // Mark all notifications as read
 router.put('/mark-all-read', async (req: Request, res: Response) => {
   try {
+    const { user_id } = req.query
+
+    if (!user_id) {
+      return res.status(400).json({ error: 'user_id query parameter is required' })
+    }
+
     const result = await pool.query(`
       UPDATE notifications
       SET readed = true, updated_at = CURRENT_TIMESTAMP
-      WHERE readed = false
-    `)
+      WHERE readed = false AND user_id = $1
+    `, [user_id])
 
     res.json({ success: true, updated: result.rowCount || 0 })
   } catch (error) {
@@ -129,15 +135,19 @@ router.put('/mark-all-read', async (req: Request, res: Response) => {
   }
 })
 
-// Clear all notifications (soft delete by marking as read or hard delete)
+// Clear all notifications for a specific user
 router.delete('/clear', async (req: Request, res: Response) => {
   try {
-    // Delete old notifications (older than 30 days) or all unread ones
+    const { user_id } = req.query
+
+    if (!user_id) {
+      return res.status(400).json({ error: 'user_id query parameter is required' })
+    }
+
     const result = await pool.query(`
       DELETE FROM notifications
-      WHERE created_at < NOW() - INTERVAL '30 days'
-      OR readed = true
-    `)
+      WHERE user_id = $1
+    `, [user_id])
 
     res.json({ success: true, deleted: result.rowCount || 0 })
   } catch (error) {
