@@ -422,7 +422,7 @@ const EditCandidate = () => {
 
       Object.entries(formData).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
-          formDataToSend.append(key, String(value))
+          formDataToSend.append(key, String(value).substring(0, 255))
         }
       })
 
@@ -551,6 +551,7 @@ const EditCandidate = () => {
                             value={formData.name}
                             onChange={(e) => handleFieldChange('name', e.target.value)}
                             placeholder="Candidate Name"
+                            maxLength={255}
                             className={fieldErrors.name ? 'border-red-500' : ''}
                           />
                           {fieldErrors.name && (
@@ -639,6 +640,7 @@ const EditCandidate = () => {
                             value={formData.nationality}
                             onChange={(e) => setFormData({ ...formData, nationality: e.target.value })}
                             placeholder="Nationality"
+                            maxLength={255}
                             className={fieldErrors.nationality ? 'border-red-500' : ''}
                           />
                           {fieldErrors.nationality && (
@@ -874,6 +876,7 @@ const EditCandidate = () => {
                             value={formData.current_location}
                             onChange={(e) => setFormData({ ...formData, current_location: e.target.value })}
                             placeholder="Current Location"
+                            maxLength={255}
                             className={fieldErrors.current_location ? 'border-red-500' : ''}
                           />
                           {fieldErrors.current_location && (
