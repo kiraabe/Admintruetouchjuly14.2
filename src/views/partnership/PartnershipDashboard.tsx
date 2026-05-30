@@ -105,15 +105,14 @@ const PartnershipDashboard = () => {
       try {
         const response = await ApiService.fetchDataWithAxios<any>({
           method: 'GET',
-          url: '/employee-requests',
-          params: { request_type: 'Special' },
+          url: '/special-requests?page=1&limit=1000',
         })
 
         const requestsData = response.data || []
         setRequests(requestsData)
         calculateKPIs(requestsData)
       } catch (error: any) {
-        console.error('Error fetching data:', error)
+        console.error('Error fetching special requests:', error)
         if (error.response?.status === 401) {
           console.error('Authentication failed. Token issue or user not authorized.')
         } else if (error.response?.status === 403) {
@@ -122,13 +121,14 @@ const PartnershipDashboard = () => {
         if (error.response?.data) {
           console.error('API Response:', error.response.data)
         }
+        setRequests([])
       } finally {
         setLoading(false)
       }
     }
 
     fetchData()
-  }, [user.partnershipId])
+  }, [])
 
 
   // Filter to show only active requests (exclude Rejected status)
