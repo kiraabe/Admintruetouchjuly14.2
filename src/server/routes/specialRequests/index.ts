@@ -1,4 +1,6 @@
 import { Router, type Request, type Response } from 'express'
+import { validatePartnershipSession } from '../../middleware/partnershipAuth'
+import { getPartnershipIdByUserId } from '../../db/queries/partnershipQueries'
 import {
   getAllSpecialRequests,
   getSpecialRequestById,
@@ -12,23 +14,33 @@ import {
 
 const router = Router()
 
-router.get('/', async (req, res) => {
+router.get('/', validatePartnershipSession, async (req, res) => {
   try {
     await ensureSpecialRequestTableExists()
+
+    const userId = (req as any).user.user_id
+    const partnerId = await getPartnershipIdByUserId(userId)
+
+    if (!partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    }
 
     const { search, page: pageStr, limit: limitStr, ...filters } = req.query
     const page = Math.max(1, parseInt(pageStr as string) || 1)
     const limit = Math.min(100, parseInt(limitStr as string) || 10)
     const offset = (page - 1) * limit
 
+    const enhancedFilters = { ...filters, partnership_id: partnerId }
+
     let requests
 
     if (search && typeof search === 'string') {
       requests = await searchSpecialRequests(search)
+      requests = requests.filter((r: any) => r.partnership_id === partnerId)
     } else if (Object.keys(filters).length > 0) {
-      requests = await filterSpecialRequests(filters as any)
+      requests = await filterSpecialRequests(enhancedFilters as any)
     } else {
-      requests = await getAllSpecialRequests()
+      requests = await filterSpecialRequests({ partnership_id: partnerId } as any)
     }
 
     const total = requests?.length || 0
@@ -42,13 +54,24 @@ router.get('/', async (req, res) => {
   }
 })
 
-router.get('/:requestId', async (req, res) => {
+router.get('/:requestId', validatePartnershipSession, async (req, res) => {
   try {
     await ensureSpecialRequestTableExists()
+    const userId = (req as any).user.user_id
+    const partnerId = await getPartnershipIdByUserId(userId)
+
+    if (!partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    }
+
     const request = await getSpecialRequestById(req.params.requestId)
 
     if (!request) {
       return res.status(404).json({ success: false, error: 'Special request not found' })
+    }
+
+    if (request.partnership_id !== partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: You cannot access this request' })
     }
 
     res.json({ success: true, data: request })
@@ -58,10 +81,17 @@ router.get('/:requestId', async (req, res) => {
   }
 })
 
-router.post('/', async (req: Request, res: Response) => {
+router.post('/', validatePartnershipSession, async (req: Request, res: Response) => {
   try {
     await ensureSpecialRequestTableExists()
-    const data = req.body
+    const userId = (req as any).user.user_id
+    const partnerId = await getPartnershipIdByUserId(userId)
+
+    if (!partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    }
+
+    const data = { ...req.body, partnership_id: partnerId }
 
     const request = await createSpecialRequest(data)
     res.status(201).json({ success: true, data: request })
@@ -73,9 +103,25 @@ router.post('/', async (req: Request, res: Response) => {
   }
 })
 
-router.put('/:requestId', async (req: Request, res: Response) => {
+router.put('/:requestId', validatePartnershipSession, async (req: Request, res: Response) => {
   try {
     await ensureSpecialRequestTableExists()
+    const userId = (req as any).user.user_id
+    const partnerId = await getPartnershipIdByUserId(userId)
+
+    if (!partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    }
+
+    const existingRequest = await getSpecialRequestById(req.params.requestId)
+    if (!existingRequest) {
+      return res.status(404).json({ success: false, error: 'Special request not found' })
+    }
+
+    if (existingRequest.partnership_id !== partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: You cannot modify this request' })
+    }
+
     const data = req.body
 
     const request = await updateSpecialRequest(req.params.requestId, data)
@@ -90,9 +136,25 @@ router.put('/:requestId', async (req: Request, res: Response) => {
   }
 })
 
-router.delete('/:requestId', async (req, res) => {
+router.delete('/:requestId', validatePartnershipSession, async (req, res) => {
   try {
     await ensureSpecialRequestTableExists()
+    const userId = (req as any).user.user_id
+    const partnerId = await getPartnershipIdByUserId(userId)
+
+    if (!partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    }
+
+    const existingRequest = await getSpecialRequestById(req.params.requestId)
+    if (!existingRequest) {
+      return res.status(404).json({ success: false, error: 'Special request not found' })
+    }
+
+    if (existingRequest.partnership_id !== partnerId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: You cannot delete this request' })
+    }
+
     const success = await deleteSpecialRequest(req.params.requestId)
 
     if (!success) {

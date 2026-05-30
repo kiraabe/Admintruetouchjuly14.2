@@ -17,6 +17,7 @@ interface SpecialRequest {
   required_skills?: string | null
   work_city?: string | null
   urgency?: string | null
+  partnership_id?: string | null
 }
 
 export async function ensureSpecialRequestTableExists() {
@@ -40,9 +41,16 @@ export async function ensureSpecialRequestTableExists() {
         required_skills TEXT,
         work_city VARCHAR(255),
         urgency VARCHAR(50),
+        partnership_id UUID REFERENCES partnerships(partner_id) ON DELETE SET NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
+    `)
+
+    // Add partnership_id column if it doesn't exist
+    await pool.query(`
+      ALTER TABLE special_requests
+      ADD COLUMN IF NOT EXISTS partnership_id UUID REFERENCES partnerships(partner_id) ON DELETE SET NULL
     `)
   } catch (error) {
     console.error('Failed to ensure special_requests table exists:', error)
@@ -108,6 +116,12 @@ export async function filterSpecialRequests(filters: Record<string, any>) {
     paramIndex++
   }
 
+  if (filters.partnership_id) {
+    query += ` AND partnership_id = $${paramIndex}`
+    params.push(filters.partnership_id)
+    paramIndex++
+  }
+
   query += ' ORDER BY created_at DESC'
   const result = await pool.query(query, params)
   return result.rows
@@ -130,6 +144,7 @@ export async function createSpecialRequest(data: SpecialRequest) {
     required_skills,
     work_city,
     urgency,
+    partnership_id,
   } = data
 
   if (!company_name || !contact_person || !email || !position || !number_of_employees) {
@@ -138,10 +153,10 @@ export async function createSpecialRequest(data: SpecialRequest) {
 
   const result = await pool.query(
     `INSERT INTO special_requests
-    (company_name, contact_person, email, phone_number, position, number_of_employees, start_date, location, status, requirements, notes, salary_range, required_skills, work_city, urgency)
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+    (company_name, contact_person, email, phone_number, position, number_of_employees, start_date, location, status, requirements, notes, salary_range, required_skills, work_city, urgency, partnership_id)
+    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
     RETURNING *`,
-    [company_name, contact_person, email, phone_number, position, number_of_employees, start_date, location, status, requirements, notes, salary_range, required_skills, work_city, urgency]
+    [company_name, contact_person, email, phone_number, position, number_of_employees, start_date, location, status, requirements, notes, salary_range, required_skills, work_city, urgency, partnership_id]
   )
   return result.rows[0]
 }
@@ -167,6 +182,7 @@ export async function updateSpecialRequest(requestId: string, data: Partial<Spec
     'required_skills',
     'work_city',
     'urgency',
+    'partnership_id',
   ]
 
   for (const field of fieldsToUpdate) {
