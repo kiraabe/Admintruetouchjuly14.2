@@ -13,11 +13,11 @@ export async function comparePasswords(password: string, hash: string): Promise<
   return password === hash
 }
 
-export function generateToken(userId: string, email: string, role: string = 'user', partnershipUserId?: string): string {
+export function generateToken(userId: string, email: string, role: string = 'user', partnershipId?: string): string {
   const options: any = { expiresIn: JWT_EXPIRES_IN }
   const payload: any = { user_id: userId, email, role }
-  if (partnershipUserId) {
-    payload.partnership_user_id = partnershipUserId
+  if (partnershipId && role === 'partnership') {
+    payload.partnership_user_id = partnershipId
   }
   return jwt.sign(
     payload,
