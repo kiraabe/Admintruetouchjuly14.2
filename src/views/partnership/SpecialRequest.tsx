@@ -73,7 +73,7 @@ const SpecialRequest = () => {
         try {
           const data = await ApiService.fetchDataWithAxios<any>({
             method: 'GET',
-            url: `/partnerships/${user.partnershipId}`,
+            url: `/partnerships/user/${user.partnershipId}`,
           })
           const name = data.data?.company_name || data.company_name || ''
           setCompanyName(name)
