@@ -19,28 +19,41 @@ router.get('/', validatePartnershipSession, async (req, res) => {
     await ensureSpecialRequestTableExists()
 
     const userId = (req as any).user.user_id
-    const partnerId = await getPartnershipIdByUserId(userId)
-
-    if (!partnerId) {
-      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
-    }
-
+    const userRole = (req as any).user.role
     const { search, page: pageStr, limit: limitStr, ...filters } = req.query
     const page = Math.max(1, parseInt(pageStr as string) || 1)
     const limit = Math.min(100, parseInt(limitStr as string) || 10)
     const offset = (page - 1) * limit
 
-    const enhancedFilters = { ...filters, partnership_id: partnerId }
-
     let requests
 
-    if (search && typeof search === 'string') {
-      requests = await searchSpecialRequests(search)
-      requests = requests.filter((r: any) => r.partnership_id === partnerId)
-    } else if (Object.keys(filters).length > 0) {
-      requests = await filterSpecialRequests(enhancedFilters as any)
+    // Admin users can see all special requests
+    if (userRole === 'admin') {
+      if (search && typeof search === 'string') {
+        requests = await searchSpecialRequests(search)
+      } else if (Object.keys(filters).length > 0) {
+        requests = await filterSpecialRequests(filters as any)
+      } else {
+        requests = await getAllSpecialRequests()
+      }
     } else {
-      requests = await filterSpecialRequests({ partnership_id: partnerId } as any)
+      // Partnership users can only see their own special requests
+      const partnerId = await getPartnershipIdByUserId(userId)
+
+      if (!partnerId) {
+        return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+      }
+
+      const enhancedFilters = { ...filters, partnership_id: partnerId }
+
+      if (search && typeof search === 'string') {
+        requests = await searchSpecialRequests(search)
+        requests = requests.filter((r: any) => r.partnership_id === partnerId)
+      } else if (Object.keys(filters).length > 0) {
+        requests = await filterSpecialRequests(enhancedFilters as any)
+      } else {
+        requests = await filterSpecialRequests({ partnership_id: partnerId } as any)
+      }
     }
 
     const total = requests?.length || 0
