@@ -5,6 +5,9 @@ import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
 import Select from '@/components/ui/Select'
 import { toast } from 'sonner'
+import ApiService from '@/services/ApiService'
+import axios from 'axios'
+import Cookies from 'js-cookie'
 
 interface Partnership {
   id: number
@@ -65,11 +68,10 @@ const EditPartnership = () => {
   const fetchPartnership = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/partnerships/${id}`)
-      if (!response.ok) {
-        throw new Error('Failed to fetch partnership')
-      }
-      const data = await response.json()
+      const data = await ApiService.fetchDataWithAxios<any>({
+        method: 'GET',
+        url: `/partnerships/${id}`,
+      })
       if (data.success) {
         const partner = data.data
         setPartnership(partner)
@@ -171,36 +173,44 @@ const EditPartnership = () => {
         formDataToSend.append('licenseDocument', licenseDocument)
       }
 
-      if (isNewPartnership) {
-        const response = await fetch('/api/partnerships', {
-          method: 'POST',
-          body: formDataToSend,
-        })
+      const token = Cookies.get('token') || localStorage.getItem('token')
+      const headers: any = {
+        'Content-Type': 'multipart/form-data',
+      }
+      if (token) {
+        headers.Authorization = `Bearer ${token}`
+      }
 
-        const data = await response.json()
-        if (response.ok) {
+      if (isNewPartnership) {
+        const response = await axios.post(
+          `${import.meta.env.VITE_API_BASE_URL || '/api'}/partnerships`,
+          formDataToSend,
+          { headers }
+        )
+
+        if (response.data.success) {
           toast.dismiss(toastId)
           toast.success('Partnership created successfully')
           setTimeout(() => navigate('/partnership'), 500)
         } else {
           toast.dismiss(toastId)
-          const errorMsg = data.error || 'Failed to create partnership'
+          const errorMsg = response.data.error || 'Failed to create partnership'
           toast.error(errorMsg)
         }
       } else {
-        const response = await fetch(`/api/partnerships/${partnership?.partner_id}`, {
-          method: 'PUT',
-          body: formDataToSend,
-        })
+        const response = await axios.put(
+          `${import.meta.env.VITE_API_BASE_URL || '/api'}/partnerships/${partnership?.partner_id}`,
+          formDataToSend,
+          { headers }
+        )
 
-        const data = await response.json()
-        if (response.ok) {
+        if (response.data.success) {
           toast.dismiss(toastId)
           toast.success('Partnership updated successfully')
           setTimeout(() => navigate('/partnership'), 500)
         } else {
           toast.dismiss(toastId)
-          const errorMsg = data.error || 'Failed to update partnership'
+          const errorMsg = response.data.error || 'Failed to update partnership'
           toast.error(errorMsg)
         }
       }
@@ -217,16 +227,10 @@ const EditPartnership = () => {
 
     try {
       toast.loading('Deleting partnership...')
-      const response = await fetch(`/api/partnerships/${partnership?.partner_id}`, {
+      await ApiService.fetchDataWithAxios<any>({
         method: 'DELETE',
+        url: `/partnerships/${partnership?.partner_id}`,
       })
-
-      if (!response.ok) {
-        const data = await response.json()
-        const errorMsg = data.error || 'Failed to delete partnership'
-        toast.error(errorMsg)
-        return
-      }
 
       toast.success('Partnership deleted successfully')
       setTimeout(() => navigate('/partnership'), 500)
