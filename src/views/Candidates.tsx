@@ -81,12 +81,13 @@ const parseOverEscapedJSON = (value: string | null): string => {
     // If parsing fails, just return the original value
   }
 
-  // Clean up common skill level patterns
+  // Clean up common skill level patterns and remove duplicates
   if (typeof result === 'string') {
     // Extract skill names from the mess
     const skillMatch = result.match(/Physical Stamina|Forklift Operation|[A-Za-z\s]+/g)
     if (skillMatch) {
-      return skillMatch.filter(s => s.trim().length > 0).join(', ')
+      const uniqueSkills = [...new Set(skillMatch.map(s => s.trim()).filter(s => s.length > 0))]
+      return uniqueSkills.join(', ')
     }
   }
 
