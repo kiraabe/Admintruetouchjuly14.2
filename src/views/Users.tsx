@@ -6,6 +6,7 @@ import Tag from '@/components/ui/Tag'
 import Pagination from '@/components/ui/Pagination'
 import Checkbox from '@/components/ui/Checkbox'
 import { notify } from '@/utils/notification'
+import ApiService from '@/services/ApiService'
 
 interface User {
   id: number
@@ -59,8 +60,10 @@ const Users = () => {
 
   const fetchPartnerships = async () => {
     try {
-      const response = await fetch('/api/partnerships')
-      const data = await response.json()
+      const data = await ApiService.fetchDataWithAxios<any>({
+        method: 'GET',
+        url: '/partnerships',
+      })
       if (data.success && Array.isArray(data.data)) {
         setPartnerships(data.data)
       }
@@ -72,13 +75,10 @@ const Users = () => {
   const fetchUsers = async (page: number) => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/users?page=${page}&limit=${pageSize}`)
-      const data = await response.json()
-
-      if (!response.ok) {
-        const errorMsg = data.error || data.message || 'Failed to fetch users'
-        throw new Error(errorMsg)
-      }
+      const data = await ApiService.fetchDataWithAxios<any>({
+        method: 'GET',
+        url: `/users?page=${page}&limit=${pageSize}`,
+      })
 
       if (data.success && Array.isArray(data.data)) {
         setUsers(data.data)
@@ -99,20 +99,16 @@ const Users = () => {
   const handleEditUser = async () => {
     if (!editingUser) return
     try {
-      const response = await fetch(`/api/users/${editingUser.user_id}`, {
+      await ApiService.fetchDataWithAxios<any>({
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        url: `/users/${editingUser.user_id}`,
+        data: {
           email: editingUser.email,
           user_name: editingUser.user_name,
           authority: editingUser.authority,
           partnership_id: editingUser.partnership_id || null,
-        }),
+        },
       })
-
-      if (!response.ok) {
-        throw new Error('Failed to update user')
-      }
 
       notify.success('Success', 'User updated successfully')
       setShowEditModal(false)
@@ -152,17 +148,11 @@ const Users = () => {
     const password = newPassword || generatePassword()
 
     try {
-      const response = await fetch(`/api/users/${resetPasswordUser.user_id}/reset-password`, {
+      await ApiService.fetchDataWithAxios<any>({
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
+        url: `/users/${resetPasswordUser.user_id}/reset-password`,
+        data: { password },
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to reset password')
-      }
 
       downloadCredentials(resetPasswordUser, password)
       notify.success('Success', 'Password reset and credentials downloaded')
@@ -180,16 +170,10 @@ const Users = () => {
     if (!window.confirm(`Are you sure you want to deactivate ${user.user_name}?`)) return
 
     try {
-      const response = await fetch(`/api/users/${user.user_id}/deactivate`, {
+      await ApiService.fetchDataWithAxios<any>({
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        url: `/users/${user.user_id}/deactivate`,
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to deactivate user')
-      }
 
       notify.success('Success', 'User deactivated successfully')
       fetchUsers(currentPage)
@@ -202,16 +186,10 @@ const Users = () => {
 
   const handleActivateUser = async (user: User) => {
     try {
-      const response = await fetch(`/api/users/${user.user_id}/activate`, {
+      await ApiService.fetchDataWithAxios<any>({
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        url: `/users/${user.user_id}/activate`,
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to activate user')
-      }
 
       notify.success('Success', 'User activated successfully')
       fetchUsers(currentPage)
@@ -229,22 +207,17 @@ const Users = () => {
     }
 
     try {
-      const response = await fetch('/api/users', {
+      await ApiService.fetchDataWithAxios<any>({
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        url: '/users',
+        data: {
           email: newUser.email,
           user_name: newUser.user_name,
           authority: newUser.authority,
           password: newUser.password,
           partnership_id: newUser.partnership_id || null,
-        }),
+        },
       })
-
-      if (!response.ok) {
-        const data = await response.json()
-        throw new Error(data.error || 'Failed to create user')
-      }
 
       const credentials = `Login Credentials\n${'='.repeat(50)}\n\nEmail: ${newUser.email}\nPassword: ${newUser.password}\nUsername: ${newUser.user_name}\nRole: ${newUser.authority.charAt(0).toUpperCase() + newUser.authority.slice(1)}\n\nGenerated on: ${new Date().toLocaleString()}\n`
       const blob = new Blob([credentials], { type: 'text/plain' })
