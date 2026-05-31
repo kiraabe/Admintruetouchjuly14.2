@@ -7,6 +7,7 @@ import Checkbox from '@/components/ui/Checkbox'
 import Pagination from '@/components/ui/Pagination'
 import { notify } from '@/utils/notification'
 import { toast } from 'sonner'
+import Cookies from 'js-cookie'
 import { apiCreateNotification } from '@/services/CommonService'
 
 interface EmployeeRequest {
@@ -86,6 +87,14 @@ const EmployeeRequest = () => {
   }, [currentPage])
 
 
+  const getAuthHeaders = () => {
+    const token = Cookies.get('token') || localStorage.getItem('token')
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    }
+  }
+
   const handleSort = (column: string) => {
     if (sortColumn === column) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
@@ -157,7 +166,9 @@ const EmployeeRequest = () => {
       let total = 0
 
       // Fetch standard count
-      const standardCountResponse = await fetch('/api/standard-requests?page=1&limit=1')
+      const standardCountResponse = await fetch('/api/standard-requests?page=1&limit=1', {
+        headers: getAuthHeaders(),
+      })
       if (standardCountResponse.ok) {
         const text = await standardCountResponse.text()
         if (text) {
@@ -169,7 +180,9 @@ const EmployeeRequest = () => {
       }
 
       // Fetch special count
-      const specialCountResponse = await fetch('/api/special-requests?page=1&limit=1')
+      const specialCountResponse = await fetch('/api/special-requests?page=1&limit=1', {
+        headers: getAuthHeaders(),
+      })
       if (specialCountResponse.ok) {
         const text = await specialCountResponse.text()
         if (text) {
@@ -188,7 +201,9 @@ const EmployeeRequest = () => {
       }
 
       if (activeTab === 'standard') {
-        const response = await fetch(`/api/standard-requests?page=${page}&limit=${pageSize}`)
+        const response = await fetch(`/api/standard-requests?page=${page}&limit=${pageSize}`, {
+          headers: getAuthHeaders(),
+        })
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`)
         }
@@ -203,7 +218,9 @@ const EmployeeRequest = () => {
           }
         }
       } else if (activeTab === 'special') {
-        const response = await fetch(`/api/special-requests?page=${page}&limit=${pageSize}`)
+        const response = await fetch(`/api/special-requests?page=${page}&limit=${pageSize}`, {
+          headers: getAuthHeaders(),
+        })
         if (!response.ok) {
           throw new Error(`HTTP ${response.status}: ${response.statusText}`)
         }
@@ -224,7 +241,9 @@ const EmployeeRequest = () => {
         }
       } else {
         try {
-          const standardResponse = await fetch(`/api/standard-requests?page=${page}&limit=${pageSize}`)
+          const standardResponse = await fetch(`/api/standard-requests?page=${page}&limit=${pageSize}`, {
+            headers: getAuthHeaders(),
+          })
           let standardRequests = []
           if (standardResponse.ok) {
             const text = await standardResponse.text()
@@ -236,7 +255,9 @@ const EmployeeRequest = () => {
             }
           }
 
-          const specialResponse = await fetch(`/api/special-requests?page=${page}&limit=${pageSize}`)
+          const specialResponse = await fetch(`/api/special-requests?page=${page}&limit=${pageSize}`, {
+            headers: getAuthHeaders(),
+          })
           let specialRequests = []
           if (specialResponse.ok) {
             const text = await specialResponse.text()
