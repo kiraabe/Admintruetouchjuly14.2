@@ -1,6 +1,5 @@
 import { Router, type Request, type Response } from 'express'
-import { validatePartnershipSession } from '../../middleware/partnershipAuth'
-import { getPartnershipIdByUserId } from '../../db/queries/partnershipQueries'
+import pool from '../../db/config'
 import {
   getAllSpecialRequests,
   getSpecialRequestById,
@@ -14,12 +13,39 @@ import {
 
 const router = Router()
 
-router.get('/', validatePartnershipSession, async (req, res) => {
+async function getPartnershipIdByUserId(userId: string): Promise<string | null> {
+  const result = await pool.query(
+    `SELECT partnership_id FROM users WHERE user_id = $1`,
+    [userId]
+  )
+  return result.rows[0]?.partnership_id || null
+}
+
+router.get('/', async (req, res) => {
   try {
     await ensureSpecialRequestTableExists()
 
-    const userId = (req as any).user.user_id
-    const userRole = (req as any).user.role
+    const authHeader = req.headers.authorization
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+    let userPartnershipId: string | null = null
+    let userRole: string | null = null
+    let userId: string | null = null
+
+    if (token) {
+      try {
+        const jwt = require('jsonwebtoken')
+        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+        const decoded = jwt.verify(token, JWT_SECRET) as any
+        userId = decoded.user_id
+        userRole = decoded.role
+        if (decoded.role === 'partnership' && decoded.user_id) {
+          userPartnershipId = await getPartnershipIdByUserId(decoded.user_id)
+        }
+      } catch (e) {
+        // Token validation failed, continue as unauthenticated
+      }
+    }
+
     const { search, page: pageStr, limit: limitStr, ...filters } = req.query
     const page = Math.max(1, parseInt(pageStr as string) || 1)
     const limit = Math.min(100, parseInt(limitStr as string) || 10)
@@ -36,24 +62,21 @@ router.get('/', validatePartnershipSession, async (req, res) => {
       } else {
         requests = await getAllSpecialRequests()
       }
-    } else {
+    } else if (userRole === 'partnership' && userPartnershipId) {
       // Partnership users can only see their own special requests
-      const partnerId = await getPartnershipIdByUserId(userId)
-
-      if (!partnerId) {
-        return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
-      }
-
-      const enhancedFilters = { ...filters, partnership_id: partnerId }
+      const enhancedFilters = { ...filters, partnership_id: userPartnershipId }
 
       if (search && typeof search === 'string') {
         requests = await searchSpecialRequests(search)
-        requests = requests.filter((r: any) => r.partnership_id === partnerId)
+        requests = requests.filter((r: any) => r.partnership_id === userPartnershipId)
       } else if (Object.keys(filters).length > 0) {
         requests = await filterSpecialRequests(enhancedFilters as any)
       } else {
-        requests = await filterSpecialRequests({ partnership_id: partnerId } as any)
+        requests = await filterSpecialRequests({ partnership_id: userPartnershipId } as any)
       }
+    } else {
+      // Unauthenticated users get empty response
+      requests = []
     }
 
     const total = requests?.length || 0
@@ -67,7 +90,7 @@ router.get('/', validatePartnershipSession, async (req, res) => {
   }
 })
 
-router.get('/:requestId', validatePartnershipSession, async (req, res) => {
+router.get('/:requestId', async (req, res) => {
   try {
     await ensureSpecialRequestTableExists()
     const userId = (req as any).user.user_id
@@ -94,7 +117,7 @@ router.get('/:requestId', validatePartnershipSession, async (req, res) => {
   }
 })
 
-router.post('/', validatePartnershipSession, async (req: Request, res: Response) => {
+router.post('/', async (req: Request, res: Response) => {
   try {
     await ensureSpecialRequestTableExists()
     const userId = (req as any).user.user_id
@@ -116,7 +139,7 @@ router.post('/', validatePartnershipSession, async (req: Request, res: Response)
   }
 })
 
-router.put('/:requestId', validatePartnershipSession, async (req: Request, res: Response) => {
+router.put('/:requestId', async (req: Request, res: Response) => {
   try {
     await ensureSpecialRequestTableExists()
     const userId = (req as any).user.user_id
@@ -149,7 +172,7 @@ router.put('/:requestId', validatePartnershipSession, async (req: Request, res: 
   }
 })
 
-router.delete('/:requestId', validatePartnershipSession, async (req, res) => {
+router.delete('/:requestId', async (req, res) => {
   try {
     await ensureSpecialRequestTableExists()
     const userId = (req as any).user.user_id
