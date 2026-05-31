@@ -749,7 +749,7 @@ const PartnershipCandidates = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                   <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Skill Level</p>
-                  <p className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.skill_level || '-'}</p>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{parseOverEscapedJSON(selectedCandidate.skill_level)}</p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                   <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Education Level</p>
