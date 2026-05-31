@@ -8,6 +8,7 @@ import Checkbox from '@/components/ui/Checkbox'
 import Pagination from '@/components/ui/Pagination'
 import { notify } from '@/utils/notification'
 import { getCandidateProfilePictureUrl } from '@/utils/imageUrl'
+import ApiService from '@/services/ApiService'
 
 interface Candidate {
   id: number
@@ -61,6 +62,36 @@ const RELIGIONS = ['Christianity', 'Islam', 'Hinduism', 'Buddhism', 'Judaism', '
 const LANGUAGES = ['English', 'Spanish', 'French', 'German', 'Mandarin', 'Arabic', 'Portuguese', 'Russian', 'Japanese', 'Hindi']
 const COUNTRIES = ['India', 'Philippines', 'Indonesia', 'Vietnam', 'Thailand', 'Malaysia', 'Singapore', 'Sri Lanka', 'Bangladesh', 'Myanmar', 'Ethiopia']
 const MEDICAL_STATUS = ['Fit', 'Fit with restrictions', 'Unfit', 'Under review', 'Not assessed']
+
+const parseOverEscapedJSON = (value: string | null): string => {
+  if (!value) return '-'
+
+  let result = value
+  try {
+    // Try to safely parse over-escaped JSON strings
+    while (typeof result === 'string' && (result.startsWith('"') || result.startsWith('{'))) {
+      const parsed = JSON.parse(result)
+      if (typeof parsed === 'string') {
+        result = parsed
+      } else {
+        break
+      }
+    }
+  } catch {
+    // If parsing fails, just return the original value
+  }
+
+  // Clean up common skill level patterns
+  if (typeof result === 'string') {
+    // Extract skill names from the mess
+    const skillMatch = result.match(/Physical Stamina|Forklift Operation|[A-Za-z\s]+/g)
+    if (skillMatch) {
+      return skillMatch.filter(s => s.trim().length > 0).join(', ')
+    }
+  }
+
+  return result || '-'
+}
 
 const Candidates = () => {
   const navigate = useNavigate()
@@ -147,18 +178,10 @@ const Candidates = () => {
   const fetchCandidates = async (page: number) => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/candidates?page=${page}&limit=${pageSize}`)
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`)
-      }
-      const text = await response.text()
-      if (!text) {
-        console.warn('Empty response from /api/candidates')
-        setCandidates([])
-        notify.error('Error', 'Empty response from server')
-        return
-      }
-      const data = JSON.parse(text)
+      const data = await ApiService.fetchDataWithAxios<any>({
+        method: 'GET',
+        url: `/candidates?page=${page}&limit=${pageSize}`,
+      })
       if (data.success) {
         setCandidates(data.data || [])
         setTotalCandidates(data.total || 0)
@@ -190,14 +213,10 @@ const Candidates = () => {
 
     try {
       const toastId = notify.loading('Deleting candidate...')
-      const response = await fetch(`/api/candidates/${candidateId}`, { method: 'DELETE' })
-
-      if (!response.ok) {
-        const data = await response.json()
-        const errorMsg = data.error || 'Failed to delete candidate'
-        notify.error('Delete Failed', errorMsg)
-        return
-      }
+      await ApiService.fetchDataWithAxios<any>({
+        method: 'DELETE',
+        url: `/candidates/${candidateId}`,
+      })
 
       fetchCandidates(currentPage)
       notify.success('Success', 'Candidate deleted successfully')
@@ -552,7 +571,7 @@ const Candidates = () => {
                       {candidate.job_category || '-'}
                     </td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.nationality || '-'}</td>
-                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.skill_level || '-'}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{parseOverEscapedJSON(candidate.skill_level)}</td>
                     <td className="py-3 px-4">
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize ${
                         candidate.status === 'available'
