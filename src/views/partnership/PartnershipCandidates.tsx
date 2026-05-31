@@ -65,6 +65,34 @@ const LANGUAGES = ['English', 'Spanish', 'French', 'German', 'Mandarin', 'Arabic
 const COUNTRIES = ['India', 'Philippines', 'Indonesia', 'Vietnam', 'Thailand', 'Malaysia', 'Singapore', 'Sri Lanka', 'Bangladesh', 'Myanmar', 'Ethiopia']
 const MEDICAL_STATUS = ['Fit', 'Fit with restrictions', 'Unfit', 'Under review', 'Not assessed']
 
+const parseOverEscapedJSON = (value: string | null): string => {
+  if (!value) return '-'
+
+  let result = value
+  try {
+    while (typeof result === 'string' && (result.startsWith('"') || result.startsWith('{'))) {
+      const parsed = JSON.parse(result)
+      if (typeof parsed === 'string') {
+        result = parsed
+      } else {
+        break
+      }
+    }
+  } catch {
+    // If parsing fails, just return the original value
+  }
+
+  if (typeof result === 'string') {
+    const skillMatch = result.match(/Physical Stamina|Forklift Operation|[A-Za-z\s]+/g)
+    if (skillMatch) {
+      const uniqueSkills = [...new Set(skillMatch.map(s => s.trim()).filter(s => s.length > 0))]
+      return uniqueSkills.join(', ')
+    }
+  }
+
+  return result || '-'
+}
+
 const PartnershipCandidates = () => {
   const navigate = useNavigate()
   const user = useSessionUser((state) => state.user)
@@ -547,7 +575,7 @@ const PartnershipCandidates = () => {
                       {candidate.job_category || '-'}
                     </td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.nationality || '-'}</td>
-                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.skill_level || '-'}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{parseOverEscapedJSON(candidate.skill_level)}</td>
                     <td className="py-3 px-4">
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize ${
                         candidate.status === 'available'
