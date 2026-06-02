@@ -117,3 +117,10 @@ export async function apiClearAllNotifications() {
         }
     })
 }
+
+export async function apiDeleteNotification(notificationId: string) {
+    return ApiService.fetchDataWithAxios({
+        url: `/notification/delete/${notificationId}`,
+        method: 'delete'
+    })
+}

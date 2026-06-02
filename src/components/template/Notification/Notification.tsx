@@ -15,6 +15,7 @@ import {
     apiMarkNotificationAsRead,
     apiMarkAllNotificationsAsRead,
     apiClearAllNotifications,
+    apiDeleteNotification,
 } from '@/services/CommonService'
 import isLastChild from '@/utils/isLastChild'
 import useResponsive from '@/utils/hooks/useResponsive'
@@ -139,6 +140,25 @@ const _Notification = ({ className }: { className?: string }) => {
         }
     }
 
+    const onDeleteNotification = async (id: string, e: React.MouseEvent) => {
+        e.stopPropagation()
+        try {
+            await apiDeleteNotification(id)
+            const list = notificationList.filter((item) => item.id !== id)
+            setNotificationList(list)
+            const unread = list.filter((item) => !item.readed).length
+            setUnreadCount(unread)
+            if (unread === 0) {
+                setUnreadNotification(false)
+            }
+            if (list.length === 0) {
+                setNoResult(true)
+            }
+        } catch (error) {
+            console.error('Error deleting notification:', error)
+        }
+    }
+
     const notificationDropdownRef = useRef<DropdownRef>(null)
 
     const handleViewAllActivity = () => {
@@ -199,13 +219,13 @@ const _Notification = ({ className }: { className?: string }) => {
                     notificationList.map((item, index) => (
                         <div key={item.id}>
                             <div
-                                className={`relative rounded-xl flex px-4 py-3 cursor-pointer hover:bg-gray-100 active:bg-gray-100 dark:hover:bg-gray-700`}
+                                className={`relative rounded-xl flex px-4 py-3 cursor-pointer hover:bg-gray-100 active:bg-gray-100 dark:hover:bg-gray-700 group`}
                                 onClick={() => onMarkAsRead(item.id)}
                             >
                                 <div>
                                     <NotificationAvatar {...item} />
                                 </div>
-                                <div className="mx-3">
+                                <div className="mx-3 flex-1">
                                     <div>
                                         {item.target && (
                                             <span className="font-semibold heading-text">
@@ -216,14 +236,25 @@ const _Notification = ({ className }: { className?: string }) => {
                                     </div>
                                     <span className="text-xs">{item.date}</span>
                                 </div>
-                                <Badge
-                                    className="absolute top-4 ltr:right-4 rtl:left-4 mt-1.5"
-                                    innerClass={`${
-                                        item.readed
-                                            ? 'bg-gray-300 dark:bg-gray-600'
-                                            : 'bg-primary'
-                                    } `}
-                                />
+                                <div className="flex items-center gap-2">
+                                    <Badge
+                                        className="mt-1.5"
+                                        innerClass={`${
+                                            item.readed
+                                                ? 'bg-gray-300 dark:bg-gray-600'
+                                                : 'bg-primary'
+                                        } `}
+                                    />
+                                    <Button
+                                        variant="plain"
+                                        shape="circle"
+                                        size="sm"
+                                        icon={<HiOutlineTrash className="text-lg" />}
+                                        title="Delete notification"
+                                        onClick={(e) => onDeleteNotification(item.id, e)}
+                                        className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                    />
+                                </div>
                             </div>
                             {!isLastChild(notificationList, index) ? (
                                 <div className="border-b border-gray-200 dark:border-gray-700 my-2" />

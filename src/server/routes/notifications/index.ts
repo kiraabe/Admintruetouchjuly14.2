@@ -157,6 +157,29 @@ router.delete('/clear', async (req: Request, res: Response) => {
   }
 })
 
+// Delete a single notification
+router.delete('/delete/:notificationId', async (req: Request, res: Response) => {
+  try {
+    const { notificationId } = req.params
+
+    const result = await pool.query(`
+      DELETE FROM notifications
+      WHERE notification_id = $1
+      RETURNING *
+    `, [notificationId])
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Notification not found' })
+    }
+
+    res.json({ success: true, deleted: result.rows[0] })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error('Error deleting notification:', errorMsg)
+    res.status(500).json({ error: errorMsg })
+  }
+})
+
 // Create a new notification
 router.post('/create', async (req: Request, res: Response) => {
   try {
