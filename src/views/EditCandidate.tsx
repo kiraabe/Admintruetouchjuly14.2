@@ -153,8 +153,55 @@ const EditCandidate = () => {
         })
 
         if (cand.skill_level) {
-          const skills = cand.skill_level.split(',').map((s: string) => s.trim())
-          setSelectedSkills(skills)
+          // Parse skill_level (may contain JSON-escaped or corrupted data)
+          let skillText = cand.skill_level
+          let maxDepth = 10
+          while (maxDepth-- > 0) {
+            try {
+              const parsed = JSON.parse(skillText)
+              if (typeof parsed === 'string') {
+                skillText = parsed
+              } else if (Array.isArray(parsed)) {
+                skillText = parsed.flat().filter(Boolean).join(', ')
+                break
+              } else {
+                break
+              }
+            } catch {
+              break
+            }
+          }
+
+          // Clean up any remaining JSON syntax
+          if (skillText.includes('\\')) {
+            skillText = skillText
+              .replace(/\\\\/g, '\\')
+              .replace(/\\"/g, '"')
+              .replace(/\\\//g, '/')
+          }
+          skillText = skillText
+            .replace(/[{}\[\]":\\]/g, ' ')
+            .replace(/\s+/g, ' ')
+            .trim()
+
+          // Split and deduplicate
+          const allSkills = skillText
+            .split(',')
+            .map((s: string) => s.trim())
+            .filter(s => s.length > 0)
+
+          const uniqueSkills = Array.from(new Set(allSkills))
+
+          // Only keep skills that exist in the current job category
+          const jobCategory = cand.job_category
+          if (jobCategory && SKILLS_BY_CATEGORY[jobCategory]) {
+            const validSkills = uniqueSkills.filter(skill =>
+              SKILLS_BY_CATEGORY[jobCategory].includes(skill)
+            )
+            setSelectedSkills(validSkills)
+          } else {
+            setSelectedSkills(uniqueSkills)
+          }
         }
 
         if (cand.language_skills) {
