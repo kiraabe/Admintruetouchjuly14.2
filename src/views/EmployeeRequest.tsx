@@ -8,6 +8,7 @@ import Pagination from '@/components/ui/Pagination'
 import { notify } from '@/utils/notification'
 import { toast } from 'sonner'
 import { apiCreateNotification } from '@/services/CommonService'
+import ApiService from '@/services/ApiService'
 
 interface EmployeeRequest {
   id?: number
@@ -153,110 +154,70 @@ const EmployeeRequest = () => {
     try {
       setLoading(true)
 
+      // Fetch standard count
+      try {
+        const data = await ApiService.fetchDataWithAxios<any>({
+          url: '/standard-requests?page=1&limit=1'
+        })
+        if (data.success) setStandardCount(data.total || 0)
+      } catch { setStandardCount(0) }
+
+      // Fetch special count
+      try {
+        const data = await ApiService.fetchDataWithAxios<any>({
+          url: '/special-requests?page=1&limit=1'
+        })
+        if (data.success) setSpecialCount(data.total || 0)
+        else setSpecialCount(0)
+      } catch { setSpecialCount(0) }
+
       let requests: EmployeeRequest[] = []
       let total = 0
 
-      // Fetch standard count
-      const standardCountResponse = await fetch('/api/standard-requests?page=1&limit=1')
-      if (standardCountResponse.ok) {
-        const text = await standardCountResponse.text()
-        if (text) {
-          const data = JSON.parse(text)
-          if (data.success) {
-            setStandardCount(data.total || 0)
-          }
-        }
-      }
-
-      // Fetch special count
-      const specialCountResponse = await fetch('/api/special-requests?page=1&limit=1')
-      if (specialCountResponse.ok) {
-        const text = await specialCountResponse.text()
-        if (text) {
-          const data = JSON.parse(text)
-          console.log('Special count response:', data)
-          if (data.success) {
-            setSpecialCount(data.total || 0)
-          } else {
-            console.warn('Special count response not successful:', data)
-            setSpecialCount(0)
-          }
-        }
-      } else {
-        console.error('Special count fetch failed:', specialCountResponse.status)
-        setSpecialCount(0)
-      }
-
       if (activeTab === 'standard') {
-        const response = await fetch(`/api/standard-requests?page=${page}&limit=${pageSize}`)
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        const data = await ApiService.fetchDataWithAxios<any>({
+          url: `/standard-requests?page=${page}&limit=${pageSize}`
+        })
+        if (data.success) {
+          requests = data.data || []
+          total = data.total || 0
+        } else {
+          notify.error('Error', data.message || 'Failed to fetch standard requests')
         }
-        const text = await response.text()
-        if (text) {
-          const data = JSON.parse(text)
-          if (data.success) {
-            requests = data.data || []
-            total = data.total || 0
-          } else {
-            notify.error('Error', data.message || 'Failed to fetch standard requests')
-          }
-        }
+
       } else if (activeTab === 'special') {
-        const response = await fetch(`/api/special-requests?page=${page}&limit=${pageSize}`)
-        if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        const data = await ApiService.fetchDataWithAxios<any>({
+          url: `/special-requests?page=${page}&limit=${pageSize}`
+        })
+        if (data.success) {
+          requests = (data.data || []).map((req: EmployeeRequest) => ({
+            ...req, request_type: 'Special'
+          }))
+          total = data.total || 0
+        } else {
+          notify.error('Error', data.message || 'Failed to fetch special requests')
         }
-        const text = await response.text()
-        if (text) {
-          const data = JSON.parse(text)
-          console.log('Special requests response:', data)
-          if (data.success) {
-            requests = (data.data || []).map((req: EmployeeRequest) => ({
-              ...req,
-              request_type: 'Special'
-            }))
-            total = data.total || 0
-            console.log('Processed special requests:', requests, 'Total:', total)
-          } else {
-            notify.error('Error', data.message || 'Failed to fetch special requests')
-          }
-        }
+
       } else {
-        try {
-          const standardResponse = await fetch(`/api/standard-requests?page=${page}&limit=${pageSize}`)
-          let standardRequests = []
-          if (standardResponse.ok) {
-            const text = await standardResponse.text()
-            if (text) {
-              const data = JSON.parse(text)
-              if (data.success) {
-                standardRequests = data.data || []
-              }
-            }
-          }
+        const [standardData, specialData] = await Promise.allSettled([
+          ApiService.fetchDataWithAxios<any>({
+            url: `/standard-requests?page=${page}&limit=${pageSize}`
+          }),
+          ApiService.fetchDataWithAxios<any>({
+            url: `/special-requests?page=${page}&limit=${pageSize}`
+          }),
+        ])
 
-          const specialResponse = await fetch(`/api/special-requests?page=${page}&limit=${pageSize}`)
-          let specialRequests = []
-          if (specialResponse.ok) {
-            const text = await specialResponse.text()
-            if (text) {
-              const data = JSON.parse(text)
-              if (data.success) {
-                specialRequests = (data.data || []).map((req: EmployeeRequest) => ({
-                  ...req,
-                  request_type: 'Special'
-                }))
-              }
-            }
-          }
+        const standardRequests = standardData.status === 'fulfilled' && standardData.value.success
+          ? standardData.value.data.map((r: EmployeeRequest) => ({ ...r, request_type: 'Standard' }))
+          : []
 
-          requests = [...standardRequests.map((req: EmployeeRequest) => ({ ...req, request_type: 'Standard' })), ...specialRequests]
-          total = requests.length
-        } catch (e) {
-          console.error('Error fetching all requests:', e)
-          throw e
-        }
+        const specialRequests = specialData.status === 'fulfilled' && specialData.value.success
+          ? specialData.value.data.map((r: EmployeeRequest) => ({ ...r, request_type: 'Special' }))
+          : []
+
+        requests = [...standardRequests, ...specialRequests]
+        total = requests.length
       }
 
       setRequests(requests)
@@ -274,22 +235,13 @@ const EmployeeRequest = () => {
 
   const handleUpdateStatus = async (request: EmployeeRequest, newStatus: string) => {
     try {
-      const endpoint = activeTab === 'standard'
-        ? `/api/standard-requests/${request.request_id}`
-        : `/api/special-requests/${request.request_id}`
-
-      const response = await fetch(endpoint, {
+      const response = await ApiService.fetchDataWithAxios<any>({
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...request, status: newStatus }),
+        url: activeTab === 'standard'
+          ? `/standard-requests/${request.request_id}`
+          : `/special-requests/${request.request_id}`,
+        data: { ...request, status: newStatus },
       })
-
-      if (!response.ok) {
-        const data = await response.json()
-        const errorMsg = data.error || 'Failed to update request'
-        notify.error('Update Failed', errorMsg)
-        return
-      }
 
       if (newStatus === 'Approved' || newStatus === 'Rejected') {
         try {
@@ -297,12 +249,11 @@ const EmployeeRequest = () => {
           let userId: string | undefined = undefined
           if (activeTab === 'standard' && request.partnership_id) {
             try {
-              const userResponse = await fetch(`/api/users?partnership_id=${request.partnership_id}`)
-              if (userResponse.ok) {
-                const userData = await userResponse.json()
-                if (userData.data && userData.data.length > 0) {
-                  userId = userData.data[0].user_id
-                }
+              const userData = await ApiService.fetchDataWithAxios<any>({
+                url: `/users?partnership_id=${request.partnership_id}`,
+              })
+              if (userData.data && userData.data.length > 0) {
+                userId = userData.data[0].user_id
               }
             } catch (e) {
               console.error('Failed to fetch partnership user:', e)
@@ -337,12 +288,11 @@ const EmployeeRequest = () => {
 
   const fetchCandidates = async (request: EmployeeRequest) => {
     try {
-      const endpoint = activeTab === 'standard'
-        ? `/api/standard-requests/${request.request_id}`
-        : `/api/special-requests/${request.request_id}`
-
-      const response = await fetch(endpoint)
-      const data = await response.json()
+      const data = await ApiService.fetchDataWithAxios<any>({
+        url: activeTab === 'standard'
+          ? `/standard-requests/${request.request_id}`
+          : `/special-requests/${request.request_id}`,
+      })
       if (data.success && data.data?.candidates) {
         setCandidates(data.data.candidates)
       } else {
@@ -391,66 +341,57 @@ const EmployeeRequest = () => {
     }
 
     try {
-      const endpoint = currentStandardRequest?.request_type === 'Standard'
-        ? `/api/standard-requests/${currentStandardRequest.request_id}`
-        : `/api/special-requests/${currentStandardRequest.request_id}`
-
-      const response = await fetch(endpoint, {
+      await ApiService.fetchDataWithAxios<any>({
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        url: currentStandardRequest?.request_type === 'Standard'
+          ? `/standard-requests/${currentStandardRequest.request_id}`
+          : `/special-requests/${currentStandardRequest.request_id}`,
+        data: {
           ...currentStandardRequest,
           status: 'Approved',
           notes: `${currentStandardRequest.notes || ''}\n[${selectedCandidates.length} candidates matched]`
-        }),
+        },
       })
 
-      if (response.ok) {
-        // Update candidate statuses to 'employee'
-        const updateStatusPromises = selectedCandidates.map((candidateId) =>
-          fetch(`/api/candidates/${candidateId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'employee' }),
+      // Update candidate statuses to 'employee'
+      const updateStatusPromises = selectedCandidates.map((candidateId) =>
+        ApiService.fetchDataWithAxios<any>({
+          method: 'PUT',
+          url: `/candidates/${candidateId}`,
+          data: { status: 'employee' },
+        })
+      )
+
+      await Promise.all(updateStatusPromises)
+
+      // Send notification to partnership user about approval with candidates
+      if (currentStandardRequest.partnership_id) {
+        try {
+          const userData = await ApiService.fetchDataWithAxios<any>({
+            url: `/users?partnership_id=${currentStandardRequest.partnership_id}`,
           })
-        )
-
-        await Promise.all(updateStatusPromises)
-
-        // Send notification to partnership user about approval with candidates
-        if (currentStandardRequest.partnership_id) {
-          try {
-            const userResponse = await fetch(`/api/users?partnership_id=${currentStandardRequest.partnership_id}`)
-            if (userResponse.ok) {
-              const userData = await userResponse.json()
-              if (userData.data && userData.data.length > 0) {
-                const userId = userData.data[0].user_id
-                await apiCreateNotification({
-                  target: currentStandardRequest.company_name,
-                  description: `Your request for ${currentStandardRequest.position} has been approved with ${selectedCandidates.length} candidate(s) matched`,
-                  type: 1,
-                  location: 'partnership',
-                  locationLabel: 'Partnership Request',
-                  status: 'Approved',
-                  user_id: userId,
-                  related_entity_id: currentStandardRequest.request_id,
-                  related_entity_type: 'standard_request',
-                })
-              }
-            }
-          } catch (notifError) {
-            console.error('Failed to create notification:', notifError)
+          if (userData.data && userData.data.length > 0) {
+            const userId = userData.data[0].user_id
+            await apiCreateNotification({
+              target: currentStandardRequest.company_name,
+              description: `Your request for ${currentStandardRequest.position} has been approved with ${selectedCandidates.length} candidate(s) matched`,
+              type: 1,
+              location: 'partnership',
+              locationLabel: 'Partnership Request',
+              status: 'Approved',
+              user_id: userId,
+              related_entity_id: currentStandardRequest.request_id,
+              related_entity_type: 'standard_request',
+            })
           }
+        } catch (notifError) {
+          console.error('Failed to create notification:', notifError)
         }
-
-        notify.success('Success', `${selectedCandidates.length} candidates selected and status updated to "employee"`)
-        setShowCandidateModal(false)
-        fetchRequests(currentPage)
-      } else {
-        const errorData = await response.json()
-        const errorMsg = errorData?.error || 'Failed to update request'
-        notify.error('Error', errorMsg)
       }
+
+      notify.success('Success', `${selectedCandidates.length} candidates selected and status updated to "employee"`)
+      setShowCandidateModal(false)
+      fetchRequests(currentPage)
     } catch (error) {
       console.error('Error:', error)
       notify.error('Error', 'Failed to process selection')
@@ -460,30 +401,24 @@ const EmployeeRequest = () => {
   const handleDelete = async (requestId: string) => {
     if (!window.confirm('Are you sure you want to delete this request?')) return
 
+    let toastId: string | number | null = null
     try {
-      const toastId = notify.loading('Deleting request...')
+      toastId = notify.loading('Deleting request...')
 
-      const endpoint = activeTab === 'standard'
-        ? `/api/standard-requests/${requestId}`
-        : `/api/employee-requests/${requestId}`
+      await ApiService.fetchDataWithAxios<any>({
+        method: 'DELETE',
+        url: activeTab === 'standard'
+          ? `/standard-requests/${requestId}`
+          : `/employee-requests/${requestId}`,
+      })
 
-      const response = await fetch(endpoint, { method: 'DELETE' })
-
-      if (!response.ok) {
-        const data = await response.json()
-        const errorMsg = data.error || 'Failed to delete request'
-        toast.dismiss(toastId)
-        notify.error('Delete Failed', errorMsg)
-        return
-      }
-
-      toast.dismiss(toastId)
+      if (toastId) toast.dismiss(toastId)
       fetchRequests(currentPage)
       notify.success('Success', 'Request deleted successfully')
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'An unexpected error occurred'
       console.error('Error deleting request:', error)
-      toast.dismiss(toastId)
+      if (toastId) toast.dismiss(toastId)
       notify.error('Delete Error', errorMsg)
     }
   }
