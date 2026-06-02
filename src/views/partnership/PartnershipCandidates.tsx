@@ -223,26 +223,19 @@ const PartnershipCandidates = () => {
 
       await Promise.all(updateStatusPromises)
 
-      // Send notification to admin about the partnership request
+      // Send notification to the partnership user who created the request
       try {
-        const adminResponse = await fetch('/api/users/admin-users')
-        if (adminResponse.ok) {
-          const adminData = await adminResponse.json()
-          if (adminData.data && adminData.data.length > 0) {
-            const adminUserId = adminData.data[0].user_id
-            await apiCreateNotification({
-              target: 'Admin',
-              description: `New partnership request from ${user.userName || 'Partnership User'} for ${selectedCandidates.length} candidate(s) in Partnership Candidates position`,
-              type: 1,
-              location: 'partnership',
-              locationLabel: 'Partnership Request',
-              status: 'Pending',
-              user_id: adminUserId,
-              related_entity_id: requestId,
-              related_entity_type: 'standard_request',
-            })
-          }
-        }
+        await apiCreateNotification({
+          target: 'Partnership Request',
+          description: `Your request for ${selectedCandidates.length} candidate(s) in Partnership Candidates position has been submitted and is pending admin review`,
+          type: 1,
+          location: 'partnership',
+          locationLabel: 'Partnership Request',
+          status: 'Pending',
+          user_id: user.userId,
+          related_entity_id: requestId,
+          related_entity_type: 'standard_request',
+        })
       } catch (notifError) {
         console.error('Failed to create notification:', notifError)
       }

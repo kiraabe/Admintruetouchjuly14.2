@@ -193,26 +193,19 @@ const SpecialRequest = () => {
 
       const requestId = responseData.data?.request_id
 
-      // Send notification to admin about the special request
+      // Send notification to the partnership user who created the request
       try {
-        const adminData = await ApiService.fetchDataWithAxios<any>({
-          method: 'GET',
-          url: '/users/admin-users',
+        await apiCreateNotification({
+          target: 'Special Request',
+          description: `Your special request for ${formData.position} position has been submitted and is pending admin review`,
+          type: 1,
+          location: 'special-request',
+          locationLabel: 'Special Request',
+          status: 'Pending',
+          user_id: user.userId,
+          related_entity_id: requestId,
+          related_entity_type: 'special_request',
         })
-        if (adminData.data && adminData.data.length > 0) {
-          const adminUserId = adminData.data[0].user_id
-          await apiCreateNotification({
-            target: 'Special Request',
-            description: `New special request for ${formData.position} position from ${formData.company_name}`,
-            type: 1,
-            location: 'special-request',
-            locationLabel: 'Special Request',
-            status: 'Pending',
-            user_id: adminUserId,
-            related_entity_id: requestId,
-            related_entity_type: 'special_request',
-          })
-        }
       } catch (notifError) {
         console.error('Failed to create notification:', notifError)
       }

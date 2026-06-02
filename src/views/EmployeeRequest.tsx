@@ -245,7 +245,7 @@ const EmployeeRequest = () => {
 
       if (newStatus === 'Approved' || newStatus === 'Rejected') {
         try {
-          // Get partnership user ID if this is a standard request
+          // Get partnership user ID for the partnership that made this request
           let userId: string | undefined = undefined
           if (activeTab === 'standard' && request.partnership_id) {
             try {
@@ -260,17 +260,20 @@ const EmployeeRequest = () => {
             }
           }
 
-          await apiCreateNotification({
-            target: request.company_name,
-            description: `Your ${request.request_type} request for ${request.position} position has been ${newStatus.toLowerCase()}`,
-            type: newStatus === 'Approved' ? 1 : 2,
-            location: activeTab === 'standard' ? 'partnership' : 'employee-request',
-            locationLabel: activeTab === 'standard' ? 'Partnership Request' : 'Employee Request',
-            status: newStatus,
-            user_id: userId,
-            related_entity_id: request.request_id,
-            related_entity_type: activeTab === 'standard' ? 'standard_request' : 'employee_request',
-          })
+          // Only send notification if we found the specific user
+          if (userId) {
+            await apiCreateNotification({
+              target: request.company_name,
+              description: `Your ${request.request_type || 'special'} request for ${request.position} position has been ${newStatus.toLowerCase()}`,
+              type: newStatus === 'Approved' ? 1 : 2,
+              location: activeTab === 'standard' ? 'partnership' : 'employee-request',
+              locationLabel: activeTab === 'standard' ? 'Partnership Request' : 'Employee Request',
+              status: newStatus,
+              user_id: userId,
+              related_entity_id: request.request_id,
+              related_entity_type: activeTab === 'standard' ? 'standard_request' : 'employee_request',
+            })
+          }
         } catch (notifError) {
           console.error('Failed to create notification:', notifError)
         }
@@ -364,7 +367,7 @@ const EmployeeRequest = () => {
 
       await Promise.all(updateStatusPromises)
 
-      // Send notification to partnership user about approval with candidates
+      // Send notification only to the specific partnership user who made the request
       if (currentStandardRequest.partnership_id) {
         try {
           const userData = await ApiService.fetchDataWithAxios<any>({
