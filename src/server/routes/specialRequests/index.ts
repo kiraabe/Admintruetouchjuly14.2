@@ -11,18 +11,30 @@ import {
   deleteSpecialRequest,
   ensureSpecialRequestTableExists,
 } from '../../db/queries/specialRequestQueries'
+import jwt from 'jsonwebtoken'
 
 const router = Router()
 
-router.get('/', validatePartnershipSession, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     await ensureSpecialRequestTableExists()
 
-    const userId = (req as any).user.user_id
-    const partnerId = await getPartnershipIdByUserId(userId)
+    const authHeader = req.headers.authorization
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+    let userRole = 'guest'
+    let userPartnershipId: string | null = null
 
-    if (!partnerId) {
-      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    if (token) {
+      try {
+        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+        const decoded = jwt.verify(token, JWT_SECRET) as any
+        userRole = decoded.role || 'guest'
+        if (decoded.user_id) {
+          userPartnershipId = await getPartnershipIdByUserId(decoded.user_id)
+        }
+      } catch (e) {
+        // Token validation failed, continue as guest
+      }
     }
 
     const { search, page: pageStr, limit: limitStr, ...filters } = req.query
@@ -30,17 +42,32 @@ router.get('/', validatePartnershipSession, async (req, res) => {
     const limit = Math.min(100, parseInt(limitStr as string) || 10)
     const offset = (page - 1) * limit
 
-    const enhancedFilters = { ...filters, partnership_id: partnerId }
-
     let requests
 
-    if (search && typeof search === 'string') {
-      requests = await searchSpecialRequests(search)
-      requests = requests.filter((r: any) => r.partnership_id === partnerId)
-    } else if (Object.keys(filters).length > 0) {
-      requests = await filterSpecialRequests(enhancedFilters as any)
-    } else {
-      requests = await filterSpecialRequests({ partnership_id: partnerId } as any)
+    // Admin users see all requests
+    if (userRole === 'admin') {
+      if (search && typeof search === 'string') {
+        requests = await searchSpecialRequests(search)
+      } else if (Object.keys(filters).length > 0) {
+        requests = await filterSpecialRequests({ ...filters } as any)
+      } else {
+        requests = await getAllSpecialRequests()
+      }
+    }
+    // Partnership users see only their partnership requests
+    else if (userRole === 'partnership' && userPartnershipId) {
+      if (search && typeof search === 'string') {
+        requests = await searchSpecialRequests(search)
+        requests = requests.filter((r: any) => r.partnership_id === userPartnershipId)
+      } else if (Object.keys(filters).length > 0) {
+        requests = await filterSpecialRequests({ ...filters, partnership_id: userPartnershipId } as any)
+      } else {
+        requests = await filterSpecialRequests({ partnership_id: userPartnershipId } as any)
+      }
+    }
+    // No token or invalid role
+    else {
+      return res.status(401).json({ success: false, error: 'Unauthorized: Valid token required' })
     }
 
     const total = requests?.length || 0
@@ -54,14 +81,26 @@ router.get('/', validatePartnershipSession, async (req, res) => {
   }
 })
 
-router.get('/:requestId', validatePartnershipSession, async (req, res) => {
+router.get('/:requestId', async (req, res) => {
   try {
     await ensureSpecialRequestTableExists()
-    const userId = (req as any).user.user_id
-    const partnerId = await getPartnershipIdByUserId(userId)
 
-    if (!partnerId) {
-      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    const authHeader = req.headers.authorization
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+    let userRole = 'guest'
+    let userPartnershipId: string | null = null
+
+    if (token) {
+      try {
+        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+        const decoded = jwt.verify(token, JWT_SECRET) as any
+        userRole = decoded.role || 'guest'
+        if (decoded.user_id) {
+          userPartnershipId = await getPartnershipIdByUserId(decoded.user_id)
+        }
+      } catch (e) {
+        // Token validation failed
+      }
     }
 
     const request = await getSpecialRequestById(req.params.requestId)
@@ -70,11 +109,17 @@ router.get('/:requestId', validatePartnershipSession, async (req, res) => {
       return res.status(404).json({ success: false, error: 'Special request not found' })
     }
 
-    if (request.partnership_id !== partnerId) {
-      return res.status(403).json({ success: false, error: 'Forbidden: You cannot access this request' })
+    // Admin users can access any request
+    if (userRole === 'admin') {
+      return res.json({ success: true, data: request })
     }
 
-    res.json({ success: true, data: request })
+    // Partnership users can only access their own requests
+    if (userRole === 'partnership' && userPartnershipId && request.partnership_id === userPartnershipId) {
+      return res.json({ success: true, data: request })
+    }
+
+    res.status(403).json({ success: false, error: 'Forbidden: You cannot access this request' })
   } catch (error) {
     console.error('Error fetching special request:', error)
     res.status(500).json({ success: false, error: 'Failed to fetch special request' })
