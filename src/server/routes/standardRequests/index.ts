@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express'
 import { validateAdminSession, validatePartnershipSession } from '../../middleware/partnershipAuth'
 import pool from '../../db/config'
+import jwt from 'jsonwebtoken'
 import {
   getAllStandardRequests,
   getStandardRequestById,
@@ -167,11 +168,45 @@ router.post('/own/create', validatePartnershipSession, async (req: Request, res:
   }
 })
 
-router.put('/:requestId', validateAdminSession, async (req: Request, res: Response) => {
+router.put('/:requestId', async (req: Request, res: Response) => {
   try {
     await ensureStandardRequestTableExists()
-    const data = req.body
 
+    const authHeader = req.headers.authorization
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+    let userRole = 'guest'
+    let userPartnershipId: string | null = null
+    let userId: string | null = null
+
+    if (token) {
+      try {
+        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+        const decoded = jwt.verify(token, JWT_SECRET) as any
+        userRole = decoded.role || 'guest'
+        userId = decoded.user_id
+        if (userId) {
+          userPartnershipId = await getPartnershipIdByUserId(userId)
+        }
+      } catch (e) {
+        // Token validation failed
+      }
+    }
+
+    if (userRole !== 'admin' && userRole !== 'partnership') {
+      return res.status(401).json({ success: false, error: 'Unauthorized: Valid token required' })
+    }
+
+    const existingRequest = await getStandardRequestById(req.params.requestId)
+    if (!existingRequest) {
+      return res.status(404).json({ success: false, error: 'Standard request not found' })
+    }
+
+    // Partnership users can only update their own requests
+    if (userRole === 'partnership' && existingRequest.partnership_id !== userPartnershipId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: You do not have access to this request' })
+    }
+
+    const data = req.body
     const request = await updateStandardRequest(req.params.requestId, data)
     if (!request) {
       return res.status(404).json({ success: false, error: 'Standard request not found' })
@@ -216,11 +251,45 @@ router.put('/own/:requestId', validatePartnershipSession, async (req: Request, r
   }
 })
 
-router.delete('/:requestId', validateAdminSession, async (req, res) => {
+router.delete('/:requestId', async (req, res) => {
   try {
     await ensureStandardRequestTableExists()
-    const success = await deleteStandardRequest(req.params.requestId)
 
+    const authHeader = req.headers.authorization
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+    let userRole = 'guest'
+    let userPartnershipId: string | null = null
+    let userId: string | null = null
+
+    if (token) {
+      try {
+        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+        const decoded = jwt.verify(token, JWT_SECRET) as any
+        userRole = decoded.role || 'guest'
+        userId = decoded.user_id
+        if (userId) {
+          userPartnershipId = await getPartnershipIdByUserId(userId)
+        }
+      } catch (e) {
+        // Token validation failed
+      }
+    }
+
+    if (userRole !== 'admin' && userRole !== 'partnership') {
+      return res.status(401).json({ success: false, error: 'Unauthorized: Valid token required' })
+    }
+
+    const existingRequest = await getStandardRequestById(req.params.requestId)
+    if (!existingRequest) {
+      return res.status(404).json({ success: false, error: 'Standard request not found' })
+    }
+
+    // Partnership users can only delete their own requests
+    if (userRole === 'partnership' && existingRequest.partnership_id !== userPartnershipId) {
+      return res.status(403).json({ success: false, error: 'Forbidden: You do not have access to this request' })
+    }
+
+    const success = await deleteStandardRequest(req.params.requestId)
     if (!success) {
       return res.status(404).json({ success: false, error: 'Standard request not found' })
     }

@@ -148,14 +148,32 @@ router.post('/', validatePartnershipSession, async (req: Request, res: Response)
   }
 })
 
-router.put('/:requestId', validatePartnershipSession, async (req: Request, res: Response) => {
+router.put('/:requestId', async (req: Request, res: Response) => {
   try {
     await ensureSpecialRequestTableExists()
-    const userId = (req as any).user.user_id
-    const partnerId = await getPartnershipIdByUserId(userId)
 
-    if (!partnerId) {
-      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    const authHeader = req.headers.authorization
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+    let userRole = 'guest'
+    let userPartnershipId: string | null = null
+    let userId: string | null = null
+
+    if (token) {
+      try {
+        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+        const decoded = jwt.verify(token, JWT_SECRET) as any
+        userRole = decoded.role || 'guest'
+        userId = decoded.user_id
+        if (userId) {
+          userPartnershipId = await getPartnershipIdByUserId(userId)
+        }
+      } catch (e) {
+        // Token validation failed
+      }
+    }
+
+    if (userRole !== 'admin' && userRole !== 'partnership') {
+      return res.status(401).json({ success: false, error: 'Unauthorized: Valid token required' })
     }
 
     const existingRequest = await getSpecialRequestById(req.params.requestId)
@@ -163,12 +181,12 @@ router.put('/:requestId', validatePartnershipSession, async (req: Request, res: 
       return res.status(404).json({ success: false, error: 'Special request not found' })
     }
 
-    if (existingRequest.partnership_id !== partnerId) {
+    // Partnership users can only update their own requests
+    if (userRole === 'partnership' && existingRequest.partnership_id !== userPartnershipId) {
       return res.status(403).json({ success: false, error: 'Forbidden: You cannot modify this request' })
     }
 
     const data = req.body
-
     const request = await updateSpecialRequest(req.params.requestId, data)
     if (!request) {
       return res.status(404).json({ success: false, error: 'Special request not found' })
@@ -181,14 +199,32 @@ router.put('/:requestId', validatePartnershipSession, async (req: Request, res: 
   }
 })
 
-router.delete('/:requestId', validatePartnershipSession, async (req, res) => {
+router.delete('/:requestId', async (req, res) => {
   try {
     await ensureSpecialRequestTableExists()
-    const userId = (req as any).user.user_id
-    const partnerId = await getPartnershipIdByUserId(userId)
 
-    if (!partnerId) {
-      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    const authHeader = req.headers.authorization
+    const token = authHeader?.startsWith('Bearer ') ? authHeader.slice(7) : null
+    let userRole = 'guest'
+    let userPartnershipId: string | null = null
+    let userId: string | null = null
+
+    if (token) {
+      try {
+        const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
+        const decoded = jwt.verify(token, JWT_SECRET) as any
+        userRole = decoded.role || 'guest'
+        userId = decoded.user_id
+        if (userId) {
+          userPartnershipId = await getPartnershipIdByUserId(userId)
+        }
+      } catch (e) {
+        // Token validation failed
+      }
+    }
+
+    if (userRole !== 'admin' && userRole !== 'partnership') {
+      return res.status(401).json({ success: false, error: 'Unauthorized: Valid token required' })
     }
 
     const existingRequest = await getSpecialRequestById(req.params.requestId)
@@ -196,12 +232,12 @@ router.delete('/:requestId', validatePartnershipSession, async (req, res) => {
       return res.status(404).json({ success: false, error: 'Special request not found' })
     }
 
-    if (existingRequest.partnership_id !== partnerId) {
+    // Partnership users can only delete their own requests
+    if (userRole === 'partnership' && existingRequest.partnership_id !== userPartnershipId) {
       return res.status(403).json({ success: false, error: 'Forbidden: You cannot delete this request' })
     }
 
     const success = await deleteSpecialRequest(req.params.requestId)
-
     if (!success) {
       return res.status(404).json({ success: false, error: 'Special request not found' })
     }
