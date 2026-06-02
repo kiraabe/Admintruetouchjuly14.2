@@ -64,12 +64,15 @@ export const validatePartnershipSession = (req: PartnershipAuthRequest, res: Res
 export const validateAdminSession = (req: PartnershipAuthRequest, res: Response, next: NextFunction) => {
   try {
     const token = req.headers.authorization?.split(' ')[1] || req.cookies?.token
+    console.log('validateAdminSession: token present:', !!token, 'auth header:', !!req.headers.authorization)
 
     if (!token) {
+      console.error('validateAdminSession: No token provided')
       return res.status(401).json({ error: 'No token provided' })
     }
 
     const decoded = jwt.verify(token, JWT_SECRET) as any
+    console.log('validateAdminSession: decoded token role:', decoded.role)
 
     // Check if token is expired
     if (decoded.exp && decoded.exp * 1000 < Date.now()) {
@@ -78,12 +81,14 @@ export const validateAdminSession = (req: PartnershipAuthRequest, res: Response,
 
     // Only allow admin users, reject partnership tokens
     if (decoded.role !== 'admin') {
+      console.error('validateAdminSession: Invalid role:', decoded.role)
       return res.status(403).json({ error: 'Forbidden: Only admin users can access this endpoint' })
     }
 
     req.user = decoded
     next()
   } catch (error) {
+    console.error('validateAdminSession error:', error instanceof Error ? error.message : error)
     if (error instanceof jwt.TokenExpiredError) {
       return res.status(401).json({ error: 'Session expired' })
     }
@@ -92,7 +97,6 @@ export const validateAdminSession = (req: PartnershipAuthRequest, res: Response,
       return res.status(401).json({ error: 'Invalid token' })
     }
 
-    console.error('Admin session validation error:', error)
     return res.status(401).json({ error: 'Unauthorized' })
   }
 }

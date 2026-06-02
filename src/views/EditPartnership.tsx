@@ -59,6 +59,7 @@ const EditPartnership = () => {
 
   const getAuthHeaders = () => {
     const token = Cookies.get('token') || localStorage.getItem('token')
+    console.log('getAuthHeaders - token from cookie:', !!Cookies.get('token'), 'token from localStorage:', !!localStorage.getItem('token'))
     return {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
@@ -74,13 +75,27 @@ const EditPartnership = () => {
   const fetchPartnership = async () => {
     try {
       setLoading(true)
+      const token = Cookies.get('token') || localStorage.getItem('token')
+      console.log('Fetching partnership with token:', !!token, 'id:', id)
+
       const response = await fetch(`/api/partnerships/admin/${id}`, {
         headers: getAuthHeaders(),
       })
-      if (!response.ok) {
-        throw new Error('Failed to fetch partnership')
+
+      console.log('Response status:', response.status)
+      let data
+      try {
+        data = await response.json()
+      } catch (e) {
+        console.error('Failed to parse response as JSON:', e)
+        throw new Error(`HTTP ${response.status}: Unable to parse server response`)
       }
-      const data = await response.json()
+      console.log('Response data:', data)
+
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP ${response.status}: Failed to fetch partnership`)
+      }
+
       if (data.success) {
         const partner = data.data
         setPartnership(partner)
@@ -101,12 +116,14 @@ const EditPartnership = () => {
           setExistingLicenseDocument(partner.license_document)
         }
       } else {
-        toast.error('Failed to load partnership')
+        toast.error(data.error || 'Failed to load partnership')
         navigate('/partnership')
       }
     } catch (error) {
       console.error('Error fetching partnership:', error)
-      toast.error('Failed to load partnership')
+      const errorMsg = error instanceof Error ? error.message : 'Failed to load partnership'
+      console.error('Error message:', errorMsg)
+      toast.error(errorMsg)
       navigate('/partnership')
     } finally {
       setLoading(false)

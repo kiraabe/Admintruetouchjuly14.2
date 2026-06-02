@@ -135,13 +135,16 @@ router.get('/own/data', validatePartnershipSession, async (req, res) => {
 
 router.get('/admin/:partnerId', validateAdminSession, async (req, res) => {
   try {
+    console.log('GET /admin/:partnerId - partnerId:', req.params.partnerId)
     const partnership = await getPartnershipById(req.params.partnerId)
+    console.log('Found partnership:', !!partnership)
     if (!partnership) {
       return res.status(404).json({ success: false, error: 'Partnership not found' })
     }
     res.json({ success: true, data: partnership })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error('Error in GET /admin/:partnerId:', errorMsg)
     res.status(500).json({ success: false, error: errorMsg })
   }
 })
