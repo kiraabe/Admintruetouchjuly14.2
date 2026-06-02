@@ -136,12 +136,17 @@ router.get('/own/data', validatePartnershipSession, async (req, res) => {
 router.get('/:partnerId', validatePartnershipSession, async (req, res) => {
   try {
     const decodedUser = (req as any).user
-    const userId = decodedUser.user_id
-    const isAdmin = decodedUser.role === 'admin'
+    console.log('GET /:partnerId - decoded user:', { role: decodedUser?.role, user_id: decodedUser?.user_id })
+
+    const userId = decodedUser?.user_id
+    const isAdmin = decodedUser?.role === 'admin'
+
+    console.log('Checking access - isAdmin:', isAdmin, 'partnerId:', req.params.partnerId)
 
     let userPartnerId: string | null = null
     if (!isAdmin) {
       userPartnerId = await getPartnershipIdByUserId(userId)
+      console.log('Partnership user check - userPartnerId:', userPartnerId, 'requestedId:', req.params.partnerId)
       if (!userPartnerId || userPartnerId !== req.params.partnerId) {
         return res.status(403).json({ success: false, error: 'Forbidden: You cannot access this partnership' })
       }
