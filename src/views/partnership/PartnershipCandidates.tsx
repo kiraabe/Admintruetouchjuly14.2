@@ -11,6 +11,7 @@ import { notify } from '@/utils/notification'
 import { useSessionUser } from '@/store/authStore'
 import { apiCreateNotification } from '@/services/CommonService'
 import { getCandidateProfilePictureUrl } from '@/utils/imageUrl'
+import { parseSkillLevel } from '@/utils/skillLevel'
 
 interface Candidate {
   id: number
@@ -272,7 +273,7 @@ const PartnershipCandidates = () => {
         c.age || '',
         c.nationality || '',
         c.job_category || '',
-        c.skill_level || '',
+        parseSkillLevel(c.skill_level),
         c.country || '',
         c.status || '',
       ]),
@@ -540,7 +541,7 @@ const PartnershipCandidates = () => {
                       {candidate.job_category || '-'}
                     </td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.nationality || '-'}</td>
-                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.skill_level || '-'}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{parseSkillLevel(candidate.skill_level)}</td>
                     <td className="py-3 px-4">
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize ${
                         candidate.status === 'available'
@@ -714,7 +715,7 @@ const PartnershipCandidates = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                   <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Skill Level</p>
-                  <p className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.skill_level || '-'}</p>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{parseSkillLevel(selectedCandidate.skill_level)}</p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                   <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Education Level</p>
