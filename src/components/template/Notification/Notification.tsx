@@ -8,7 +8,7 @@ import Badge from '@/components/ui/Badge'
 import Button from '@/components/ui/Button'
 import NotificationAvatar from './NotificationAvatar'
 import NotificationToggle from './NotificationToggle'
-import { HiOutlineMailOpen, HiOutlineTrash } from 'react-icons/hi'
+import { HiOutlineMailOpen, HiOutlineTrash, HiCheck } from 'react-icons/hi'
 import {
     apiGetNotificationList,
     apiGetNotificationCount,
@@ -236,7 +236,7 @@ const _Notification = ({ className }: { className?: string }) => {
                                     </div>
                                     <span className="text-xs">{item.date}</span>
                                 </div>
-                                <div className="flex items-center gap-2">
+                                <div className="flex items-center gap-1">
                                     <Badge
                                         className="mt-1.5"
                                         innerClass={`${
@@ -245,6 +245,20 @@ const _Notification = ({ className }: { className?: string }) => {
                                                 : 'bg-primary'
                                         } `}
                                     />
+                                    {!item.readed && (
+                                        <Button
+                                            variant="plain"
+                                            shape="circle"
+                                            size="sm"
+                                            icon={<HiCheck className="text-lg" />}
+                                            title="Mark as read"
+                                            onClick={(e) => {
+                                                e.stopPropagation()
+                                                onMarkAsRead(item.id)
+                                            }}
+                                            className="opacity-0 group-hover:opacity-100 transition-opacity"
+                                        />
+                                    )}
                                     <Button
                                         variant="plain"
                                         shape="circle"
