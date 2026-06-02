@@ -65,7 +65,7 @@ const EditPartnership = () => {
   const fetchPartnership = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/partnerships/${id}`)
+      const response = await fetch(`/api/partnerships/admin/${id}`)
       if (!response.ok) {
         throw new Error('Failed to fetch partnership')
       }

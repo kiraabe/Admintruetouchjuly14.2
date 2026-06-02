@@ -153,6 +153,19 @@ router.get('/:partnerId', validatePartnershipSession, async (req, res) => {
   }
 })
 
+router.get('/admin/:partnerId', validateAdminSession, async (req, res) => {
+  try {
+    const partnership = await getPartnershipById(req.params.partnerId)
+    if (!partnership) {
+      return res.status(404).json({ success: false, error: 'Partnership not found' })
+    }
+    res.json({ success: true, data: partnership })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    res.status(500).json({ success: false, error: errorMsg })
+  }
+})
+
 router.post('/', validateAdminSession, upload.fields([
   { name: 'companyLogo', maxCount: 1 },
   { name: 'licenseDocument', maxCount: 1 },
