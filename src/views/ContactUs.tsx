@@ -4,8 +4,6 @@ import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Dialog from '@/components/ui/Dialog'
 import { toast } from 'sonner'
-import { apiCreateNotification } from '@/services/CommonService'
-import { useSessionUser } from '@/store/authStore'
 
 interface ContactMessage {
   id?: number
@@ -21,7 +19,6 @@ interface ContactMessage {
 }
 
 const ContactUs = () => {
-  const { user } = useSessionUser()
   const [messages, setMessages] = useState<ContactMessage[]>([])
   const [filteredMessages, setFilteredMessages] = useState<ContactMessage[]>([])
   const [loading, setLoading] = useState(true)
@@ -40,25 +37,6 @@ const ContactUs = () => {
   useEffect(() => {
     filterMessages()
   }, [searchTerm, messages])
-
-  const createNotification = async (target: string, description: string, relatedId?: string) => {
-    try {
-      await apiCreateNotification({
-        target,
-        description,
-        type: 1,
-        location: 'Contact Messages',
-        locationLabel: 'Contact Us',
-        status: 'new',
-        user_id: user.userId,
-        related_entity_id: relatedId,
-        related_entity_type: 'contact_message',
-        image_url: '/img/icons/contact.png',
-      })
-    } catch (error) {
-      console.error('Error creating notification:', error)
-    }
-  }
 
   const fetchMessages = async () => {
     try {
@@ -79,17 +57,6 @@ const ContactUs = () => {
           message: msg.message || '',
         }))
         setMessages(processedMessages)
-
-        // Create notifications for new messages
-        processedMessages.forEach((msg) => {
-          if (msg.status === 'new') {
-            createNotification(
-              msg.username,
-              `New message from ${msg.username}: "${msg.subject}"`,
-              msg.contact_id
-            )
-          }
-        })
       } else {
         toast.error(data.error || 'Failed to load messages')
       }
@@ -138,14 +105,6 @@ const ContactUs = () => {
       const data = await response.json()
       if (data.success) {
         toast.success('Reply sent successfully')
-
-        // Create notification for reply sent
-        createNotification(
-          'Admin Reply',
-          `Reply sent to ${selectedMessage.name} regarding "${selectedMessage.subject}"`,
-          selectedMessage.contact_id
-        )
-
         setShowReplyModal(false)
         setReplyMessage('')
         fetchMessages()
@@ -169,19 +128,6 @@ const ContactUs = () => {
       const data = await response.json()
       if (data.success) {
         toast.success('Status updated')
-
-        // Create notification for status change
-        const statusLabels: { [key: string]: string } = {
-          'new': 'New message received',
-          'replied': 'Message replied',
-          'resolved': 'Message resolved'
-        }
-        createNotification(
-          'Status Updated',
-          `Contact message status changed to "${newStatus}"`,
-          contactId
-        )
-
         fetchMessages()
       } else {
         toast.error(data.error || 'Failed to update status')

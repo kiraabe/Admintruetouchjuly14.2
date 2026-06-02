@@ -80,9 +80,45 @@ router.post('/', async (req: Request, res: Response) => {
       [name, email, phone || null, subject, message, 'new']
     )
 
+    const newContact = result.rows[0]
+
+    // Create notifications for all admin users
+    try {
+      const adminUsers = await dbPool.query(
+        'SELECT user_id FROM users WHERE authority = $1 AND is_active = true',
+        ['admin']
+      )
+
+      if (adminUsers.rows.length > 0) {
+        for (const admin of adminUsers.rows) {
+          await dbPool.query(
+            `INSERT INTO notifications (
+              user_id, target, description, type, status, location, location_label, image_url,
+              related_entity_id, related_entity_type
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            [
+              admin.user_id,
+              name,
+              `New message from ${name}: "${subject}"`,
+              1,
+              'new',
+              'Contact Messages',
+              'Contact Us',
+              '/img/icons/contact.png',
+              newContact.contact_id,
+              'contact_message'
+            ]
+          )
+        }
+      }
+    } catch (notificationError) {
+      console.error('Error creating notifications for admins:', notificationError)
+      // Continue regardless, the message was created successfully
+    }
+
     res.status(201).json({
       success: true,
-      data: result.rows[0],
+      data: newContact,
     })
   } catch (error) {
     console.error('Error creating contact message:', error)
