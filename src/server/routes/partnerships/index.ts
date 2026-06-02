@@ -133,29 +133,18 @@ router.get('/own/data', validatePartnershipSession, async (req, res) => {
   }
 })
 
-router.get('/admin/:partnerId', validateAdminSession, async (req, res) => {
-  try {
-    console.log('GET /admin/:partnerId - partnerId:', req.params.partnerId)
-    const partnership = await getPartnershipById(req.params.partnerId)
-    console.log('Found partnership:', !!partnership)
-    if (!partnership) {
-      return res.status(404).json({ success: false, error: 'Partnership not found' })
-    }
-    res.json({ success: true, data: partnership })
-  } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : String(error)
-    console.error('Error in GET /admin/:partnerId:', errorMsg)
-    res.status(500).json({ success: false, error: errorMsg })
-  }
-})
-
 router.get('/:partnerId', validatePartnershipSession, async (req, res) => {
   try {
-    const userId = (req as any).user.user_id
-    const userPartnerId = await getPartnershipIdByUserId(userId)
+    const decodedUser = (req as any).user
+    const userId = decodedUser.user_id
+    const isAdmin = decodedUser.role === 'admin'
 
-    if (!userPartnerId || userPartnerId !== req.params.partnerId) {
-      return res.status(403).json({ success: false, error: 'Forbidden: You cannot access this partnership' })
+    let userPartnerId: string | null = null
+    if (!isAdmin) {
+      userPartnerId = await getPartnershipIdByUserId(userId)
+      if (!userPartnerId || userPartnerId !== req.params.partnerId) {
+        return res.status(403).json({ success: false, error: 'Forbidden: You cannot access this partnership' })
+      }
     }
 
     const partnership = await getPartnershipById(req.params.partnerId)

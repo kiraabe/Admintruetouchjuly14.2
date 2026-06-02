@@ -78,7 +78,7 @@ const EditPartnership = () => {
       const token = Cookies.get('token') || localStorage.getItem('token')
       console.log('Fetching partnership with token:', !!token, 'id:', id)
 
-      const response = await fetch(`/api/partnerships/admin/${id}`, {
+      const response = await fetch(`/api/partnerships/${id}`, {
         headers: getAuthHeaders(),
       })
 
