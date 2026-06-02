@@ -60,12 +60,20 @@ const Users = () => {
   const fetchPartnerships = async () => {
     try {
       const response = await fetch('/api/partnerships')
+      if (!response.ok) {
+        console.warn('Failed to fetch partnerships:', response.status)
+        setPartnerships([])
+        return
+      }
       const data = await response.json()
       if (data.success && Array.isArray(data.data)) {
         setPartnerships(data.data)
+      } else {
+        setPartnerships([])
       }
     } catch (error) {
       console.error('Error fetching partnerships:', error)
+      setPartnerships([])
     }
   }
 
@@ -486,17 +494,21 @@ const Users = () => {
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
-                      {getPartnershipLogo(user.partnership_id) ? (
-                        <img
-                          src={getPartnershipLogo(user.partnership_id)}
-                          alt={user.user_name}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-sm">
-                          {user.user_name.charAt(0).toUpperCase()}
-                        </div>
-                      )}
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-semibold text-sm overflow-hidden">
+                        {getPartnershipLogo(user.partnership_id) ? (
+                          <img
+                            src={getPartnershipLogo(user.partnership_id) || ''}
+                            alt={user.user_name}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).style.display = 'none'
+                            }}
+                          />
+                        ) : null}
+                        {!getPartnershipLogo(user.partnership_id) && (
+                          <span>{user.user_name.charAt(0).toUpperCase()}</span>
+                        )}
+                      </div>
                       <span className="font-semibold text-gray-900 dark:text-gray-100">{user.user_name}</span>
                     </div>
                   </td>
