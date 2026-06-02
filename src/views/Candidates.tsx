@@ -62,6 +62,34 @@ const LANGUAGES = ['English', 'Spanish', 'French', 'German', 'Mandarin', 'Arabic
 const COUNTRIES = ['India', 'Philippines', 'Indonesia', 'Vietnam', 'Thailand', 'Malaysia', 'Singapore', 'Sri Lanka', 'Bangladesh', 'Myanmar', 'Ethiopia']
 const MEDICAL_STATUS = ['Fit', 'Fit with restrictions', 'Unfit', 'Under review', 'Not assessed']
 
+const parseSkillLevel = (value: string | null): string => {
+  if (!value) return '-'
+
+  try {
+    let parsed = value
+    // Handle double or triple escaped JSON strings
+    while (typeof parsed === 'string' && (parsed.startsWith('"') || parsed.startsWith('{'))) {
+      try {
+        parsed = JSON.parse(parsed)
+      } catch {
+        break
+      }
+    }
+
+    // If it's an object, extract relevant string
+    if (typeof parsed === 'object') {
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        return Array.isArray(parsed[0]) ? parsed[0].join(', ') : String(parsed[0])
+      }
+      return String(parsed)
+    }
+
+    return String(parsed).trim() || '-'
+  } catch {
+    return '-'
+  }
+}
+
 const Candidates = () => {
   const navigate = useNavigate()
   const [candidates, setCandidates] = useState<Candidate[]>([])
@@ -231,7 +259,7 @@ const Candidates = () => {
         c.age || '',
         c.nationality || '',
         c.job_category || '',
-        c.skill_level || '',
+        parseSkillLevel(c.skill_level),
         c.country || '',
         c.status || '',
       ]),
@@ -552,7 +580,7 @@ const Candidates = () => {
                       {candidate.job_category || '-'}
                     </td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.nationality || '-'}</td>
-                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.skill_level || '-'}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{parseSkillLevel(candidate.skill_level)}</td>
                     <td className="py-3 px-4">
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize ${
                         candidate.status === 'available'
