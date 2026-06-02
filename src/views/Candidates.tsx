@@ -69,8 +69,7 @@ const parseSkillLevel = (value: string | null): string => {
     let text = String(value).trim()
     if (!text || text === '-') return '-'
 
-    // Extract all skill names (text between quotes that aren't JSON markup)
-    // First, try standard JSON parsing with unescape attempts
+    // Unescape JSON-encoded strings
     let attempt = text
     let maxDepth = 10
     while (maxDepth-- > 0) {
@@ -89,38 +88,29 @@ const parseSkillLevel = (value: string | null): string => {
       }
     }
 
-    // If we still have escaped content, extract meaningful text
+    // Unescape any remaining escaped characters
     if (attempt.includes('\\')) {
-      // Unescape backslashes and quotes
       attempt = attempt
         .replace(/\\\\/g, '\\')
         .replace(/\\"/g, '"')
         .replace(/\\\//g, '/')
     }
 
-    // Extract unique skill names (looking for unescaped content between quotes)
-    const skillRegex = /"([^"]+)"/g
-    const matches = new Set<string>()
-    let match
-    while ((match = skillRegex.exec(attempt)) !== null) {
-      const skill = match[1].trim()
-      // Only add if it looks like a real skill (contains letters, not just JSON chars)
-      if (skill && /[a-zA-Z]/.test(skill) && !skill.includes('{') && !skill.includes('[')) {
-        matches.add(skill)
-      }
-    }
-
-    if (matches.size > 0) {
-      return Array.from(matches).join(', ')
-    }
-
-    // Fallback: clean up and return
+    // Remove JSON-like syntax
     attempt = attempt
       .replace(/[{}\[\]":\\]/g, ' ')
       .replace(/\s+/g, ' ')
       .trim()
 
-    return attempt || '-'
+    // Split by comma and get unique, non-empty skills
+    const skills = attempt
+      .split(',')
+      .map(s => s.trim())
+      .filter(s => s.length > 0)
+
+    const uniqueSkills = Array.from(new Set(skills))
+
+    return uniqueSkills.length > 0 ? uniqueSkills.join(', ') : '-'
   } catch {
     return '-'
   }
