@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router'
+import Cookies from 'js-cookie'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
 import Card from '@/components/ui/Card'
@@ -56,6 +57,14 @@ const EditPartnership = () => {
     'Fujairah',
   ]
 
+  const getAuthHeaders = () => {
+    const token = Cookies.get('token') || localStorage.getItem('token')
+    return {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    }
+  }
+
   useEffect(() => {
     if (!isNewPartnership) {
       fetchPartnership()
@@ -65,7 +74,9 @@ const EditPartnership = () => {
   const fetchPartnership = async () => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/partnerships/admin/${id}`)
+      const response = await fetch(`/api/partnerships/admin/${id}`, {
+        headers: getAuthHeaders(),
+      })
       if (!response.ok) {
         throw new Error('Failed to fetch partnership')
       }
@@ -174,6 +185,9 @@ const EditPartnership = () => {
       if (isNewPartnership) {
         const response = await fetch('/api/partnerships', {
           method: 'POST',
+          headers: {
+            'Authorization': getAuthHeaders()['Authorization'],
+          },
           body: formDataToSend,
         })
 
@@ -190,6 +204,9 @@ const EditPartnership = () => {
       } else {
         const response = await fetch(`/api/partnerships/${partnership?.partner_id}`, {
           method: 'PUT',
+          headers: {
+            'Authorization': getAuthHeaders()['Authorization'],
+          },
           body: formDataToSend,
         })
 
@@ -219,6 +236,7 @@ const EditPartnership = () => {
       toast.loading('Deleting partnership...')
       const response = await fetch(`/api/partnerships/${partnership?.partner_id}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
       })
 
       if (!response.ok) {
