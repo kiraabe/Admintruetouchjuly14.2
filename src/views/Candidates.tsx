@@ -66,25 +66,61 @@ const parseSkillLevel = (value: string | null): string => {
   if (!value) return '-'
 
   try {
-    let parsed = value
-    // Handle double or triple escaped JSON strings
-    while (typeof parsed === 'string' && (parsed.startsWith('"') || parsed.startsWith('{'))) {
+    let text = String(value).trim()
+    if (!text || text === '-') return '-'
+
+    // Extract all skill names (text between quotes that aren't JSON markup)
+    // First, try standard JSON parsing with unescape attempts
+    let attempt = text
+    let maxDepth = 10
+    while (maxDepth-- > 0) {
       try {
-        parsed = JSON.parse(parsed)
+        const parsed = JSON.parse(attempt)
+        if (typeof parsed === 'string') {
+          attempt = parsed
+        } else if (Array.isArray(parsed)) {
+          attempt = parsed.flat().filter(Boolean).join(', ')
+          break
+        } else {
+          break
+        }
       } catch {
         break
       }
     }
 
-    // If it's an object, extract relevant string
-    if (typeof parsed === 'object') {
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return Array.isArray(parsed[0]) ? parsed[0].join(', ') : String(parsed[0])
-      }
-      return String(parsed)
+    // If we still have escaped content, extract meaningful text
+    if (attempt.includes('\\')) {
+      // Unescape backslashes and quotes
+      attempt = attempt
+        .replace(/\\\\/g, '\\')
+        .replace(/\\"/g, '"')
+        .replace(/\\\//g, '/')
     }
 
-    return String(parsed).trim() || '-'
+    // Extract unique skill names (looking for unescaped content between quotes)
+    const skillRegex = /"([^"]+)"/g
+    const matches = new Set<string>()
+    let match
+    while ((match = skillRegex.exec(attempt)) !== null) {
+      const skill = match[1].trim()
+      // Only add if it looks like a real skill (contains letters, not just JSON chars)
+      if (skill && /[a-zA-Z]/.test(skill) && !skill.includes('{') && !skill.includes('[')) {
+        matches.add(skill)
+      }
+    }
+
+    if (matches.size > 0) {
+      return Array.from(matches).join(', ')
+    }
+
+    // Fallback: clean up and return
+    attempt = attempt
+      .replace(/[{}\[\]":\\]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+
+    return attempt || '-'
   } catch {
     return '-'
   }
