@@ -108,9 +108,9 @@ const Dialog = (props: DialogProps) => {
             >
                 {closable && renderCloseButton}
                 {title && <h2 className="text-lg font-bold mb-4">{title}</h2>}
-                <div className="dialog-body overflow-auto">
+                <ScrollBar className="dialog-body">
                     {children}
-                </div>
+                </ScrollBar>
                 {(confirmText || onConfirm) && (
                     <div className="mt-6 flex gap-3 justify-end">
                         <button
