@@ -740,7 +740,7 @@ async function startServer() {
         CREATE TABLE IF NOT EXISTS jobs (
           id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
           title VARCHAR(56) NOT NULL,
-          description VARCHAR(78) NOT NULL,
+          description TEXT NOT NULL,
           author VARCHAR(15) DEFAULT 'admin',
           image_url VARCHAR(255),
           expire_date DATE NOT NULL,
