@@ -119,8 +119,15 @@ export async function apiClearAllNotifications() {
 }
 
 export async function apiDeleteNotification(notificationId: string) {
-    return ApiService.fetchDataWithAxios({
-        url: `/notification/delete/${notificationId}`,
-        method: 'delete'
-    })
+    try {
+        const response = await ApiService.fetchDataWithAxios({
+            url: `/notification/delete/${notificationId}`,
+            method: 'delete'
+        })
+        console.log('Delete notification response:', response)
+        return response
+    } catch (error) {
+        console.error('Error in apiDeleteNotification:', error)
+        throw error
+    }
 }

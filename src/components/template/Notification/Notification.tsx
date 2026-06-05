@@ -9,6 +9,7 @@ import Button from '@/components/ui/Button'
 import NotificationAvatar from './NotificationAvatar'
 import NotificationToggle from './NotificationToggle'
 import { HiOutlineMailOpen, HiOutlineTrash, HiCheck } from 'react-icons/hi'
+import { toast } from 'sonner'
 import {
     apiGetNotificationList,
     apiGetNotificationCount,
@@ -102,8 +103,10 @@ const _Notification = ({ className }: { className?: string }) => {
             setNotificationList(list)
             setUnreadNotification(false)
             setUnreadCount(0)
+            toast.success('All notifications marked as read')
         } catch (error) {
             console.error('Error marking all notifications as read:', error)
+            toast.error('Failed to mark all as read')
         }
     }
 
@@ -123,8 +126,10 @@ const _Notification = ({ className }: { className?: string }) => {
             if (unread === 0) {
                 setUnreadNotification(false)
             }
+            toast.success('Marked as read')
         } catch (error) {
             console.error('Error marking notification as read:', error)
+            toast.error('Failed to mark as read')
         }
     }
 
@@ -135,8 +140,10 @@ const _Notification = ({ className }: { className?: string }) => {
             setUnreadNotification(false)
             setUnreadCount(0)
             setNoResult(true)
+            toast.success('All notifications cleared')
         } catch (error) {
             console.error('Error clearing notifications:', error)
+            toast.error('Failed to clear notifications')
         }
     }
 
@@ -154,8 +161,10 @@ const _Notification = ({ className }: { className?: string }) => {
             if (list.length === 0) {
                 setNoResult(true)
             }
+            toast.success('Notification deleted')
         } catch (error) {
             console.error('Error deleting notification:', error)
+            toast.error('Failed to delete notification')
         }
     }
 
