@@ -751,6 +751,23 @@ async function startServer() {
       `)
       console.log('✓ Jobs table ready')
 
+      // Alter description column to TEXT to support longer values
+      try {
+        const checkColumn = await pool.query(`
+          SELECT data_type FROM information_schema.columns
+          WHERE table_name = 'jobs' AND column_name = 'description'
+        `)
+        if (checkColumn.rows.length > 0 && checkColumn.rows[0].data_type === 'character varying') {
+          await pool.query(`
+            ALTER TABLE jobs
+            ALTER COLUMN description TYPE TEXT
+          `)
+          console.log('✓ Updated jobs description column to TEXT')
+        }
+      } catch (alterError) {
+        console.log('Note: Jobs description column may already be TEXT:', alterError instanceof Error ? alterError.message : alterError)
+      }
+
       // Seed sample jobs if table is empty
       const jobCount = await pool.query('SELECT COUNT(*) as count FROM jobs')
       if (jobCount.rows[0].count === 0) {
