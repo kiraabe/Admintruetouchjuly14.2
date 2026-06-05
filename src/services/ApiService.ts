@@ -23,8 +23,12 @@ AxiosBase.interceptors.response.use(
     if (error.response?.status === 401) {
       const isSignInEndpoint = error.config?.url?.includes('/sign-in')
       if (!isSignInEndpoint) {
+        // Clear all token storage locations
         Cookies.remove('token')
         localStorage.removeItem('token')
+        localStorage.removeItem('sessionStorage')
+        sessionStorage.clear()
+        // Redirect to sign-in
         window.location.href = '/sign-in'
       }
     }

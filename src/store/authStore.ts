@@ -3,6 +3,7 @@ import appConfig from '@/configs/app.config'
 import { TOKEN_NAME_IN_STORAGE } from '@/constants/api.constant'
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import Cookies from 'js-cookie'
 import type { User } from '@/@types/auth'
 
 type Session = {
@@ -71,6 +72,8 @@ export const useToken = () => {
 
     const setToken = (token: string) => {
         storage.setItem(TOKEN_NAME_IN_STORAGE, token)
+        // Always also save to cookies for API requests
+        Cookies.set('token', token, { expires: 7 })
     }
 
     return {

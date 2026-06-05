@@ -75,13 +75,15 @@ export const SessionService = {
     // Clear authentication
     localStorage.removeItem('token')
     localStorage.removeItem('user')
+    localStorage.removeItem('sessionUser')
     sessionStorage.clear()
+    Cookies.remove('token')
 
     // Trigger callback
     sessionCallbacks.onExpire?.()
 
-    // Redirect to login
-    window.location.href = '/login'
+    // Redirect to sign-in
+    window.location.href = '/sign-in'
   },
 
   clearTimers: () => {
