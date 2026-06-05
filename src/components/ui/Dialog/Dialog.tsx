@@ -108,7 +108,7 @@ const Dialog = (props: DialogProps) => {
             >
                 {closable && renderCloseButton}
                 {title && <h2 className="text-lg font-bold mb-4">{title}</h2>}
-                <ScrollBar className="dialog-body">
+                <ScrollBar className="dialog-body" style={{ maxHeight: 'calc(80vh - 200px)' }}>
                     {children}
                 </ScrollBar>
                 {(confirmText || onConfirm) && (
