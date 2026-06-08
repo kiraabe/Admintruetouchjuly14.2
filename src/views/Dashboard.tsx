@@ -98,18 +98,21 @@ const Dashboard = () => {
 const fetchData = async () => {
     try {
       const headers = getAuthHeaders()
-      const [candidatesRes, requestsRes, partnershipsRes] = await Promise.all([
+      const [candidatesRes, standardRes, specialRes, partnershipsRes] = await Promise.all([
         fetch('/api/candidates', { headers }),
-        fetch('/api/employee-requests', { headers }),
+        fetch('/api/standard-requests', { headers }),
+        fetch('/api/special-requests', { headers }),
         fetch('/api/partnerships', { headers }),
       ])
 
       const candidatesText = await candidatesRes.text()
-      const requestsText = await requestsRes.text()
+      const standardText = await standardRes.text()
+      const specialText = await specialRes.text()
       const partnershipsText = await partnershipsRes.text()
 
       let candidatesData: Candidate[] = []
-      let requestsData: EmployeeRequest[] = []
+      let standardData: any[] = []
+      let specialData: any[] = []
       let partnershipsData: Partnership[] = []
 
       if (candidatesText) {
@@ -117,15 +120,26 @@ const fetchData = async () => {
         if (parsed.success) candidatesData = parsed.data || []
       }
 
-      if (requestsText) {
-        const parsed = JSON.parse(requestsText)
-        if (parsed.success) requestsData = parsed.data || []
+      if (standardText) {
+        const parsed = JSON.parse(standardText)
+        if (parsed.success) standardData = parsed.data || []
+      }
+
+      if (specialText) {
+        const parsed = JSON.parse(specialText)
+        if (parsed.success) specialData = parsed.data || []
       }
 
       if (partnershipsText) {
         const parsed = JSON.parse(partnershipsText)
         if (parsed.success) partnershipsData = parsed.data || []
       }
+
+      // Combine standard and special requests with request_type field
+      const requestsData: EmployeeRequest[] = [
+        ...standardData.map((r) => ({ ...r, request_type: 'Standard' as const })),
+        ...specialData.map((r) => ({ ...r, request_type: 'Special' as const })),
+      ]
 
       setCandidates(candidatesData)
       setPartnerships(partnershipsData)
