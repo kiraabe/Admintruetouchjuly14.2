@@ -80,7 +80,7 @@ const Dashboard = () => {
       const headers = getAuthHeaders()
       const [candidatesRes, requestsRes, partnershipsRes] = await Promise.all([
         fetch('/api/candidates', { headers }),
-        fetch('/api/employee-requests', { headers }),
+        fetch('/api/employee-requests?limit=100', { headers }),
         fetch('/api/partnerships', { headers }),
       ])
 
@@ -102,7 +102,7 @@ const Dashboard = () => {
       if (requestsText) {
         const parsed = JSON.parse(requestsText)
         if (parsed.success) {
-          requestsData = parsed.data || []
+          requestsData = (parsed.data || []).slice(0, 3)
         }
       }
 
