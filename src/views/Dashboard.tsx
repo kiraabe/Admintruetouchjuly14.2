@@ -98,22 +98,19 @@ const Dashboard = () => {
 const fetchData = async () => {
     try {
       const headers = getAuthHeaders()
-      const [candidatesRes, requestsRes, partnershipsRes, stdCandidatesRes] = await Promise.all([
+      const [candidatesRes, requestsRes, partnershipsRes] = await Promise.all([
         fetch('/api/candidates', { headers }),
         fetch('/api/employee-requests', { headers }),
         fetch('/api/partnerships', { headers }),
-        fetch('/api/standard-request-candidates', { headers }),
       ])
 
       const candidatesText = await candidatesRes.text()
       const requestsText = await requestsRes.text()
       const partnershipsText = await partnershipsRes.text()
-      const stdCandidatesText = await stdCandidatesRes.text()
 
       let candidatesData: Candidate[] = []
       let requestsData: EmployeeRequest[] = []
       let partnershipsData: Partnership[] = []
-      let stdCandidatesData: { id: number; request_id: string; candidate_id: string; created_at: string }[] = []
 
       if (candidatesText) {
         const parsed = JSON.parse(candidatesText)
@@ -130,28 +127,17 @@ const fetchData = async () => {
         if (parsed.success) partnershipsData = parsed.data || []
       }
 
-      if (stdCandidatesText) {
-        const parsed = JSON.parse(stdCandidatesText)
-        if (parsed.success) stdCandidatesData = parsed.data || []
-      }
-
-      // Get request_ids from standard_request_candidates join table
-      const stdRequestIds = new Set(stdCandidatesData.map((r) => r.request_id))
-
-      // Only keep employee-requests that exist in standard_request_candidates
-      const filteredRequests = requestsData.filter((r) => stdRequestIds.has(r.request_id))
-
       setCandidates(candidatesData)
       setPartnerships(partnershipsData)
-      setRequests(filteredRequests)
+      setRequests(requestsData)
 
       // Latest 3 sorted by created_at for the table
-      const latest3 = [...filteredRequests]
+      const latest3 = [...requestsData]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 3)
       setLatestRequests(latest3)
 
-      calculateKPIs(candidatesData, filteredRequests)
+      calculateKPIs(candidatesData, requestsData)
       aggregateTopCountries(candidatesData, partnershipsData)
     } catch (error) {
       console.error('Error fetching data:', error)

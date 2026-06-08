@@ -367,6 +367,22 @@ app.use('/api/jobs', jobsRouter)
 app.use('/api/notification', notificationsRouter)
 app.use('/api/contact-us', contactRouter)
 
+// Standard request candidates endpoint
+app.get('/api/standard-request-candidates', async (req: Request, res: Response) => {
+  try {
+    const result = await pool.query(`
+      SELECT id, request_id, candidate_id, created_at
+      FROM standard_request_candidates
+      ORDER BY created_at DESC
+    `)
+    res.json({ success: true, data: result.rows })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error('Error fetching standard request candidates:', errorMsg)
+    res.status(500).json({ success: false, error: 'Failed to fetch standard request candidates', details: errorMsg })
+  }
+})
+
 // Upload Routes
 app.use('/api/upload', uploadsRouter)
 app.use('/api/uploads', uploadsRouter)
