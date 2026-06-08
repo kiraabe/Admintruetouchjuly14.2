@@ -33,6 +33,7 @@ interface Candidate {
   name: string
   status: string
   country?: string
+  created_at?: string
 }
 
 interface Partnership {
@@ -53,12 +54,30 @@ interface EmployeeRequest {
   created_at: string
 }
 
+// Generate last 12 days as labels e.g. ["28 May", "29 May", ..., "08 Jun"]
+const getLast12Days = (): string[] => {
+  const days: string[] = []
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    days.push(d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' }))
+  }
+  return days
+}
+
+// Returns a date key string "DD Mon" matching getLast12Days format
+const toDayKey = (dateStr: string): string => {
+  if (!dateStr) return ''
+  const d = new Date(dateStr)
+  return d.toLocaleDateString('en-US', { day: '2-digit', month: 'short' })
+}
+
 const Dashboard = () => {
   const [selectedSegment, setSelectedSegment] = useState('all')
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [partnerships, setPartnerships] = useState<Partnership[]>([])
   const [requests, setRequests] = useState<EmployeeRequest[]>([])
-  const [latestRequests, setLatestRequests] = useState<EmployeeRequest[]>([])  // ← NEW
+  const [latestRequests, setLatestRequests] = useState<EmployeeRequest[]>([])
   const [kpis, setKpis] = useState<KPI[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCountry, setSelectedCountry] = useState<string>(countriesData[0].name)
@@ -81,7 +100,7 @@ const Dashboard = () => {
       const headers = getAuthHeaders()
       const [candidatesRes, requestsRes, partnershipsRes] = await Promise.all([
         fetch('/api/candidates', { headers }),
-        fetch('/api/employee-requests', { headers }),  // ← fetch all, no limit
+        fetch('/api/standard-request-candidates', { headers }), // ← correct table
         fetch('/api/partnerships', { headers }),
       ])
 
@@ -103,7 +122,7 @@ const Dashboard = () => {
       if (requestsText) {
         const parsed = JSON.parse(requestsText)
         if (parsed.success) {
-          requestsData = parsed.data || []  // ← no slice, keep all
+          requestsData = parsed.data || []
         }
       }
 
@@ -118,7 +137,7 @@ const Dashboard = () => {
       setPartnerships(partnershipsData)
       setRequests(requestsData)
 
-      // ← Sort by created_at descending and take latest 3 for the table
+      // Latest 3 sorted by created_at for the table
       const latest3 = [...requestsData]
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
         .slice(0, 3)
@@ -139,9 +158,7 @@ const Dashboard = () => {
     candidatesData.forEach((candidate) => {
       const country = candidate.country?.trim()
       if (country) {
-        if (!locationMap[country]) {
-          locationMap[country] = { candidates: 0, partnerships: 0 }
-        }
+        if (!locationMap[country]) locationMap[country] = { candidates: 0, partnerships: 0 }
         locationMap[country].candidates += 1
       }
     })
@@ -149,9 +166,7 @@ const Dashboard = () => {
     partnershipsData.forEach((partnership) => {
       const city = partnership.service_city?.trim()
       if (city) {
-        if (!locationMap[city]) {
-          locationMap[city] = { candidates: 0, partnerships: 0 }
-        }
+        if (!locationMap[city]) locationMap[city] = { candidates: 0, partnerships: 0 }
         locationMap[city].partnerships += 1
       }
     })
@@ -254,7 +269,7 @@ const Dashboard = () => {
     </svg>
   )
 
-  // ← Use latestRequests (latest 3) for the table
+  // Use latestRequests (latest 3) for the table
   const campaigns: Campaign[] = latestRequests.map((request) => {
     const matchedCandidates = Math.floor(Math.random() * (request.number_of_employees + 1))
     const conversionRate = request.number_of_employees > 0 ? Math.round((matchedCandidates / request.number_of_employees) * 100) : 0
@@ -278,69 +293,45 @@ const Dashboard = () => {
   const requestFulfillmentScore = totalRequests > 0 ? Math.round((approvedRequests / totalRequests) * 100) : 0
   const placementSuccessScore = totalRequests > 0 ? Math.round(((totalRequests - rejectedRequests) / totalRequests) * 100) : 0
 
+  // ── Dynamic last-12-days chart ──────────────────────────────────────────────
+  const chartXAxis = getLast12Days() // e.g. ["28 May", ..., "08 Jun"]
+
   const filteredCandidates = candidates.filter((_, index) => {
     if (selectedSegment === 'all') return true
     return selectedSegment === 'Standard' ? index % 3 !== 0 : index % 3 === 0
   })
 
-  const filteredRequests = requests.filter(r => {
+  const filteredRequests = requests.filter((r) => {
     if (selectedSegment === 'all') return true
     return r.request_type === selectedSegment
   })
 
+  // Count candidates registered per day in the last 12 days
+  const candidatesPerDay = chartXAxis.map((dayLabel) => {
+    return filteredCandidates.filter((c) => toDayKey(c.created_at || '') === dayLabel).length
+  })
+
+  // Count requests created per day in the last 12 days
+  const requestsPerDay = chartXAxis.map((dayLabel) => {
+    return filteredRequests.filter((r) => toDayKey(r.created_at) === dayLabel).length
+  })
+
   const chartSeries = [
-    {
-      name: 'Candidates Matched',
-      data: filteredCandidates.length > 0 ? [
-        Math.round(filteredCandidates.length * 0.2),
-        Math.round(filteredCandidates.length * 0.25),
-        Math.round(filteredCandidates.length * 0.15),
-        Math.round(filteredCandidates.length * 0.3),
-        Math.round(filteredCandidates.length * 0.2),
-        Math.round(filteredCandidates.length * 0.25),
-        Math.round(filteredCandidates.length * 0.28),
-        Math.round(filteredCandidates.length * 0.35),
-        Math.round(filteredCandidates.length * 0.4),
-        Math.round(filteredCandidates.length * 0.35),
-        Math.round(filteredCandidates.length * 0.45),
-        Math.round(filteredCandidates.length * 0.5)
-      ] : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    },
-    {
-      name: 'Requests Fulfilled',
-      data: filteredRequests.length > 0 ? [
-        Math.round(filteredRequests.length * 0.1),
-        Math.round(filteredRequests.length * 0.15),
-        Math.round(filteredRequests.length * 0.12),
-        Math.round(filteredRequests.length * 0.18),
-        Math.round(filteredRequests.length * 0.16),
-        Math.round(filteredRequests.length * 0.15),
-        Math.round(filteredRequests.length * 0.2),
-        Math.round(filteredRequests.length * 0.22),
-        Math.round(filteredRequests.length * 0.25),
-        Math.round(filteredRequests.length * 0.2),
-        Math.round(filteredRequests.length * 0.28),
-        Math.round(filteredRequests.length * 0.3)
-      ] : [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-    },
+    { name: 'Candidates Matched', data: candidatesPerDay },
+    { name: 'Requests Fulfilled', data: requestsPerDay },
   ]
 
-  const maxVal = Math.max(
-    ...(filteredCandidates.length > 0 ? [filteredCandidates.length * 0.5] : [0]),
-    ...(filteredRequests.length > 0 ? [filteredRequests.length * 0.3] : [0])
-  )
-  const chartMax = Math.round(maxVal)
+  const chartMax = Math.max(...candidatesPerDay, ...requestsPerDay, 1)
 
   const chartOptions = {
     yaxis: {
       labels: {
-        formatter: (val: number) => val.toFixed(0)
+        formatter: (val: number) => val.toFixed(0),
       },
-      ...(chartMax > 0 && chartMax <= 10 ? { tickAmount: chartMax } : {})
-    }
+      ...(chartMax <= 10 ? { tickAmount: chartMax } : {}),
+    },
   }
-
-  const chartXAxis = ['01 May', '02 May', '03 May', '04 May', '05 May', '06 May', '07 May', '08 May', '09 May', '10 May', '11 May', '12 May']
+  // ───────────────────────────────────────────────────────────────────────────
 
   const performanceScores = [
     { label: 'Candidate Quality', score: `${candidateQualityScore}%`, status: candidateQualityScore >= 70 ? 'success' : 'warning' },
@@ -489,8 +480,9 @@ const Dashboard = () => {
                 <div
                   key={item.name}
                   onClick={() => setSelectedCountry(item.name)}
-                  className={`flex items-center gap-4 p-3 rounded-xl transition-all duration-150 cursor-pointer ${isSelected ? 'bg-gray-200 border border-gray-400' : 'hover:bg-gray-50 dark:hover:bg-gray-700'
-                    }`}
+                  className={`flex items-center gap-4 p-3 rounded-xl transition-all duration-150 cursor-pointer ${
+                    isSelected ? 'bg-gray-200 border border-gray-400' : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                  }`}
                 >
                   <div className="flex gap-2 text-xl">{flags[item.name]}</div>
                   <div className="flex-1">
