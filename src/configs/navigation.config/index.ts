@@ -242,14 +242,24 @@ const partnershipNavigation: NavigationTree[] = [
         ],
     },
     {
-        key: 'specialRequestGroup',
+        key: 'requestsGroup',
         path: '',
-        title: 'Special Request',
-        translateKey: 'nav.specialRequest',
+        title: 'Requests',
+        translateKey: 'nav.requests',
         icon: '',
         type: NAV_ITEM_TYPE_TITLE,
         authority: [],
         subMenu: [
+            {
+                key: 'standardRequestsHistory',
+                path: '/standard-requests-history',
+                title: 'Standard Requests',
+                translateKey: 'nav.standardRequests',
+                icon: 'collapseMenu',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [],
+                subMenu: [],
+            },
             {
                 key: 'specialRequest',
                 path: '/special-request',

@@ -103,6 +103,12 @@ export const protectedRoutes: Routes = [
         authority: [],
     },
     {
+        key: 'standardRequestsHistory',
+        path: '/standard-requests-history',
+        component: lazy(() => import('@/views/partnership/StandardRequestsHistory')),
+        authority: [],
+    },
+    {
         key: 'contactUs',
         path: '/contact-us',
         component: lazy(() => import('@/views/ContactUs')),
