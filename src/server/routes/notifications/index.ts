@@ -124,7 +124,7 @@ router.put('/mark-all-read', async (req: Request, res: Response) => {
     const result = await pool.query(`
       UPDATE notifications
       SET readed = true, updated_at = CURRENT_TIMESTAMP
-      WHERE readed = false AND user_id = $1
+      WHERE readed = false AND (user_id = $1 OR user_id IS NULL)
     `, [user_id])
 
     res.json({ success: true, updated: result.rowCount || 0 })
