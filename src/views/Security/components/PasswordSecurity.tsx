@@ -30,7 +30,12 @@ const PasswordSecurity = () => {
         const isLongEnough = password.length >= 8
 
         return {
-            isValid: hasUpperCase && hasLowerCase && hasNumbers && hasSpecialChar && isLongEnough,
+            isValid:
+                hasUpperCase &&
+                hasLowerCase &&
+                hasNumbers &&
+                hasSpecialChar &&
+                isLongEnough,
             hasUpperCase,
             hasLowerCase,
             hasNumbers,
@@ -67,7 +72,7 @@ const PasswordSecurity = () => {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${token}`,
+                    'Authorization': `Bearer ${token}`,
                 },
                 body: JSON.stringify({
                     currentPassword: formData.currentPassword,
@@ -75,26 +80,19 @@ const PasswordSecurity = () => {
                 }),
             })
 
-            // Check if response is JSON before parsing
-            const contentType = response.headers.get('content-type')
-            const isJson = contentType && contentType.includes('application/json')
+            const data = await response.json()
 
             if (!response.ok) {
-                if (isJson) {
-                    const data = await response.json()
-                    setError(data.message || `Error ${response.status}: Failed to change password`)
-                } else {
-                    setError(`Server error (${response.status}): The password change endpoint is not available. Please contact support.`)
-                }
+                setError(data.message || 'Failed to change password')
                 return
             }
 
-            if (isJson) {
-                await response.json() // consume body
-            }
-
             setSuccess(true)
-            setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' })
+            setFormData({
+                currentPassword: '',
+                newPassword: '',
+                confirmPassword: '',
+            })
             setTimeout(() => setSuccess(false), 5000)
         } catch (err) {
             setError(err instanceof Error ? err.message : 'An error occurred while changing password')
@@ -104,11 +102,15 @@ const PasswordSecurity = () => {
     }
 
     const passwordValidation = validatePassword(formData.newPassword)
+    const isPasswordValid = formData.newPassword
+        ? passwordValidation.isValid
+        : null
 
     return (
         <div className="space-y-6">
             <Alert title="Password Security" type="info">
-                Use a strong password with uppercase, lowercase, numbers, and special characters.
+                Use a strong password with uppercase, lowercase, numbers, and
+                special characters.
             </Alert>
 
             {success && (
@@ -152,20 +154,80 @@ const PasswordSecurity = () => {
 
                 {formData.newPassword && (
                     <div className="space-y-2 bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                        <p className="text-sm font-semibold">Password Strength</p>
+                        <p className="text-sm font-semibold">
+                            Password Strength
+                        </p>
                         <div className="space-y-1">
-                            {[
-                                { check: passwordValidation.hasUpperCase, label: 'Uppercase letters (A-Z)' },
-                                { check: passwordValidation.hasLowerCase, label: 'Lowercase letters (a-z)' },
-                                { check: passwordValidation.hasNumbers,   label: 'Numbers (0-9)' },
-                                { check: passwordValidation.hasSpecialChar, label: 'Special characters (!@#$%^&*)' },
-                                { check: passwordValidation.isLongEnough, label: 'Minimum 8 characters' },
-                            ].map(({ check, label }) => (
-                                <div key={label} className={`flex items-center text-sm ${check ? 'text-green-600' : 'text-gray-500'}`}>
-                                    <span className="mr-2">{check ? '✓' : '○'}</span>
-                                    {label}
-                                </div>
-                            ))}
+                            <div
+                                className={`flex items-center text-sm ${
+                                    passwordValidation.hasUpperCase
+                                        ? 'text-green-600'
+                                        : 'text-gray-500'
+                                }`}
+                            >
+                                <span className="mr-2">
+                                    {passwordValidation.hasUpperCase
+                                        ? '✓'
+                                        : '○'}
+                                </span>
+                                Uppercase letters (A-Z)
+                            </div>
+                            <div
+                                className={`flex items-center text-sm ${
+                                    passwordValidation.hasLowerCase
+                                        ? 'text-green-600'
+                                        : 'text-gray-500'
+                                }`}
+                            >
+                                <span className="mr-2">
+                                    {passwordValidation.hasLowerCase
+                                        ? '✓'
+                                        : '○'}
+                                </span>
+                                Lowercase letters (a-z)
+                            </div>
+                            <div
+                                className={`flex items-center text-sm ${
+                                    passwordValidation.hasNumbers
+                                        ? 'text-green-600'
+                                        : 'text-gray-500'
+                                }`}
+                            >
+                                <span className="mr-2">
+                                    {passwordValidation.hasNumbers
+                                        ? '✓'
+                                        : '○'}
+                                </span>
+                                Numbers (0-9)
+                            </div>
+                            <div
+                                className={`flex items-center text-sm ${
+                                    passwordValidation.hasSpecialChar
+                                        ? 'text-green-600'
+                                        : 'text-gray-500'
+                                }`}
+                            >
+                                <span className="mr-2">
+                                    {passwordValidation.hasSpecialChar
+                                        ? '✓'
+                                        : '○'}
+                                </span>
+                                Special characters (!@#$%^&*)
+                            </div>
+                            <div
+                                className={`flex items-center text-sm ${
+                                    passwordValidation.isLongEnough
+                                        ? 'text-green-600'
+                                        : 'text-gray-500'
+                                }`}
+                            >
+                                <span className="mr-2">
+                                    {passwordValidation.isLongEnough
+                                        ? '✓'
+                                        : '○'}
+                                </span>
+                                Minimum 8 characters
+                            </div>
                         </div>
                     </div>
                 )}
@@ -185,7 +247,12 @@ const PasswordSecurity = () => {
                     />
                 </div>
 
-                <Button variant="solid" loading={loading} disabled={loading} type="submit">
+                <Button
+                    variant="solid"
+                    loading={loading}
+                    disabled={loading}
+                    type="submit"
+                >
                     Change Password
                 </Button>
             </form>
