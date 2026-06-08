@@ -339,11 +339,10 @@ const fetchData = async () => {
   })
 
   const chartSeries = [
-    { name: 'Candidates Matched', data: candidatesPerDay },
     { name: 'Requests Fulfilled', data: requestsPerDay },
   ]
 
-  const chartMax = Math.max(...candidatesPerDay, ...requestsPerDay, 1)
+  const chartMax = Math.max(...requestsPerDay, 1)
 
   const chartOptions = {
     yaxis: {
