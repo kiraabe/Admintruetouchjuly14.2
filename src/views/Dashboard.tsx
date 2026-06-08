@@ -621,8 +621,8 @@ const fetchData = async () => {
                 <th className="text-left py-3 px-4">Position</th>
                 <th className="text-left py-3 px-4">Status</th>
                 <th className="text-left py-3 px-4">Positions</th>
-                <th className="text-left py-3 px-4">Start</th>
-                <th className="text-left py-3 px-4">End</th>
+                <th className="text-left py-3 px-4">Created</th>
+                <th className="text-left py-3 px-4">Updated</th>
               </tr>
             </thead>
             <tbody>
