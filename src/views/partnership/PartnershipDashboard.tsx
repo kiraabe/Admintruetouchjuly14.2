@@ -113,7 +113,10 @@ const PartnershipDashboard = () => {
             method: 'GET',
             url: '/special-requests?page=1&limit=1000',
           })
-          specialRequestsData = specialRes.data || []
+          specialRequestsData = (specialRes.data || []).map((req: any) => ({
+            ...req,
+            request_type: 'Special',
+          }))
         } catch (error: any) {
           console.warn('Error fetching special requests:', error.message)
         }
@@ -124,7 +127,10 @@ const PartnershipDashboard = () => {
             method: 'GET',
             url: '/standard-requests?page=1&limit=1000',
           })
-          standardRequestsData = standardRes.data || []
+          standardRequestsData = (standardRes.data || []).map((req: any) => ({
+            ...req,
+            request_type: req.request_type || 'Standard',
+          }))
         } catch (error: any) {
           console.warn('Error fetching standard requests:', error.message)
         }
