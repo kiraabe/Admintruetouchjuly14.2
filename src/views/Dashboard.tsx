@@ -1,4 +1,5 @@
 import { useMemo, useState, useEffect } from 'react'
+import Cookies from 'js-cookie'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Tag from '@/components/ui/Tag'
@@ -66,12 +67,21 @@ const Dashboard = () => {
     fetchData()
   }, [])
 
+  const getAuthHeaders = () => {
+    const token = Cookies.get('token') || localStorage.getItem('token')
+    return {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    }
+  }
+
   const fetchData = async () => {
     try {
+      const headers = getAuthHeaders()
       const [candidatesRes, requestsRes, partnershipsRes] = await Promise.all([
-        fetch('/api/candidates'),
-        fetch('/api/employee-requests'),
-        fetch('/api/partnerships'),
+        fetch('/api/candidates', { headers }),
+        fetch('/api/employee-requests', { headers }),
+        fetch('/api/partnerships', { headers }),
       ])
 
       const candidatesText = await candidatesRes.text()
