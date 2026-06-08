@@ -58,6 +58,7 @@ const Dashboard = () => {
   const [candidates, setCandidates] = useState<Candidate[]>([])
   const [partnerships, setPartnerships] = useState<Partnership[]>([])
   const [requests, setRequests] = useState<EmployeeRequest[]>([])
+  const [latestRequests, setLatestRequests] = useState<EmployeeRequest[]>([])  // ← NEW
   const [kpis, setKpis] = useState<KPI[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedCountry, setSelectedCountry] = useState<string>(countriesData[0].name)
@@ -80,7 +81,7 @@ const Dashboard = () => {
       const headers = getAuthHeaders()
       const [candidatesRes, requestsRes, partnershipsRes] = await Promise.all([
         fetch('/api/candidates', { headers }),
-        fetch('/api/employee-requests?limit=3&sort=created_at&order=desc', { headers }),
+        fetch('/api/employee-requests', { headers }),  // ← fetch all, no limit
         fetch('/api/partnerships', { headers }),
       ])
 
@@ -102,7 +103,7 @@ const Dashboard = () => {
       if (requestsText) {
         const parsed = JSON.parse(requestsText)
         if (parsed.success) {
-         requestsData = parsed.data || []
+          requestsData = parsed.data || []  // ← no slice, keep all
         }
       }
 
@@ -116,6 +117,13 @@ const Dashboard = () => {
       setCandidates(candidatesData)
       setPartnerships(partnershipsData)
       setRequests(requestsData)
+
+      // ← Sort by created_at descending and take latest 3 for the table
+      const latest3 = [...requestsData]
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+        .slice(0, 3)
+      setLatestRequests(latest3)
+
       calculateKPIs(candidatesData, requestsData)
       aggregateTopCountries(candidatesData, partnershipsData)
     } catch (error) {
@@ -128,7 +136,6 @@ const Dashboard = () => {
   const aggregateTopCountries = (candidatesData: Candidate[], partnershipsData: Partnership[]) => {
     const locationMap: { [key: string]: { candidates: number; partnerships: number } } = {}
 
-    // Count candidates by country
     candidatesData.forEach((candidate) => {
       const country = candidate.country?.trim()
       if (country) {
@@ -139,7 +146,6 @@ const Dashboard = () => {
       }
     })
 
-    // Count partnerships by service city (treating city as proxy for country)
     partnershipsData.forEach((partnership) => {
       const city = partnership.service_city?.trim()
       if (city) {
@@ -150,7 +156,6 @@ const Dashboard = () => {
       }
     })
 
-    // Get top 5 countries/locations by count
     const sortedLocations = Object.entries(locationMap)
       .sort((a, b) => (b[1].candidates + b[1].partnerships) - (a[1].candidates + a[1].partnerships))
       .slice(0, 5)
@@ -158,7 +163,6 @@ const Dashboard = () => {
     const total = sortedLocations.reduce((sum, [_, data]) => sum + data.candidates + data.partnerships, 0)
 
     if (total > 0 && sortedLocations.length > 0) {
-      // Create dynamic country data from actual data with correct coordinates
       const updated: CountryData[] = sortedLocations.map(([name, data]) => ({
         name,
         coordinates: getCountryCoordinates(name),
@@ -180,7 +184,6 @@ const Dashboard = () => {
     const inProgressRequests = requestsData.filter((r) => r.status === 'In Progress').length
     const completedRequests = requestsData.filter((r) => r.status === 'Completed').length
 
-    // Calculate percentage changes (difference between approved and in progress as a proxy for change)
     const candidateChange = totalRequests > 0 ? ((activeRequests / totalRequests) * 100).toFixed(1) : '0'
     const positionChange = openPositions > 0 ? ((openPositions / totalRequests) * 100).toFixed(1) : '0'
     const placementChange = completedRequests > 0 ? ((completedRequests / totalRequests) * 100).toFixed(1) : '0'
@@ -251,7 +254,8 @@ const Dashboard = () => {
     </svg>
   )
 
-  const campaigns: Campaign[] = requests.map((request, index) => {
+  // ← Use latestRequests (latest 3) for the table
+  const campaigns: Campaign[] = latestRequests.map((request) => {
     const matchedCandidates = Math.floor(Math.random() * (request.number_of_employees + 1))
     const conversionRate = request.number_of_employees > 0 ? Math.round((matchedCandidates / request.number_of_employees) * 100) : 0
     return {
@@ -330,9 +334,7 @@ const Dashboard = () => {
   const chartOptions = {
     yaxis: {
       labels: {
-        formatter: (val: number) => {
-          return val.toFixed(0)
-        }
+        formatter: (val: number) => val.toFixed(0)
       },
       ...(chartMax > 0 && chartMax <= 10 ? { tickAmount: chartMax } : {})
     }
@@ -369,35 +371,13 @@ const Dashboard = () => {
 
   const columns = useMemo(
     () => [
-      {
-        Header: '',
-        id: 'checkbox',
-        Cell: () => <input type="checkbox" />,
-      },
-      {
-        Header: 'Campaign',
-        accessor: 'name',
-      },
-      {
-        Header: 'Status',
-        accessor: 'status',
-      },
-      {
-        Header: 'Budget',
-        accessor: 'budget',
-      },
-      {
-        Header: 'Conversions',
-        accessor: 'conversions',
-      },
-      {
-        Header: 'Start',
-        accessor: 'startDate',
-      },
-      {
-        Header: 'End',
-        accessor: 'endDate',
-      },
+      { Header: '', id: 'checkbox', Cell: () => <input type="checkbox" /> },
+      { Header: 'Campaign', accessor: 'name' },
+      { Header: 'Status', accessor: 'status' },
+      { Header: 'Budget', accessor: 'budget' },
+      { Header: 'Conversions', accessor: 'conversions' },
+      { Header: 'Start', accessor: 'startDate' },
+      { Header: 'End', accessor: 'endDate' },
     ],
     [],
   )
@@ -446,15 +426,9 @@ const Dashboard = () => {
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-lg font-bold">Recruitment Performance</h4>
               <Segment>
-                <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'all' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('all')}>
-                  All
-                </button>
-                <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'Standard' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('Standard')}>
-                  Standard
-                </button>
-                <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'Special' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('Special')}>
-                  Special
-                </button>
+                <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'all' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('all')}>All</button>
+                <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'Standard' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('Standard')}>Standard</button>
+                <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'Special' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('Special')}>Special</button>
               </Segment>
             </div>
             <div style={{ minHeight: '465px' }}>
@@ -511,22 +485,16 @@ const Dashboard = () => {
                 'Turkey': '🇹🇷',
               }
               const isSelected = selectedCountry === item.name
-
               return (
                 <div
                   key={item.name}
                   onClick={() => setSelectedCountry(item.name)}
-                  className={`flex items-center gap-4 p-3 rounded-xl transition-all duration-150 cursor-pointer ${
-                    isSelected
-                      ? 'bg-gray-200 border border-gray-400'
-                      : 'hover:bg-gray-50 dark:hover:bg-gray-700'
-                  }`}
+                  className={`flex items-center gap-4 p-3 rounded-xl transition-all duration-150 cursor-pointer ${isSelected ? 'bg-gray-200 border border-gray-400' : 'hover:bg-gray-50 dark:hover:bg-gray-700'
+                    }`}
                 >
                   <div className="flex gap-2 text-xl">{flags[item.name]}</div>
                   <div className="flex-1">
-                    <div className={`font-semibold text-sm ${isSelected ? 'text-gray-700' : ''}`}>
-                      {item.name}
-                    </div>
+                    <div className={`font-semibold text-sm ${isSelected ? 'text-gray-700' : ''}`}>{item.name}</div>
                     <div className="progress line">
                       <div className="progress-wrapper">
                         <div className="progress-inner transition-colors duration-150">
@@ -557,9 +525,7 @@ const Dashboard = () => {
           <table className="w-full text-sm">
             <thead className="border-b border-gray-200 dark:border-gray-700">
               <tr>
-                <th className="text-left py-3 px-4">
-                  <input type="checkbox" />
-                </th>
+                <th className="text-left py-3 px-4"><input type="checkbox" /></th>
                 <th className="text-left py-3 px-4">Position</th>
                 <th className="text-left py-3 px-4">Status</th>
                 <th className="text-left py-3 px-4">Positions</th>
@@ -569,29 +535,33 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {campaigns.map((campaign) => (
-                <tr key={campaign.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                  <td className="py-3 px-4">
-                    <input type="checkbox" />
-                  </td>
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-2">
-                      <Avatar size={50} className="text-2xl">{campaign.icon}</Avatar>
-                      <div>
-                        <div className="font-bold">{campaign.name}</div>
-                        <div className="text-xs text-gray-500">{campaign.type}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4">
-                    <Tag className={getStatusColor(campaign.status)}>{campaign.status}</Tag>
-                  </td>
-                  <td className="py-3 px-4 text-gray-700 dark:text-gray-300">{campaign.budget}</td>
-                  <td className="py-3 px-4 text-gray-700 dark:text-gray-300">{campaign.conversions}</td>
-                  <td className="py-3 px-4 whitespace-nowrap">{campaign.startDate}</td>
-                  <td className="py-3 px-4 whitespace-nowrap">{campaign.endDate}</td>
+              {campaigns.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-6 text-center text-gray-400">No job requests found</td>
                 </tr>
-              ))}
+              ) : (
+                campaigns.map((campaign) => (
+                  <tr key={campaign.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <td className="py-3 px-4"><input type="checkbox" /></td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <Avatar size={50} className="text-2xl">{campaign.icon}</Avatar>
+                        <div>
+                          <div className="font-bold">{campaign.name}</div>
+                          <div className="text-xs text-gray-500">{campaign.type}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <Tag className={getStatusColor(campaign.status)}>{campaign.status}</Tag>
+                    </td>
+                    <td className="py-3 px-4 text-gray-700 dark:text-gray-300">{campaign.budget}</td>
+                    <td className="py-3 px-4 text-gray-700 dark:text-gray-300">{campaign.conversions}</td>
+                    <td className="py-3 px-4 whitespace-nowrap">{campaign.startDate}</td>
+                    <td className="py-3 px-4 whitespace-nowrap">{campaign.endDate}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
