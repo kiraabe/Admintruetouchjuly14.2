@@ -1,9 +1,7 @@
-import { useMemo, useState, useEffect, useCallback } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import Card from '@/components/ui/Card'
-import Button from '@/components/ui/Button'
 import Tag from '@/components/ui/Tag'
 import Segment from '@/components/ui/Segment'
-import Avatar from '@/components/ui/Avatar'
 import Chart from 'react-apexcharts'
 import { useSessionUser } from '@/store/authStore'
 import ApiService from '@/services/ApiService'
@@ -68,7 +66,7 @@ const PartnershipDashboard = () => {
       const totalPositions = requestsData.reduce((sum, r) => sum + r.number_of_employees, 0)
       const fulfillmentRate = totalRequests > 0 ? Math.round((approvedRequests / totalRequests) * 100) : 0
 
-      const calculatedKpis: KPI[] = [
+      setKpis([
         {
           title: 'Total Requests',
           value: totalRequests,
@@ -97,48 +95,61 @@ const PartnershipDashboard = () => {
           icon: kpiIcons[3],
           bgColor: 'bg-purple-200',
         },
-      ]
-
-      setKpis(calculatedKpis)
+      ])
     }
 
     const fetchData = async () => {
       try {
-        let specialRequestsData: any[] = []
-        let standardRequestsData: any[] = []
+        // Derive the partnership_id from the logged-in user.
+        // Adjust the field name below to match your auth store shape
+        // (e.g. user?.partnershipId, user?.partnership_id, user?.partner?.id, etc.)
+        const partnershipId: string | undefined = (user as any)?.partnership_id ?? (user as any)?.partnershipId
 
-        // Fetch special requests
+        let specialRequestsData: SpecialRequest[] = []
+        let standardRequestsData: SpecialRequest[] = []
+
+        // --- Special requests ---
+        // Filter by partnership_id so partners only see their own requests
         try {
+          const specialUrl = partnershipId
+            ? `/special-requests?page=1&limit=1000&partnership_id=${partnershipId}`
+            : '/special-requests?page=1&limit=1000'
+
           const specialRes = await ApiService.fetchDataWithAxios<any>({
             method: 'GET',
-            url: '/special-requests?page=1&limit=1000',
+            url: specialUrl,
           })
+
           specialRequestsData = (specialRes.data || []).map((req: any) => ({
             ...req,
+            // Always tag as 'Special' — this distinguishes them from standard ones
             request_type: 'Special',
           }))
-          console.log('Special requests fetched:', specialRequestsData)
         } catch (error: any) {
           console.warn('Error fetching special requests:', error.message)
         }
 
-        // Fetch standard requests
+        // --- Standard requests ---
         try {
+          const standardUrl = partnershipId
+            ? `/standard-requests?page=1&limit=1000&partnership_id=${partnershipId}`
+            : '/standard-requests?page=1&limit=1000'
+
           const standardRes = await ApiService.fetchDataWithAxios<any>({
             method: 'GET',
-            url: '/standard-requests?page=1&limit=1000',
+            url: standardUrl,
           })
+
           standardRequestsData = (standardRes.data || []).map((req: any) => ({
             ...req,
-            request_type: req.request_type || 'Standard',
+            // Preserve the original request_type if the backend provides it; otherwise default to 'Standard'
+            request_type: req.request_type && req.request_type !== 'Special' ? req.request_type : 'Standard',
           }))
-          console.log('Standard requests fetched:', standardRequestsData)
         } catch (error: any) {
           console.warn('Error fetching standard requests:', error.message)
         }
 
         const allRequests = [...specialRequestsData, ...standardRequestsData]
-        console.log('All requests merged:', allRequests, 'Total:', allRequests.length)
         setRequests(allRequests)
         calculateKPIs(allRequests)
       } catch (error: any) {
@@ -150,136 +161,114 @@ const PartnershipDashboard = () => {
     }
 
     fetchData()
-  }, [])
+    // Re-fetch whenever the user changes (login/logout)
+  }, [user])
 
+  // Active = not Rejected
+  const activeRequests = useMemo(
+    () => requests.filter((r) => r.status !== 'Rejected'),
+    [requests],
+  )
 
-  // Filter to show only active requests (exclude Rejected status)
-  const activeRequests = requests.filter((request) => request.status !== 'Rejected')
-
-  const campaigns: SpecialRequest[] = activeRequests.map((request) => ({
-    ...request,
-  }))
-
-  // Generate chart data based on selected segment and actual requests only
-  const getFilteredRequests = () => {
-    if (selectedSegment === 'standard') {
-      return activeRequests.filter((r) => r.request_type === 'Standard')
-    } else if (selectedSegment === 'special') {
-      return activeRequests.filter((r) => r.request_type === 'Special')
-    }
+  // ── Segment filter ────────────────────────────────────────────────────────
+  const filteredRequests = useMemo(() => {
+    if (selectedSegment === 'standard') return activeRequests.filter((r) => r.request_type === 'Standard')
+    if (selectedSegment === 'special') return activeRequests.filter((r) => r.request_type === 'Special')
     return activeRequests
-  }
+  }, [activeRequests, selectedSegment])
 
-  // Generate last 12 days and calculate daily metrics by status
-  const getLast12DaysData = () => {
+  // ── Chart: last 12 days ───────────────────────────────────────────────────
+  const { chartXAxis, approvedData, pendingData, rejectedData } = useMemo(() => {
     const today = new Date()
     today.setHours(0, 0, 0, 0)
-    const days = []
-    const approvedData = []
-    const pendingData = []
-    const rejectedData = []
+
+    const days: string[] = []
+    const approvedData: number[] = []
+    const pendingData: number[] = []
+    const rejectedData: number[] = []
 
     for (let i = 11; i >= 0; i--) {
-      const date = new Date(today)
-      date.setDate(date.getDate() - i)
+      const dayStart = new Date(today)
+      dayStart.setDate(dayStart.getDate() - i)
 
-      const nextDate = new Date(date)
-      nextDate.setDate(nextDate.getDate() + 1)
+      const dayEnd = new Date(dayStart)
+      dayEnd.setDate(dayEnd.getDate() + 1)
 
-      const filteredRequests = getFilteredRequests()
-      const dayRequests = filteredRequests.filter((r) => {
-        const createdAtStr = r.created_at || r.start_date
-        if (!createdAtStr) return false
-        const requestDate = new Date(createdAtStr)
-        requestDate.setHours(0, 0, 0, 0)
-        return requestDate.getTime() >= date.getTime() && requestDate.getTime() < nextDate.getTime()
+      // Use ALL requests (including Rejected) for the chart so "Rejected" bars are visible
+      const dayRequests = requests.filter((r) => {
+        const raw = r.created_at || r.start_date
+        if (!raw) return false
+        const d = new Date(raw)
+        d.setHours(0, 0, 0, 0)
+        return d >= dayStart && d < dayEnd
       })
 
-      const dayApproved = dayRequests.filter((r) => r.status === 'Approved').length
-      const dayPending = dayRequests.filter((r) => r.status === 'Pending').length
-      const dayRejected = dayRequests.filter((r) => r.status === 'Rejected').length
+      // Apply segment filter on top
+      const segmented =
+        selectedSegment === 'special'
+          ? dayRequests.filter((r) => r.request_type === 'Special')
+          : selectedSegment === 'standard'
+          ? dayRequests.filter((r) => r.request_type === 'Standard')
+          : dayRequests
 
-      days.push(date.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }))
-      approvedData.push(dayApproved)
-      pendingData.push(dayPending)
-      rejectedData.push(dayRejected)
+      days.push(dayStart.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }))
+      approvedData.push(segmented.filter((r) => r.status === 'Approved').length)
+      pendingData.push(segmented.filter((r) => r.status === 'Pending').length)
+      rejectedData.push(segmented.filter((r) => r.status === 'Rejected').length)
     }
 
-    return { days, approvedData, pendingData, rejectedData }
-  }
+    return { chartXAxis: days, approvedData, pendingData, rejectedData }
+  }, [requests, selectedSegment])
 
-  const { days: chartXAxis, approvedData, pendingData, rejectedData } = getLast12DaysData()
-  const totalFiltered = getFilteredRequests().length
-  const approvedFiltered = getFilteredRequests().filter((r) => r.status === 'Approved').length
-  const fulfillmentRate = totalFiltered > 0 ? Math.round((approvedFiltered / totalFiltered) * 100) : 0
+  // ── Performance score ─────────────────────────────────────────────────────
+  const { fulfillmentRate, overallScore } = useMemo(() => {
+    const total = filteredRequests.length
+    const approved = filteredRequests.filter((r) => r.status === 'Approved').length
+    const rate = total > 0 ? Math.round((approved / total) * 100) : 0
+    return { fulfillmentRate: rate, overallScore: rate }
+  }, [filteredRequests])
 
+  const performanceScores: PartnershipMetric[] = [
+    {
+      label: 'Fulfillment Rate',
+      score: `${fulfillmentRate}%`,
+      status: fulfillmentRate >= 75 ? 'success' : fulfillmentRate >= 50 ? 'warning' : 'error',
+    },
+  ]
+
+  // ── Chart config ──────────────────────────────────────────────────────────
   const chartSeries = [
-    {
-      name: 'Approved',
-      data: approvedData,
-    },
-    {
-      name: 'Pending',
-      data: pendingData,
-    },
-    {
-      name: 'Rejected',
-      data: rejectedData,
-    },
+    { name: 'Approved', data: approvedData },
+    { name: 'Pending',  data: pendingData  },
+    { name: 'Rejected', data: rejectedData },
   ]
 
   const chartOptions = {
     plotOptions: {
-      bar: {
-        horizontal: false,
-        columnWidth: '55%',
-        borderRadius: 4,
-      },
+      bar: { horizontal: false, columnWidth: '55%', borderRadius: 4 },
     },
     colors: COLORS,
-    dataLabels: {
-      enabled: false,
-    },
-    stroke: {
-      show: true,
-      width: 2,
-      colors: ['transparent'],
-    },
-    xaxis: {
-      categories: chartXAxis,
-    },
-    fill: {
-      opacity: 1,
-    },
+    dataLabels: { enabled: false },
+    stroke: { show: true, width: 2, colors: ['transparent'] },
+    xaxis: { categories: chartXAxis },
+    fill: { opacity: 1 },
     tooltip: {
-      y: {
-        formatter: (val: number) => `${val} requests`,
-      },
+      y: { formatter: (val: number) => `${val} request${val !== 1 ? 's' : ''}` },
     },
   }
 
-  // Calculate performance scores based on actual data only
-  const performanceScores: PartnershipMetric[] = [
-    { label: 'Fulfillment Rate', score: `${fulfillmentRate}%`, status: fulfillmentRate >= 75 ? 'success' : fulfillmentRate >= 50 ? 'warning' : 'error' },
-  ]
-
-  const overallScore = fulfillmentRate
-
+  // ── Status badge color ────────────────────────────────────────────────────
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Approved':
-        return 'bg-emerald-200'
-      case 'In Progress':
-        return 'bg-sky-200'
-      case 'Pending':
-        return 'bg-yellow-200'
-      case 'Rejected':
-        return 'bg-red-200'
-      default:
-        return 'bg-gray-200'
+      case 'Approved':    return 'bg-emerald-200'
+      case 'In Progress': return 'bg-sky-200'
+      case 'Pending':     return 'bg-yellow-200'
+      case 'Rejected':    return 'bg-red-200'
+      default:            return 'bg-gray-200'
     }
   }
 
+  // ── Loading ───────────────────────────────────────────────────────────────
   if (loading) {
     return (
       <Card>
@@ -288,6 +277,7 @@ const PartnershipDashboard = () => {
     )
   }
 
+  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="flex flex-col gap-4">
       {/* KPI Summary */}
@@ -297,8 +287,13 @@ const PartnershipDashboard = () => {
         </div>
         <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
           {kpis.map((kpi) => (
-            <div key={kpi.title} className="flex flex-col gap-2 py-4 px-6 border-b md:border-b-0 md:ltr:border-r border-gray-200 dark:border-gray-700">
-              <div className={`flex items-center justify-center min-h-12 min-w-12 max-h-12 max-w-12 text-gray-900 rounded-full text-2xl ${kpi.bgColor}`}>
+            <div
+              key={kpi.title}
+              className="flex flex-col gap-2 py-4 px-6 border-b md:border-b-0 md:ltr:border-r border-gray-200 dark:border-gray-700"
+            >
+              <div
+                className={`flex items-center justify-center min-h-12 min-w-12 max-h-12 max-w-12 text-gray-900 rounded-full text-2xl ${kpi.bgColor}`}
+              >
                 {kpi.icon}
               </div>
               <div className="mt-4">
@@ -324,24 +319,28 @@ const PartnershipDashboard = () => {
             <div className="flex items-center justify-between mb-4">
               <h4 className="text-lg font-bold">Request Performance</h4>
               <Segment>
-                <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'all' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('all')}>
+                <button
+                  className={`px-3 py-2 text-sm rounded ${selectedSegment === 'all' ? 'bg-gray-200' : ''}`}
+                  onClick={() => setSelectedSegment('all')}
+                >
                   All
                 </button>
-                <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'standard' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('standard')}>
+                <button
+                  className={`px-3 py-2 text-sm rounded ${selectedSegment === 'standard' ? 'bg-gray-200' : ''}`}
+                  onClick={() => setSelectedSegment('standard')}
+                >
                   Standard
                 </button>
-                <button className={`px-3 py-2 text-sm rounded ${selectedSegment === 'special' ? 'bg-gray-200' : ''}`} onClick={() => setSelectedSegment('special')}>
+                <button
+                  className={`px-3 py-2 text-sm rounded ${selectedSegment === 'special' ? 'bg-gray-200' : ''}`}
+                  onClick={() => setSelectedSegment('special')}
+                >
                   Special
                 </button>
               </Segment>
             </div>
             <div style={{ minHeight: '465px' }}>
-              <Chart
-                options={chartOptions}
-                series={chartSeries}
-                type="bar"
-                height={450}
-              />
+              <Chart options={chartOptions} series={chartSeries} type="bar" height={450} />
             </div>
           </Card>
         </div>
@@ -365,7 +364,13 @@ const PartnershipDashboard = () => {
                 </div>
                 <div className="border-dashed border-b border-gray-300 dark:border-gray-500 flex-1"></div>
                 <div>
-                  <span className={`rounded-full px-2 py-1 text-white text-sm ${item.status === 'success' ? 'bg-success' : item.status === 'warning' ? 'bg-warning' : 'bg-error'}`}>{item.score}</span>
+                  <span
+                    className={`rounded-full px-2 py-1 text-white text-sm ${
+                      item.status === 'success' ? 'bg-success' : item.status === 'warning' ? 'bg-warning' : 'bg-error'
+                    }`}
+                  >
+                    {item.score}
+                  </span>
                 </div>
               </div>
             ))}
@@ -394,27 +399,34 @@ const PartnershipDashboard = () => {
               </tr>
             </thead>
             <tbody>
-              {campaigns.length === 0 ? (
+              {activeRequests.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="text-center py-4 text-gray-500">
                     No active requests
                   </td>
                 </tr>
               ) : (
-                campaigns.slice(0, 10).map((campaign) => (
-                  <tr key={campaign.request_id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                activeRequests.slice(0, 10).map((request) => (
+                  <tr
+                    key={request.request_id}
+                    className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  >
                     <td className="py-3 px-4">
                       <input type="checkbox" />
                     </td>
-                    <td className="py-3 px-4 font-semibold">{campaign.company_name}</td>
-                    <td className="py-3 px-4">{campaign.position}</td>
+                    <td className="py-3 px-4 font-semibold">{request.company_name}</td>
+                    <td className="py-3 px-4">{request.position}</td>
                     <td className="py-3 px-4">
-                      <Tag className={getStatusColor(campaign.status)}>{campaign.status}</Tag>
+                      <Tag className={getStatusColor(request.status)}>{request.status}</Tag>
                     </td>
-                    <td className="py-3 px-4">{campaign.number_of_employees}</td>
-                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{campaign.request_type}</td>
+                    <td className="py-3 px-4">{request.number_of_employees}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{request.request_type}</td>
                     <td className="py-3 px-4 whitespace-nowrap">
-                      {new Date(campaign.start_date || campaign.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' })}
+                      {new Date(request.start_date || request.created_at).toLocaleDateString('en-US', {
+                        month: '2-digit',
+                        day: '2-digit',
+                        year: 'numeric',
+                      })}
                     </td>
                   </tr>
                 ))
