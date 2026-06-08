@@ -419,7 +419,6 @@ const fetchData = async () => {
       { Header: 'Campaign', accessor: 'name' },
       { Header: 'Status', accessor: 'status' },
       { Header: 'Budget', accessor: 'budget' },
-      { Header: 'Conversions', accessor: 'conversions' },
       { Header: 'Start', accessor: 'startDate' },
       { Header: 'End', accessor: 'endDate' },
     ],
@@ -621,7 +620,6 @@ const fetchData = async () => {
                 <th className="text-left py-3 px-4">Position</th>
                 <th className="text-left py-3 px-4">Status</th>
                 <th className="text-left py-3 px-4">Positions</th>
-                <th className="text-left py-3 px-4">Matched</th>
                 <th className="text-left py-3 px-4">Start</th>
                 <th className="text-left py-3 px-4">End</th>
               </tr>
@@ -648,7 +646,6 @@ const fetchData = async () => {
                       <Tag className={getStatusColor(campaign.status)}>{campaign.status}</Tag>
                     </td>
                     <td className="py-3 px-4 text-gray-700 dark:text-gray-300">{campaign.budget}</td>
-                    <td className="py-3 px-4 text-gray-700 dark:text-gray-300">{campaign.conversions}</td>
                     <td className="py-3 px-4 whitespace-nowrap">{campaign.startDate}</td>
                     <td className="py-3 px-4 whitespace-nowrap">{campaign.endDate}</td>
                   </tr>
