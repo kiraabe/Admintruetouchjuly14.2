@@ -159,6 +159,35 @@ router.post('/own/create', validatePartnershipSession, async (req: Request, res:
     const requestData = { ...data, partnership_id: partnershipId }
 
     const request = await createStandardRequest(requestData, candidateIds)
+
+    // Create admin notification for new standard request
+    try {
+      const partnershipResult = await pool.query(
+        'SELECT company_name FROM partnerships WHERE partner_id = $1',
+        [partnershipId]
+      )
+      const partnershipName = partnershipResult.rows[0]?.company_name || 'Partnership'
+
+      await pool.query(`
+        INSERT INTO notifications (
+          target, description, type, status, location, location_label, user_id, related_entity_id, related_entity_type
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `, [
+        'Standard Request',
+        `New standard request from ${partnershipName} for ${data.position || 'position'} (${candidateIds.length || data.number_of_employees} candidate(s))`,
+        1,
+        'Pending',
+        'admin',
+        'Standard Request',
+        null, // null user_id makes it visible to all admin users
+        request.request_id,
+        'standard_request'
+      ])
+    } catch (notifError) {
+      console.error('Error creating admin notification:', notifError)
+      // Continue - don't fail the request if notification creation fails
+    }
+
     res.status(201).json({ success: true, data: request })
   } catch (error) {
     console.error('Error creating standard request:', error)
