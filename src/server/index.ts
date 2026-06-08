@@ -34,37 +34,26 @@ function generateToken(userId: string, email: string, role: string = 'user', par
 }
 
 async function comparePasswords(password: string, hash: string): Promise<boolean> {
-  // If hash doesn't look like bcrypt, do plain comparison (for backward compatibility)
   if (!hash.startsWith('$2')) {
     return password === hash
   }
-  // Use bcrypt for proper password comparison
   return await bcrypt.compare(password, hash)
 }
-
 
 const app = express()
 const PORT = process.env.PORT || 5000
 
-// Create uploads directories if they don't exist
+// ─── Create upload directories ───────────────────────────────────────────────
 const profilesDir = path.join(process.cwd(), 'uploads', 'profiles')
 const candidatesDir = path.join(process.cwd(), 'uploads', 'candidates')
 const partnershipsDir = path.join(process.cwd(), 'uploads', 'partnerships')
-if (!fs.existsSync(profilesDir)) {
-  fs.mkdirSync(profilesDir, { recursive: true })
-}
-if (!fs.existsSync(candidatesDir)) {
-  fs.mkdirSync(candidatesDir, { recursive: true })
-}
-if (!fs.existsSync(partnershipsDir)) {
-  fs.mkdirSync(partnershipsDir, { recursive: true })
-}
+if (!fs.existsSync(profilesDir)) fs.mkdirSync(profilesDir, { recursive: true })
+if (!fs.existsSync(candidatesDir)) fs.mkdirSync(candidatesDir, { recursive: true })
+if (!fs.existsSync(partnershipsDir)) fs.mkdirSync(partnershipsDir, { recursive: true })
 
-// Configure multer for profile picture uploads
+// ─── Multer ───────────────────────────────────────────────────────────────────
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    cb(null, profilesDir)
-  },
+  destination: (req, file, cb) => { cb(null, profilesDir) },
   filename: (req, file, cb) => {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
     cb(null, 'profile-' + uniqueSuffix + path.extname(file.originalname))
@@ -83,8 +72,7 @@ const upload = multer({
   },
 })
 
-
-// Middleware
+// ─── Core middleware ──────────────────────────────────────────────────────────
 app.use(helmet())
 app.use(
   cors({
@@ -95,49 +83,47 @@ app.use(
 app.use(express.json({ limit: '5mb' }))
 app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 
-// Health check
+// ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
 })
 
-// Migration endpoint - manually trigger column addition
+// ─── Static uploads (no auth) ─────────────────────────────────────────────────
+const uploadsBaseDir = path.join(process.cwd(), 'uploads')
+console.log(`[UPLOADS] CWD: ${process.cwd()}`)
+console.log(`[UPLOADS] Directory path: ${uploadsBaseDir}`)
+console.log(`[UPLOADS] Directory exists: ${fs.existsSync(uploadsBaseDir)}`)
+
+if (!fs.existsSync(uploadsBaseDir)) {
+  console.log(`[UPLOADS] Creating uploads directory...`)
+  fs.mkdirSync(uploadsBaseDir, { recursive: true })
+}
+
+app.use('/uploads', express.static(uploadsBaseDir, {
+  index: false,
+  fallthrough: true,
+  dotfiles: 'ignore',
+}))
+
+// ─── Debug / migration endpoints ─────────────────────────────────────────────
 app.get('/api/migrate/add-partnership-id', async (req, res) => {
   try {
-    // Check if column already exists
     const checkColumn = await pool.query(`
       SELECT EXISTS (
         SELECT FROM information_schema.columns
         WHERE table_name = 'users' AND column_name = 'partnership_id'
       )
     `)
-
     if (checkColumn.rows[0].exists) {
-      return res.json({
-        status: 'ALREADY_EXISTS',
-        message: 'partnership_id column already exists in users table'
-      })
+      return res.json({ status: 'ALREADY_EXISTS', message: 'partnership_id column already exists in users table' })
     }
-
-    // Add the column
-    await pool.query(`
-      ALTER TABLE users
-      ADD COLUMN partnership_id UUID
-    `)
-
-    res.json({
-      status: 'SUCCESS',
-      message: 'partnership_id column added to users table'
-    })
+    await pool.query(`ALTER TABLE users ADD COLUMN partnership_id UUID`)
+    res.json({ status: 'SUCCESS', message: 'partnership_id column added to users table' })
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : String(error)
-    res.status(500).json({
-      status: 'ERROR',
-      error: errorMsg
-    })
+    res.status(500).json({ status: 'ERROR', error: error instanceof Error ? error.message : String(error) })
   }
 })
 
-// Debug endpoint to list all users (remove in production)
 app.get('/api/debug/users', async (req, res) => {
   try {
     const result = await pool.query('SELECT id, user_id, email, user_name, authority, is_active, partnership_id FROM users')
@@ -147,117 +133,45 @@ app.get('/api/debug/users', async (req, res) => {
   }
 })
 
-// Debug endpoint to check employee requests table
 app.get('/api/debug/employee-requests', async (req, res) => {
   try {
-
-    // Check if table exists
-    const tableCheck = await pool.query(`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables
-        WHERE table_name = 'employee_requests'
-      )
-    `)
-    const tableExists = tableCheck.rows[0].exists
-
-    if (!tableExists) {
-      return res.json({
-        status: 'TABLE_MISSING',
-        message: 'Employee requests table does not exist',
-        tableExists: false
-      })
+    const tableCheck = await pool.query(`SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'employee_requests')`)
+    if (!tableCheck.rows[0].exists) {
+      return res.json({ status: 'TABLE_MISSING', message: 'Employee requests table does not exist', tableExists: false })
     }
-
-    // Get column info
-    const columns = await pool.query(`
-      SELECT column_name, data_type
-      FROM information_schema.columns
-      WHERE table_name = 'employee_requests'
-      ORDER BY ordinal_position
-    `)
-
-    // Count rows
+    const columns = await pool.query(`SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'employee_requests' ORDER BY ordinal_position`)
     const count = await pool.query('SELECT COUNT(*) as count FROM employee_requests')
-
-    res.json({
-      status: 'OK',
-      tableExists: true,
-      rowCount: count.rows[0].count,
-      columns: columns.rows
-    })
+    res.json({ status: 'OK', tableExists: true, rowCount: count.rows[0].count, columns: columns.rows })
   } catch (error) {
-    res.status(500).json({
-      error: error instanceof Error ? error.message : 'Failed to check employee requests table',
-      details: error
-    })
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to check employee requests table', details: error })
   }
 })
 
-// Debug endpoint to check partnerships table
 app.get('/api/debug/partnerships', async (req, res) => {
   try {
-
-
-    // Check if table exists
-    const tableCheck = await pool.query(`
-      SELECT EXISTS (
-        SELECT FROM information_schema.tables
-        WHERE table_name = 'partnerships'
-      )
-    `)
-    const tableExists = tableCheck.rows[0].exists
-
-    if (!tableExists) {
-      return res.json({
-        status: 'TABLE_MISSING',
-        message: 'Partnerships table does not exist',
-        tableExists: false
-      })
+    const tableCheck = await pool.query(`SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'partnerships')`)
+    if (!tableCheck.rows[0].exists) {
+      return res.json({ status: 'TABLE_MISSING', message: 'Partnerships table does not exist', tableExists: false })
     }
-
-    // Get column info
-    const columns = await pool.query(`
-      SELECT column_name, data_type
-      FROM information_schema.columns
-      WHERE table_name = 'partnerships'
-      ORDER BY ordinal_position
-    `)
-
-    // Count rows
+    const columns = await pool.query(`SELECT column_name, data_type FROM information_schema.columns WHERE table_name = 'partnerships' ORDER BY ordinal_position`)
     const count = await pool.query('SELECT COUNT(*) as count FROM partnerships')
-
-    res.json({
-      status: 'OK',
-      tableExists: true,
-      rowCount: count.rows[0].count,
-      columns: columns.rows
-    })
+    res.json({ status: 'OK', tableExists: true, rowCount: count.rows[0].count, columns: columns.rows })
   } catch (error) {
-    res.status(500).json({
-      error: error instanceof Error ? error.message : 'Failed to check partnerships table',
-      details: error
-    })
+    res.status(500).json({ error: error instanceof Error ? error.message : 'Failed to check partnerships table', details: error })
   }
 })
 
-// Test employee requests table
 app.get('/api/test-employee-requests', async (req, res) => {
   try {
-
     const result = await pool.query('SELECT 1 as test')
     res.json({ success: true, message: 'Database connection working', data: result.rows })
   } catch (error) {
-    const errorMsg = error instanceof Error ? error.message : String(error)
-    res.status(500).json({ error: errorMsg })
+    res.status(500).json({ error: error instanceof Error ? error.message : String(error) })
   }
 })
 
-// Seed employee requests with test data
 app.get('/api/seed-employee-requests', async (req: Request, res: Response) => {
-
-
   try {
-    // First ensure all columns exist
     const alterCommands = [
       `ALTER TABLE employee_requests ADD COLUMN IF NOT EXISTS request_type VARCHAR(50) DEFAULT 'Standard'`,
       `ALTER TABLE employee_requests ADD COLUMN IF NOT EXISTS salary_range VARCHAR(255)`,
@@ -265,97 +179,40 @@ app.get('/api/seed-employee-requests', async (req: Request, res: Response) => {
       `ALTER TABLE employee_requests ADD COLUMN IF NOT EXISTS work_city VARCHAR(255)`,
       `ALTER TABLE employee_requests ADD COLUMN IF NOT EXISTS urgency VARCHAR(50)`,
     ]
-
     for (const cmd of alterCommands) {
-      try {
-        await pool.query(cmd)
-      } catch (e) {
-        console.log(`Column already exists or error: ${e}`)
-      }
+      try { await pool.query(cmd) } catch (e) { console.log(`Column already exists or error: ${e}`) }
     }
-
-    // Clear existing data
     await pool.query('DELETE FROM employee_requests')
-    console.log('Cleared existing employee requests')
-
-    // Insert seed data
     const insertResult = await pool.query(`
       INSERT INTO employee_requests (
         request_type, company_name, contact_person, email, phone_number,
         position, number_of_employees, start_date, location, status,
         requirements, notes, salary_range, required_skills, work_city, urgency
       ) VALUES
-      ('Standard', 'Tech Solutions Inc.', 'John Smith', 'john@techsolutions.com', '+1-555-0101',
-       'Software Engineer', 5, '2024-06-01', 'New York, NY', 'Pending',
-       NULL, 'Urgent need for experienced developers', NULL, NULL, NULL, NULL),
-      ('Standard', 'Global Manufacturing Ltd.', 'Sarah Johnson', 'sarah@globalmfg.com', '+1-555-0102',
-       'Production Manager', 20, '2024-06-15', 'Chicago, IL', 'Approved',
-       NULL, 'To manage production floor operations', NULL, NULL, NULL, NULL),
-      ('Special', 'Healthcare Services', 'Dr. Michael Chen', 'michael@healthcare.com', '+1-555-0103',
-       'Medical Staff', 15, '2024-07-01', 'Los Angeles, CA', 'In Progress',
-       'Certified nurses and healthcare professionals required', 'Immediate staffing required for new facility', '$35,000-$45,000/month', 'Nursing, Medical certification, Patient care', 'Los Angeles', 'High'),
-      ('Standard', 'Finance & Associates', 'Emma Wilson', 'emma@finance-assoc.com', '+1-555-0104',
-       'Financial Analyst', 8, '2024-07-20', 'Boston, MA', 'Pending',
-       NULL, 'Need analytical skills and CPA preferred', NULL, NULL, NULL, NULL),
-      ('Special', 'Creative Design Studio', 'Alex Rodriguez', 'alex@creativedesign.com', '+1-555-0105',
-       'Design Team Lead', 12, '2024-08-01', 'San Francisco, CA', 'Rejected',
-       'Portfolio review required, minimum 5 years UI/UX experience', 'Specialized design team for major project', '$50,000-$60,000/month', 'UI/UX Design, Figma, Adobe Creative Suite', 'San Francisco', 'Medium'),
-      ('Standard', 'Retail Operations', 'Linda Davis', 'linda@retail-ops.com', '+1-555-0106',
-       'Store Manager', 30, '2024-08-15', 'Houston, TX', 'Pending',
-       NULL, 'Multiple store locations opening', NULL, NULL, NULL, NULL)
+      ('Standard', 'Tech Solutions Inc.', 'John Smith', 'john@techsolutions.com', '+1-555-0101', 'Software Engineer', 5, '2024-06-01', 'New York, NY', 'Pending', NULL, 'Urgent need for experienced developers', NULL, NULL, NULL, NULL),
+      ('Standard', 'Global Manufacturing Ltd.', 'Sarah Johnson', 'sarah@globalmfg.com', '+1-555-0102', 'Production Manager', 20, '2024-06-15', 'Chicago, IL', 'Approved', NULL, 'To manage production floor operations', NULL, NULL, NULL, NULL),
+      ('Special', 'Healthcare Services', 'Dr. Michael Chen', 'michael@healthcare.com', '+1-555-0103', 'Medical Staff', 15, '2024-07-01', 'Los Angeles, CA', 'In Progress', 'Certified nurses and healthcare professionals required', 'Immediate staffing required for new facility', '$35,000-$45,000/month', 'Nursing, Medical certification, Patient care', 'Los Angeles', 'High'),
+      ('Standard', 'Finance & Associates', 'Emma Wilson', 'emma@finance-assoc.com', '+1-555-0104', 'Financial Analyst', 8, '2024-07-20', 'Boston, MA', 'Pending', NULL, 'Need analytical skills and CPA preferred', NULL, NULL, NULL, NULL),
+      ('Special', 'Creative Design Studio', 'Alex Rodriguez', 'alex@creativedesign.com', '+1-555-0105', 'Design Team Lead', 12, '2024-08-01', 'San Francisco, CA', 'Rejected', 'Portfolio review required, minimum 5 years UI/UX experience', 'Specialized design team for major project', '$50,000-$60,000/month', 'UI/UX Design, Figma, Adobe Creative Suite', 'San Francisco', 'Medium'),
+      ('Standard', 'Retail Operations', 'Linda Davis', 'linda@retail-ops.com', '+1-555-0106', 'Store Manager', 30, '2024-08-15', 'Houston, TX', 'Pending', NULL, 'Multiple store locations opening', NULL, NULL, NULL, NULL)
       RETURNING *
     `)
-
-    console.log(`Successfully inserted ${insertResult.rows.length} records`)
-    return res.json({
-      success: true,
-      message: `Seeded ${insertResult.rows.length} employee requests`,
-      data: insertResult.rows
-    })
+    return res.json({ success: true, message: `Seeded ${insertResult.rows.length} employee requests`, data: insertResult.rows })
   } catch (error) {
-    console.error('Error seeding:', error)
     return res.json({ success: false, error: error instanceof Error ? error.message : String(error) })
   }
 })
 
-// Serve uploaded files publicly - MUST be before API routes and auth middleware
-const uploadsBaseDir = path.join(process.cwd(), 'uploads')
-console.log(`[UPLOADS] CWD: ${process.cwd()}`)
-console.log(`[UPLOADS] Directory path: ${uploadsBaseDir}`)
-console.log(`[UPLOADS] Directory exists: ${fs.existsSync(uploadsBaseDir)}`)
-
-// Create uploads directory if it doesn't exist
-if (!fs.existsSync(uploadsBaseDir)) {
-  console.log(`[UPLOADS] Creating uploads directory...`)
-  fs.mkdirSync(uploadsBaseDir, { recursive: true })
-}
-
-const jobsDir = path.join(uploadsBaseDir, 'jobs')
-const candidateCvsDir = path.join(uploadsBaseDir, 'candidates', 'cvs')
-const candidateProfilesDir = path.join(uploadsBaseDir, 'candidates', 'profile_pictures')
-
-// Serve the entire /uploads directory publicly without any authentication
-app.use('/uploads', express.static(uploadsBaseDir, {
-  index: false,
-  fallthrough: true,
-  dotfiles: 'ignore'
-}))
-
-// Debug endpoint to list uploads directory
 app.get('/api/debug/uploads-dir', (req, res) => {
   try {
     const files = fs.readdirSync(uploadsBaseDir, { recursive: true })
-    res.json({
-      uploadsDir: uploadsBaseDir,
-      exists: fs.existsSync(uploadsBaseDir),
-      files: files.slice(0, 100)
-    })
+    res.json({ uploadsDir: uploadsBaseDir, exists: fs.existsSync(uploadsBaseDir), files: files.slice(0, 100) })
   } catch (err) {
     res.status(500).json({ error: (err as Error).message })
   }
 })
 
-// API Routes
+// ─── Feature routers ──────────────────────────────────────────────────────────
 app.use('/api/candidates', candidatesRouter)
 app.use('/api/partnerships', partnershipsRouter)
 app.use('/api/users', usersRouter)
@@ -366,72 +223,43 @@ app.use('/api/licenses', licensesRouter)
 app.use('/api/jobs', jobsRouter)
 app.use('/api/notification', notificationsRouter)
 app.use('/api/contact-us', contactRouter)
+app.use('/api/upload', uploadsRouter)
+app.use('/api/uploads', uploadsRouter)
 
-// Standard request candidates endpoint
 app.get('/api/standard-request-candidates', async (req: Request, res: Response) => {
   try {
-    const result = await pool.query(`
-      SELECT id, request_id, candidate_id, created_at
-      FROM standard_request_candidates
-      ORDER BY created_at DESC
-    `)
+    const result = await pool.query(`SELECT id, request_id, candidate_id, created_at FROM standard_request_candidates ORDER BY created_at DESC`)
     res.json({ success: true, data: result.rows })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
-    console.error('Error fetching standard request candidates:', errorMsg)
     res.status(500).json({ success: false, error: 'Failed to fetch standard request candidates', details: errorMsg })
   }
 })
 
-// Upload Routes
-app.use('/api/upload', uploadsRouter)
-app.use('/api/uploads', uploadsRouter)
-
-// Serve static files from the frontend build
-const publicDir = path.join(process.cwd(), 'dist', 'public')
-if (fs.existsSync(publicDir)) {
-  app.use(express.static(publicDir))
-  // SPA fallback: serve index.html for all non-API routes
-  app.get('*', (req: Request, res: Response) => {
-    res.sendFile(path.join(publicDir, 'index.html'), { headers: { 'Cache-Control': 'no-cache' } })
-  })
-} else if (process.env.NODE_ENV === 'production') {
-  console.warn('Warning: Static frontend files not found. App may not have a UI.')
-}
-
-// Auth routes
+// ─── Auth routes (MUST be before the SPA wildcard) ────────────────────────────
 app.post('/api/sign-in', async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body
-
     if (!email || !password) {
       return res.status(400).json({ message: 'Email and password are required' })
     }
-
-
     const result = await pool.query(
       'SELECT id, user_id, email, password_hash, user_name, is_active, avatar, authority, partnership_id FROM users WHERE email = $1',
-      [email]
+      [email],
     )
-
     if (result.rows.length === 0) {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
-
     const user = result.rows[0]
-
     if (!user.is_active) {
       return res.status(403).json({ message: 'Account is inactive' })
     }
-
     const isPasswordValid = await comparePasswords(password, user.password_hash)
     if (!isPasswordValid) {
       return res.status(401).json({ message: 'Invalid email or password' })
     }
-
     const role = user.authority === 'partnership' ? 'partnership' : 'admin'
     const token = generateToken(user.user_id || user.id.toString(), user.email, role, user.partnership_id)
-
     res.json({
       token,
       user: {
@@ -450,7 +278,6 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
   }
 })
 
-// Change password endpoint
 app.post('/api/auth/change-password', validateSession, async (req: any, res: Response) => {
   try {
     const { currentPassword, newPassword } = req.body
@@ -460,37 +287,24 @@ app.post('/api/auth/change-password', validateSession, async (req: any, res: Res
       return res.status(400).json({ success: false, message: 'Current and new passwords are required' })
     }
 
-    // Get current user
     const userResult = await pool.query(
       'SELECT id, password_hash FROM users WHERE user_id = $1',
-      [userId]
+      [userId],
     )
-
     if (userResult.rows.length === 0) {
       return res.status(404).json({ success: false, message: 'User not found' })
     }
 
     const user = userResult.rows[0]
-
-    // Verify current password
     const isCurrentPasswordValid = await comparePasswords(currentPassword, user.password_hash)
     if (!isCurrentPasswordValid) {
       return res.status(401).json({ success: false, message: 'Current password is incorrect' })
     }
 
-    // Hash new password
     const hashedPassword = await bcrypt.hash(newPassword, 10)
+    await pool.query('UPDATE users SET password_hash = $1 WHERE user_id = $2', [hashedPassword, userId])
 
-    // Update password
-    await pool.query(
-      'UPDATE users SET password_hash = $1 WHERE user_id = $2',
-      [hashedPassword, userId]
-    )
-
-    res.json({
-      success: true,
-      message: 'Password changed successfully',
-    })
+    res.json({ success: true, message: 'Password changed successfully' })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
     console.error('Change password error:', errorMsg)
@@ -498,16 +312,10 @@ app.post('/api/auth/change-password', validateSession, async (req: any, res: Res
   }
 })
 
-// Token refresh endpoint
 app.post('/api/auth/refresh', validateSession, (req: any, res: Response) => {
   try {
     const newToken = generateToken(req.user.user_id, req.user.email, req.user.role, req.user.partnership_user_id)
-
-    res.json({
-      success: true,
-      token: newToken,
-      message: 'Session extended successfully',
-    })
+    res.json({ success: true, token: newToken, message: 'Session extended successfully' })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
     console.error('Token refresh error:', errorMsg)
@@ -515,13 +323,10 @@ app.post('/api/auth/refresh', validateSession, (req: any, res: Response) => {
   }
 })
 
-// Debug endpoint to verify token
 app.get('/api/auth/verify', (req: any, res: Response) => {
   try {
     const token = req.headers.authorization?.split(' ')[1]
-    if (!token) {
-      return res.json({ error: 'No token provided' })
-    }
+    if (!token) return res.json({ error: 'No token provided' })
     const decoded = jwt.verify(token, JWT_SECRET) as any
     return res.json({ success: true, decoded })
   } catch (error) {
@@ -529,21 +334,28 @@ app.get('/api/auth/verify', (req: any, res: Response) => {
   }
 })
 
-// Error handling
+// ─── Error handler ────────────────────────────────────────────────────────────
 app.use((err: any, req: any, res: any, next: any) => {
   console.error('Server error:', err)
   res.status(500).json({ error: err.message || 'Internal server error' })
 })
 
-// Initialize database and start server
+// ─── SPA fallback — MUST be last, after all API routes ───────────────────────
+const publicDir = path.join(process.cwd(), 'dist', 'public')
+if (fs.existsSync(publicDir)) {
+  app.use(express.static(publicDir))
+  app.get('*', (req: Request, res: Response) => {
+    res.sendFile(path.join(publicDir, 'index.html'), { headers: { 'Cache-Control': 'no-cache' } })
+  })
+} else if (process.env.NODE_ENV === 'production') {
+  console.warn('Warning: Static frontend files not found. App may not have a UI.')
+}
+
+// ─── Database init + server start ────────────────────────────────────────────
 async function startServer() {
   try {
-
-
-    // Run migrations
     console.log('Initializing database...')
 
-    // Create users table
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
@@ -560,20 +372,10 @@ async function startServer() {
       )
     `)
 
-    // Add partnership_id column if it doesn't exist (for existing databases)
     try {
-      const columnCheck = await pool.query(`
-        SELECT EXISTS (
-          SELECT FROM information_schema.columns
-          WHERE table_name = 'users' AND column_name = 'partnership_id'
-        )
-      `)
-
+      const columnCheck = await pool.query(`SELECT EXISTS (SELECT FROM information_schema.columns WHERE table_name = 'users' AND column_name = 'partnership_id')`)
       if (!columnCheck.rows[0].exists) {
-        await pool.query(`
-          ALTER TABLE users
-          ADD COLUMN partnership_id UUID
-        `)
+        await pool.query(`ALTER TABLE users ADD COLUMN partnership_id UUID`)
         console.log('✓ partnership_id column added to users table')
       } else {
         console.log('✓ partnership_id column already exists in users table')
@@ -582,7 +384,6 @@ async function startServer() {
       console.error('Error adding partnership_id column:', err instanceof Error ? err.message : err)
     }
 
-    // Seed test user
     const hashedPassword = await bcrypt.hash('123Qwe', 10)
     await pool.query(`
       INSERT INTO users (email, password_hash, user_name, authority, is_active)
@@ -620,18 +421,10 @@ async function startServer() {
       )
     `)
 
-    // Add status column if it doesn't exist (for existing databases)
-    await pool.query(`
-      ALTER TABLE candidates
-      ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'available'
-    `)
+    await pool.query(`ALTER TABLE candidates ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'available'`)
 
-    // Alter skill_level column to TEXT to support multiple skills
     try {
-      await pool.query(`
-        ALTER TABLE candidates
-        ALTER COLUMN skill_level TYPE TEXT
-      `)
+      await pool.query(`ALTER TABLE candidates ALTER COLUMN skill_level TYPE TEXT`)
       console.log('✓ Updated skill_level column to TEXT')
     } catch (alterError) {
       console.log('Note: skill_level column may already be TEXT:', alterError instanceof Error ? alterError.message : alterError)
@@ -659,20 +452,10 @@ async function startServer() {
       `)
       console.log('✓ Partnerships table ready')
 
-      // Add foreign key constraint from users to partnerships
       try {
-        const constraintCheck = await pool.query(`
-          SELECT constraint_name
-          FROM information_schema.table_constraints
-          WHERE table_name = 'users' AND constraint_name = 'fk_users_partnership_id'
-        `)
-
+        const constraintCheck = await pool.query(`SELECT constraint_name FROM information_schema.table_constraints WHERE table_name = 'users' AND constraint_name = 'fk_users_partnership_id'`)
         if (constraintCheck.rows.length === 0) {
-          await pool.query(`
-            ALTER TABLE users
-            ADD CONSTRAINT fk_users_partnership_id
-            FOREIGN KEY (partnership_id) REFERENCES partnerships(partner_id) ON DELETE CASCADE
-          `)
+          await pool.query(`ALTER TABLE users ADD CONSTRAINT fk_users_partnership_id FOREIGN KEY (partnership_id) REFERENCES partnerships(partner_id) ON DELETE CASCADE`)
           console.log('✓ Foreign key constraint added from users to partnerships')
         } else {
           console.log('✓ Foreign key constraint already exists')
@@ -712,22 +495,14 @@ async function startServer() {
       `)
       console.log('✓ Employee Requests table ready')
 
-      // Add missing columns to employee_requests if they don't exist
       const missingColumns = ['request_type', 'salary_range', 'required_skills', 'work_city', 'urgency', 'partnership_id']
       for (const col of missingColumns) {
         try {
-          if (col === 'request_type') {
-            await pool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} VARCHAR(50) DEFAULT 'Standard'`)
-          } else if (col === 'partnership_id') {
-            await pool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} UUID`)
-          } else if (col === 'salary_range' || col === 'required_skills' || col === 'work_city' || col === 'urgency') {
-            await pool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} VARCHAR(255)`)
-          }
-        } catch (e) {
-          // Column likely already exists, ignore
-        }
+          if (col === 'request_type') await pool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} VARCHAR(50) DEFAULT 'Standard'`)
+          else if (col === 'partnership_id') await pool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} UUID`)
+          else await pool.query(`ALTER TABLE employee_requests ADD COLUMN ${col} VARCHAR(255)`)
+        } catch (e) { /* column already exists */ }
       }
-
     } catch (tableError) {
       console.error('Error creating employee_requests table:', tableError)
     }
@@ -772,26 +547,15 @@ async function startServer() {
       `)
       console.log('✓ Jobs table ready')
 
-      // Alter description column to TEXT to support longer values
       try {
-        await pool.query(`
-          ALTER TABLE jobs
-          ALTER COLUMN description TYPE TEXT
-        `)
+        await pool.query(`ALTER TABLE jobs ALTER COLUMN description TYPE TEXT`)
         console.log('✓ Updated jobs description column to TEXT')
       } catch (alterError) {
-        // Silently ignore if it's already TEXT or doesn't exist
-        if (alterError instanceof Error && alterError.message.includes('already')) {
-          console.log('✓ Jobs description column is already TEXT')
-        } else {
-          console.log('Note: Jobs description column migration:', alterError instanceof Error ? alterError.message : alterError)
-        }
+        console.log('Note: Jobs description column migration:', alterError instanceof Error ? alterError.message : alterError)
       }
 
-      // Seed sample jobs if table is empty
       const jobCount = await pool.query('SELECT COUNT(*) as count FROM jobs')
-      if (jobCount.rows[0].count === 0) {
-        console.log('Seeding jobs with sample data...')
+      if (jobCount.rows[0].count === '0') {
         await pool.query(`
           INSERT INTO jobs (title, description, author, expire_date, status) VALUES
           ('Software Engineer', 'Looking for experienced software engineers', 'admin', '2024-12-31', 'active'),
@@ -806,7 +570,7 @@ async function startServer() {
 
     try {
       console.log('Creating notifications table...')
-      const createTableResult = await pool.query(`
+      await pool.query(`
         CREATE TABLE IF NOT EXISTS notifications (
           id SERIAL PRIMARY KEY,
           notification_id UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
@@ -827,7 +591,6 @@ async function startServer() {
       `)
       console.log('✓ Notifications table ready')
 
-      // Create indexes for better query performance
       try {
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_notifications_readed ON notifications(readed)`)
         await pool.query(`CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC)`)
@@ -835,22 +598,11 @@ async function startServer() {
       } catch (indexError) {
         console.log('Note: Indexes may already exist')
       }
-
-      // Verify table exists
-      const tableCheck = await pool.query(`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables
-          WHERE table_name = 'notifications'
-        )
-      `)
-      console.log('✓ Notifications table verified:', tableCheck.rows[0].exists)
-
     } catch (tableError) {
       console.error('Error creating notifications table:', tableError instanceof Error ? tableError.message : tableError)
       throw tableError
     }
 
-    // Create contact_us table
     try {
       await pool.query(`
         CREATE TABLE IF NOT EXISTS contact_us (
@@ -885,7 +637,6 @@ async function startServer() {
         console.log(`Port ${PORT} is in use, trying ${newPort}...`)
         server.listen(newPort, () => {
           console.log(`✓ Server is running on http://localhost:${newPort}`)
-          console.log(`✓ Health check: http://localhost:${newPort}/health`)
         })
       } else {
         console.error('Server error:', err)
