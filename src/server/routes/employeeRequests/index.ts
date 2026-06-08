@@ -61,10 +61,18 @@ router.get('/', validatePartnershipSession, async (req, res) => {
     await ensureTableExists()
 
     const userId = (req as any).user.user_id
-    const partnerId = await getPartnershipIdByUserId(userId)
+    const userRole = (req as any).user.role
+    let partnerId = null
 
-    if (!partnerId) {
-      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    if (userRole === 'admin') {
+      // Admins can see all requests
+      partnerId = null
+    } else {
+      // Partnership users can only see their own partnership's requests
+      partnerId = await getPartnershipIdByUserId(userId)
+      if (!partnerId) {
+        return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+      }
     }
 
     const { search, page: pageStr, limit: limitStr, ...filters } = req.query
@@ -72,8 +80,8 @@ router.get('/', validatePartnershipSession, async (req, res) => {
     const limit = Math.min(100, parseInt(limitStr as string) || 10)
     const offset = (page - 1) * limit
 
-    // Add partnership filter to all queries
-    const enhancedFilters = { ...filters, partnership_id: partnerId }
+    // Add partnership filter only for non-admin users
+    const enhancedFilters = partnerId ? { ...filters, partnership_id: partnerId } : filters
 
     let requests
 
@@ -81,14 +89,18 @@ router.get('/', validatePartnershipSession, async (req, res) => {
       if (search && typeof search === 'string') {
         console.log('Searching with term:', search)
         requests = await searchEmployeeRequests(search)
-        // Filter results by partnership
-        requests = requests.filter((r: any) => r.partnership_id === partnerId)
-      } else if (Object.keys(filters).length > 0) {
+        // Filter results by partnership if not admin
+        if (partnerId) {
+          requests = requests.filter((r: any) => r.partnership_id === partnerId)
+        }
+      } else if (Object.keys(enhancedFilters).length > 0) {
         console.log('Filtering with:', enhancedFilters)
         requests = await filterEmployeeRequests(enhancedFilters as any)
       } else {
-        console.log('Fetching all employee requests for partnership:', partnerId)
-        requests = await filterEmployeeRequests({ partnership_id: partnerId } as any)
+        console.log('Fetching all employee requests' + (partnerId ? ' for partnership: ' + partnerId : ''))
+        requests = partnerId
+          ? await filterEmployeeRequests({ partnership_id: partnerId } as any)
+          : await getAllEmployeeRequests()
       }
       console.log('Successfully fetched', requests.length, 'employee requests')
     } catch (queryError) {
@@ -111,11 +123,7 @@ router.get('/:requestId', validatePartnershipSession, async (req, res) => {
   try {
     await ensureTableExists()
     const userId = (req as any).user.user_id
-    const partnerId = await getPartnershipIdByUserId(userId)
-
-    if (!partnerId) {
-      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
-    }
+    const userRole = (req as any).user.role
 
     const request = await getEmployeeRequestById(req.params.requestId)
 
@@ -123,8 +131,12 @@ router.get('/:requestId', validatePartnershipSession, async (req, res) => {
       return res.status(404).json({ success: false, error: 'Employee request not found' })
     }
 
-    if (request.partnership_id !== partnerId) {
-      return res.status(403).json({ success: false, error: 'Forbidden: You cannot access this request' })
+    // Admins can access any request, partnerships can only access their own
+    if (userRole !== 'admin') {
+      const partnerId = await getPartnershipIdByUserId(userId)
+      if (!partnerId || request.partnership_id !== partnerId) {
+        return res.status(403).json({ success: false, error: 'Forbidden: You cannot access this request' })
+      }
     }
 
     res.json({ success: true, data: request })
@@ -138,10 +150,18 @@ router.post('/', validatePartnershipSession, async (req: Request, res: Response)
   try {
     await ensureTableExists()
     const userId = (req as any).user.user_id
-    const partnerId = await getPartnershipIdByUserId(userId)
+    const userRole = (req as any).user.role
+    let partnerId = req.body.partnership_id
 
-    if (!partnerId) {
-      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+    if (userRole !== 'admin') {
+      // Partnership users must create requests for their own partnership
+      partnerId = await getPartnershipIdByUserId(userId)
+      if (!partnerId) {
+        return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
+      }
+    } else if (!partnerId) {
+      // Admins must specify partnership_id
+      return res.status(400).json({ success: false, error: 'partnership_id is required for admin users' })
     }
 
     const data = { ...req.body, partnership_id: partnerId }
@@ -160,19 +180,19 @@ router.put('/:requestId', validatePartnershipSession, async (req: Request, res: 
   try {
     await ensureTableExists()
     const userId = (req as any).user.user_id
-    const partnerId = await getPartnershipIdByUserId(userId)
-
-    if (!partnerId) {
-      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
-    }
+    const userRole = (req as any).user.role
 
     const existingRequest = await getEmployeeRequestById(req.params.requestId)
     if (!existingRequest) {
       return res.status(404).json({ success: false, error: 'Employee request not found' })
     }
 
-    if (existingRequest.partnership_id !== partnerId) {
-      return res.status(403).json({ success: false, error: 'Forbidden: You cannot modify this request' })
+    // Admins can update any request, partnerships can only update their own
+    if (userRole !== 'admin') {
+      const partnerId = await getPartnershipIdByUserId(userId)
+      if (!partnerId || existingRequest.partnership_id !== partnerId) {
+        return res.status(403).json({ success: false, error: 'Forbidden: You cannot modify this request' })
+      }
     }
 
     const data = req.body
@@ -193,19 +213,19 @@ router.delete('/:requestId', validatePartnershipSession, async (req, res) => {
   try {
     await ensureTableExists()
     const userId = (req as any).user.user_id
-    const partnerId = await getPartnershipIdByUserId(userId)
-
-    if (!partnerId) {
-      return res.status(403).json({ success: false, error: 'Forbidden: No partnership found for this user' })
-    }
+    const userRole = (req as any).user.role
 
     const existingRequest = await getEmployeeRequestById(req.params.requestId)
     if (!existingRequest) {
       return res.status(404).json({ success: false, error: 'Employee request not found' })
     }
 
-    if (existingRequest.partnership_id !== partnerId) {
-      return res.status(403).json({ success: false, error: 'Forbidden: You cannot delete this request' })
+    // Admins can delete any request, partnerships can only delete their own
+    if (userRole !== 'admin') {
+      const partnerId = await getPartnershipIdByUserId(userId)
+      if (!partnerId || existingRequest.partnership_id !== partnerId) {
+        return res.status(403).json({ success: false, error: 'Forbidden: You cannot delete this request' })
+      }
     }
 
     const success = await deleteEmployeeRequest(req.params.requestId)
