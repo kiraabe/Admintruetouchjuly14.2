@@ -68,10 +68,10 @@ const _Notification = ({ className }: { className?: string }) => {
     useEffect(() => {
         getNotificationCount()
 
-        // Poll notification count every 30 seconds
+        // Poll notification count every 5 seconds
         const interval = setInterval(() => {
             getNotificationCount()
-        }, 30000)
+        }, 5000)
 
         return () => clearInterval(interval)
     }, [getNotificationCount])
