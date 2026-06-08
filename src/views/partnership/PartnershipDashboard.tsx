@@ -362,7 +362,7 @@ const PartnershipDashboard = () => {
       {/* Active Requests Table */}
       <Card>
         <div className="flex items-center justify-between mb-4">
-          <h4 className="text-lg font-bold">Active Special Requests</h4>
+          <h4 className="text-lg font-bold">Active Requests</h4>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
