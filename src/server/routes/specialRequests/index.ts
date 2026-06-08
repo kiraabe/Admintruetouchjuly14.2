@@ -12,6 +12,7 @@ import {
   ensureSpecialRequestTableExists,
 } from '../../db/queries/specialRequestQueries'
 import jwt from 'jsonwebtoken'
+import pool from '../../db/config'
 
 const router = Router()
 
@@ -139,6 +140,35 @@ router.post('/', validatePartnershipSession, async (req: Request, res: Response)
     const data = { ...req.body, partnership_id: partnerId }
 
     const request = await createSpecialRequest(data)
+
+    // Create admin notification for new special request
+    try {
+      const partnershipResult = await pool.query(
+        'SELECT company_name FROM partnerships WHERE partner_id = $1',
+        [partnerId]
+      )
+      const partnershipName = partnershipResult.rows[0]?.company_name || 'Partnership'
+
+      await pool.query(`
+        INSERT INTO notifications (
+          target, description, type, status, location, location_label, user_id, related_entity_id, related_entity_type
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `, [
+        'Special Request',
+        `New special request from ${partnershipName} for ${data.position || 'position'} (${data.number_of_employees || 0} position(s))`,
+        1,
+        'Pending',
+        'admin',
+        'Special Request',
+        null, // null user_id makes it visible to all admin users
+        request.request_id,
+        'special_request'
+      ])
+    } catch (notifError) {
+      console.error('Error creating admin notification:', notifError)
+      // Continue - don't fail the request if notification creation fails
+    }
+
     res.status(201).json({ success: true, data: request })
   } catch (error) {
     console.error('Error creating special request:', error)
