@@ -103,16 +103,25 @@ const PartnershipDashboard = () => {
 
     const fetchData = async () => {
       try {
-        const response = await ApiService.fetchDataWithAxios<any>({
-          method: 'GET',
-          url: '/special-requests?page=1&limit=1000',
-        })
+        const [specialRes, standardRes] = await Promise.all([
+          ApiService.fetchDataWithAxios<any>({
+            method: 'GET',
+            url: '/special-requests?page=1&limit=1000',
+          }),
+          ApiService.fetchDataWithAxios<any>({
+            method: 'GET',
+            url: '/standard-requests?page=1&limit=1000',
+          }),
+        ])
 
-        const requestsData = response.data || []
-        setRequests(requestsData)
-        calculateKPIs(requestsData)
+        const specialRequestsData = specialRes.data || []
+        const standardRequestsData = standardRes.data || []
+        const allRequests = [...specialRequestsData, ...standardRequestsData]
+
+        setRequests(allRequests)
+        calculateKPIs(allRequests)
       } catch (error: any) {
-        console.error('Error fetching special requests:', error)
+        console.error('Error fetching requests:', error)
         if (error.response?.status === 401) {
           console.error('Authentication failed. Token issue or user not authorized.')
         } else if (error.response?.status === 403) {
