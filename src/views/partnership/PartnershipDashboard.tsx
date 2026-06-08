@@ -164,6 +164,7 @@ const PartnershipDashboard = () => {
   // Generate last 12 days and calculate daily metrics by status
   const getLast12DaysData = () => {
     const today = new Date()
+    today.setHours(0, 0, 0, 0)
     const days = []
     const approvedData = []
     const pendingData = []
@@ -172,16 +173,17 @@ const PartnershipDashboard = () => {
     for (let i = 11; i >= 0; i--) {
       const date = new Date(today)
       date.setDate(date.getDate() - i)
-      date.setHours(0, 0, 0, 0)
 
       const nextDate = new Date(date)
       nextDate.setDate(nextDate.getDate() + 1)
 
       const filteredRequests = getFilteredRequests()
       const dayRequests = filteredRequests.filter((r) => {
-        const requestDate = new Date(r.created_at)
+        const createdAtStr = r.created_at || r.start_date
+        if (!createdAtStr) return false
+        const requestDate = new Date(createdAtStr)
         requestDate.setHours(0, 0, 0, 0)
-        return requestDate >= date && requestDate < nextDate
+        return requestDate.getTime() >= date.getTime() && requestDate.getTime() < nextDate.getTime()
       })
 
       const dayApproved = dayRequests.filter((r) => r.status === 'Approved').length
