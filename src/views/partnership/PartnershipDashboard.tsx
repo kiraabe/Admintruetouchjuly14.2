@@ -104,33 +104,36 @@ const PartnershipDashboard = () => {
 
     const fetchData = async () => {
       try {
-        const [specialRes, standardRes] = await Promise.all([
-          ApiService.fetchDataWithAxios<any>({
+        let specialRequestsData: any[] = []
+        let standardRequestsData: any[] = []
+
+        // Fetch special requests
+        try {
+          const specialRes = await ApiService.fetchDataWithAxios<any>({
             method: 'GET',
             url: '/special-requests?page=1&limit=1000',
-          }),
-          ApiService.fetchDataWithAxios<any>({
+          })
+          specialRequestsData = specialRes.data || []
+        } catch (error: any) {
+          console.warn('Error fetching special requests:', error.message)
+        }
+
+        // Fetch standard requests
+        try {
+          const standardRes = await ApiService.fetchDataWithAxios<any>({
             method: 'GET',
             url: '/standard-requests?page=1&limit=1000',
-          }),
-        ])
+          })
+          standardRequestsData = standardRes.data || []
+        } catch (error: any) {
+          console.warn('Error fetching standard requests:', error.message)
+        }
 
-        const specialRequestsData = specialRes.data || []
-        const standardRequestsData = standardRes.data || []
         const allRequests = [...specialRequestsData, ...standardRequestsData]
-
         setRequests(allRequests)
         calculateKPIs(allRequests)
       } catch (error: any) {
-        console.error('Error fetching requests:', error)
-        if (error.response?.status === 401) {
-          console.error('Authentication failed. Token issue or user not authorized.')
-        } else if (error.response?.status === 403) {
-          console.error('Permission denied. User does not have partnership access.')
-        }
-        if (error.response?.data) {
-          console.error('API Response:', error.response.data)
-        }
+        console.error('Error in fetch pipeline:', error)
         setRequests([])
       } finally {
         setLoading(false)
