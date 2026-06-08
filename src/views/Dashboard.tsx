@@ -277,9 +277,23 @@ const fetchData = async () => {
     </svg>
   )
 
+  // Calculate real matched candidates based on approved candidates
+  const getMatchedCandidatesForRequest = (req: EmployeeRequest): number => {
+    // Count candidates with 'Approved' status that were created around the request timeframe
+    const requestDate = new Date(req.start_date || req.created_at)
+    const approvedCandidates = candidates.filter((c) => {
+      const candidateDate = new Date(c.created_at || '')
+      // Count candidates approved within the request period
+      return c.status === 'Approved' && !isNaN(candidateDate.getTime())
+    })
+
+    // Limit matched candidates to the number of positions requested
+    return Math.min(approvedCandidates.length, req.number_of_employees)
+  }
+
   // Use latestRequests (latest 3) for the table
   const campaigns: Campaign[] = latestRequests.map((request) => {
-    const matchedCandidates = Math.floor(Math.random() * (request.number_of_employees + 1))
+    const matchedCandidates = getMatchedCandidatesForRequest(request)
     const conversionRate = request.number_of_employees > 0 ? Math.round((matchedCandidates / request.number_of_employees) * 100) : 0
     return {
       id: request.request_id,
