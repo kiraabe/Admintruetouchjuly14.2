@@ -1,4 +1,4 @@
-# ECME Full Stack Setup Guide
+# True Touch Full Stack Setup Guide
 
 ## Overview
 

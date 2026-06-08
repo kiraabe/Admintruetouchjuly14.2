@@ -59,7 +59,7 @@ const SignUpForm = (props: SignUpFormProps) => {
                 if (result?.status === 'failed') {
                     notify.error('Sign Up Failed', result.message)
                 } else {
-                    notify.success('Account Created', 'Welcome to Ecme!')
+                    notify.success('Account Created', 'Welcome to True Touch!')
                 }
             } catch (error) {
                 const errorMessage = error instanceof Error ? error.message : 'An error occurred'

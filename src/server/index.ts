@@ -540,7 +540,7 @@ async function startServer() {
       INSERT INTO users (email, password_hash, user_name, authority, is_active)
       VALUES ($1, $2, $3, $4, $5)
       ON CONFLICT (email) DO NOTHING
-    `, ['admin-01@ecme.com', hashedPassword, 'Admin', 'admin', true])
+    `, ['admin-01@truetouchjobs.com', hashedPassword, 'Admin', 'admin', true])
 
     await pool.query(`
       CREATE TABLE IF NOT EXISTS candidates (

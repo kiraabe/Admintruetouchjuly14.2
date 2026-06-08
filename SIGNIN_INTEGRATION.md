@@ -71,7 +71,7 @@ Frontend runs at `http://localhost:5173`
 ### Using Default Test User
 
 The migration script creates a default test user:
-- **Email**: `admin-01@ecme.com`
+- **Email**: `admin-01@truetouchjobs.com`
 - **Password**: `123Qwe`
 
 This is the default value in the sign-in form.
@@ -153,7 +153,7 @@ VITE_API_BASE_URL=http://localhost:3000/api
 PORT=3000
 NODE_ENV=development
 DATABASE_URL=postgresql://postgres:PASSWORD@db.XXXX.supabase.co:5432/postgres
-JWT_SECRET=ecme-admin-secret-key-change-in-production-2024
+JWT_SECRET=true-touch-admin-secret-key-change-in-production-2024
 JWT_EXPIRES_IN=7d
 CORS_ORIGIN=http://localhost:5173,http://localhost:3000
 ```
@@ -168,7 +168,7 @@ POST http://localhost:3000/api/sign-in
 Content-Type: application/json
 
 {
-  "email": "admin-01@ecme.com",
+  "email": "admin-01@truetouchjobs.com",
   "password": "123Qwe"
 }
 
@@ -178,7 +178,7 @@ Response:
   "user": {
     "userId": "550e8400-e29b-41d4-a716-446655440000",
     "userName": "Admin User",
-    "email": "admin-01@ecme.com",
+    "email": "admin-01@truetouchjobs.com",
     "avatar": "",
     "authority": ["admin"]
   }
@@ -213,7 +213,7 @@ Authorization: Bearer {token}
 Response:
 {
   "userId": "550e8400-e29b-41d4-a716-446655440000",
-  "email": "admin-01@ecme.com",
+  "email": "admin-01@truetouchjobs.com",
   "message": "Profile retrieved successfully"
 }
 ```
@@ -226,7 +226,7 @@ Response:
 - Confirm network connection
 
 ### "Invalid email or password"
-- Use exact credentials: `admin-01@ecme.com` / `123Qwe`
+- Use exact credentials: `admin-01@truetouchjobs.com` / `123Qwe`
 - Or create a new user via sign-up
 - Check password is at least 6 characters
 

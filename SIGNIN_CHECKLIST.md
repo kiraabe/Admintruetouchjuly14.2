@@ -67,7 +67,7 @@ npm run dev      # In root directory
 Navigate to `http://localhost:5173/sign-in`
 
 ### Step 5: Test Sign-In
-- Email: `admin-01@ecme.com`
+- Email: `admin-01@truetouchjobs.com`
 - Password: `123Qwe`
 - Click **Sign In**
 - Should redirect to `/home`
@@ -189,7 +189,7 @@ User Browser                Frontend                Backend              Databas
 ## 🧪 Test Credentials
 
 ### Default Test User (Created by Migration)
-- **Email**: `admin-01@ecme.com`
+- **Email**: `admin-01@truetouchjobs.com`
 - **Password**: `123Qwe`
 - **Authority**: `admin`
 

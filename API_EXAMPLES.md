@@ -9,7 +9,7 @@
 curl -X POST http://localhost:3000/api/sign-in \
   -H "Content-Type: application/json" \
   -d '{
-    "email": "admin-01@ecme.com",
+    "email": "admin-01@truetouchjobs.com",
     "password": "123Qwe"
   }'
 ```
@@ -21,7 +21,7 @@ curl -X POST http://localhost:3000/api/sign-in \
   "user": {
     "userId": "550e8400-e29b-41d4-a716-446655440000",
     "userName": "Admin User",
-    "email": "admin-01@ecme.com",
+    "email": "admin-01@truetouchjobs.com",
     "avatar": "",
     "authority": ["admin"]
   }
@@ -99,7 +99,7 @@ curl -X GET http://localhost:3000/api/profile \
 ```json
 {
   "userId": "550e8400-e29b-41d4-a716-446655440000",
-  "email": "admin-01@ecme.com",
+  "email": "admin-01@truetouchjobs.com",
   "message": "Profile retrieved successfully"
 }
 ```
@@ -149,7 +149,7 @@ function MyComponent() {
 
   const handleSignIn = async () => {
     const result = await signIn({
-      email: 'admin-01@ecme.com',
+      email: 'admin-01@truetouchjobs.com',
       password: '123Qwe'
     })
 
@@ -268,7 +268,7 @@ Import this JSON into Postman for testing:
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\"email\":\"admin-01@ecme.com\",\"password\":\"123Qwe\"}"
+          "raw": "{\"email\":\"admin-01@truetouchjobs.com\",\"password\":\"123Qwe\"}"
         },
         "url": {
           "raw": "http://localhost:3000/api/sign-in",

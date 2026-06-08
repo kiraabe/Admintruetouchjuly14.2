@@ -45,7 +45,7 @@ Expected output:
 
 1. **Open** `http://localhost:5173/sign-in`
 2. **Credentials are auto-filled:**
-   - Email: `admin-01@ecme.com`
+   - Email: `admin-01@truetouchjobs.com`
    - Password: `123Qwe`
 3. **Click** Sign In
 4. **Should redirect** to `/home` ✅
@@ -78,7 +78,7 @@ curl http://localhost:3000/health
 # Sign in with test user
 curl -X POST http://localhost:3000/api/sign-in \
   -H "Content-Type: application/json" \
-  -d '{"email":"admin-01@ecme.com","password":"123Qwe"}'
+  -d '{"email":"admin-01@truetouchjobs.com","password":"123Qwe"}'
 
 # Sign up new user
 curl -X POST http://localhost:3000/api/sign-up \
@@ -123,7 +123,7 @@ lsof -i :3000
 
 ### Sign-in not working
 1. Clear browser cache/cookies
-2. Verify test user exists: `admin-01@ecme.com`
+2. Verify test user exists: `admin-01@truetouchjobs.com`
 3. Check backend is running on `http://localhost:3000`
 4. Check frontend can reach backend: Open DevTools → Network tab
 

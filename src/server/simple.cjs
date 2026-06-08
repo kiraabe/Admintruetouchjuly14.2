@@ -54,10 +54,10 @@ app.get('/health', (req, res) => {
 
 // Mock user database - in real app this would use PostgreSQL
 const mockUsers = {
-  'admin-01@ecme.com': {
+  'admin-01@truetouchjobs.com': {
     id: '1',
     user_id: 'user-001',
-    email: 'admin-01@ecme.com',
+    email: 'admin-01@truetouchjobs.com',
     password_hash: '123Qwe',
     user_name: 'Admin User',
     is_active: true,
