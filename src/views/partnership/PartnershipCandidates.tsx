@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router'
+import Cookies from 'js-cookie'
 import Card from '@/components/ui/Card'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -149,10 +150,20 @@ const PartnershipCandidates = () => {
     setFilteredCandidates(filtered)
   }, [candidates, searchTerm, filters, activeTab, sortColumn, sortDirection])
 
+  const getAuthHeaders = () => {
+    const token = Cookies.get('token') || localStorage.getItem('token')
+    return {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    }
+  }
+
   const fetchCandidates = async (page: number) => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/candidates?page=${page}&limit=${pageSize}`)
+      const response = await fetch(`/api/candidates?page=${page}&limit=${pageSize}`, {
+        headers: getAuthHeaders(),
+      })
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`)
       }
@@ -193,7 +204,7 @@ const PartnershipCandidates = () => {
 
       const response = await fetch('/api/standard-requests', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify({
           partnership_id: user.partnershipId,
           company_name: 'Partnership Candidates Request',
@@ -217,7 +228,7 @@ const PartnershipCandidates = () => {
       const updateStatusPromises = selectedCandidates.map((candidateId) =>
         fetch(`/api/candidates/${candidateId}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: getAuthHeaders(),
           body: JSON.stringify({ status: 'processing' }),
         })
       )
