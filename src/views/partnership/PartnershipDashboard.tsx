@@ -157,23 +157,53 @@ const PartnershipDashboard = () => {
     return activeRequests
   }
 
-  const filteredRequests = getFilteredRequests()
-  const totalFiltered = filteredRequests.length
-  const approvedFiltered = filteredRequests.filter((r) => r.status === 'Approved').length
+  // Generate last 12 days and calculate daily metrics
+  const getLast12DaysData = () => {
+    const today = new Date()
+    const days = []
+    const receivedData = []
+    const fulfilledData = []
+
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(today)
+      date.setDate(date.getDate() - i)
+      date.setHours(0, 0, 0, 0)
+
+      const nextDate = new Date(date)
+      nextDate.setDate(nextDate.getDate() + 1)
+
+      const filteredRequests = getFilteredRequests()
+      const dayRequests = filteredRequests.filter((r) => {
+        const requestDate = new Date(r.created_at)
+        requestDate.setHours(0, 0, 0, 0)
+        return requestDate >= date && requestDate < nextDate
+      })
+
+      const dayApproved = dayRequests.filter((r) => r.status === 'Approved').length
+
+      days.push(date.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }))
+      receivedData.push(dayRequests.length)
+      fulfilledData.push(dayApproved)
+    }
+
+    return { days, receivedData, fulfilledData }
+  }
+
+  const { days: chartXAxis, receivedData, fulfilledData } = getLast12DaysData()
+  const totalFiltered = getFilteredRequests().length
+  const approvedFiltered = getFilteredRequests().filter((r) => r.status === 'Approved').length
   const fulfillmentRate = totalFiltered > 0 ? Math.round((approvedFiltered / totalFiltered) * 100) : 0
 
   const chartSeries = [
     {
       name: 'Requests Received',
-      data: [totalFiltered, totalFiltered, totalFiltered, totalFiltered, totalFiltered, totalFiltered, totalFiltered, totalFiltered, totalFiltered, totalFiltered, totalFiltered, totalFiltered],
+      data: receivedData,
     },
     {
       name: 'Requests Fulfilled',
-      data: [approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered, approvedFiltered],
+      data: fulfilledData,
     },
   ]
-
-  const chartXAxis = ['01 May', '02 May', '03 May', '04 May', '05 May', '06 May', '07 May', '08 May', '09 May', '10 May', '11 May', '12 May']
 
   // Calculate performance scores based on actual data only
   const performanceScores: PartnershipMetric[] = [
