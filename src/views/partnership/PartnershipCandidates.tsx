@@ -202,11 +202,10 @@ const PartnershipCandidates = () => {
 
       const selectedCandidateIds = selectedCandidates
 
-      const response = await fetch('/api/standard-requests', {
+      const response = await fetch('/api/standard-requests/own/create', {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify({
-          partnership_id: user.partnershipId,
           company_name: 'Partnership Candidates Request',
           contact_person: user.userName || 'User',
           email: user.email || '',
