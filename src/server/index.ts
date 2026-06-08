@@ -450,6 +450,54 @@ app.post('/api/sign-in', async (req: Request, res: Response) => {
   }
 })
 
+// Change password endpoint
+app.post('/api/auth/change-password', validateSession, async (req: any, res: Response) => {
+  try {
+    const { currentPassword, newPassword } = req.body
+    const userId = req.user.user_id
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({ success: false, message: 'Current and new passwords are required' })
+    }
+
+    // Get current user
+    const userResult = await pool.query(
+      'SELECT id, password_hash FROM users WHERE user_id = $1',
+      [userId]
+    )
+
+    if (userResult.rows.length === 0) {
+      return res.status(404).json({ success: false, message: 'User not found' })
+    }
+
+    const user = userResult.rows[0]
+
+    // Verify current password
+    const isCurrentPasswordValid = await comparePasswords(currentPassword, user.password_hash)
+    if (!isCurrentPasswordValid) {
+      return res.status(401).json({ success: false, message: 'Current password is incorrect' })
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 10)
+
+    // Update password
+    await pool.query(
+      'UPDATE users SET password_hash = $1 WHERE user_id = $2',
+      [hashedPassword, userId]
+    )
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully',
+    })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error('Change password error:', errorMsg)
+    res.status(500).json({ success: false, message: 'Failed to change password' })
+  }
+})
+
 // Token refresh endpoint
 app.post('/api/auth/refresh', validateSession, (req: any, res: Response) => {
   try {

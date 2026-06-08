@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import Cookies from 'js-cookie'
 import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import Alert from '@/components/ui/Alert'
@@ -61,7 +62,31 @@ const PasswordSecurity = () => {
 
         setLoading(true)
         try {
-            await new Promise((resolve) => setTimeout(resolve, 1000))
+            const token = Cookies.get('token') || localStorage.getItem('token')
+            if (!token) {
+                setError('Authentication token not found. Please sign in again.')
+                return
+            }
+
+            const response = await fetch('/api/auth/change-password', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    currentPassword: formData.currentPassword,
+                    newPassword: formData.newPassword,
+                }),
+            })
+
+            const data = await response.json()
+
+            if (!response.ok) {
+                setError(data.message || 'Failed to change password')
+                return
+            }
+
             setSuccess(true)
             setFormData({
                 currentPassword: '',
@@ -69,6 +94,8 @@ const PasswordSecurity = () => {
                 confirmPassword: '',
             })
             setTimeout(() => setSuccess(false), 5000)
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'An error occurred while changing password')
         } finally {
             setLoading(false)
         }
