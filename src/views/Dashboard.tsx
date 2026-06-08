@@ -341,6 +341,38 @@ const fetchData = async () => {
   }
   // ───────────────────────────────────────────────────────────────────────────
 
+  // Calculate gender distribution
+  const genderDistribution = candidates.reduce((acc: { [key: string]: number }, candidate) => {
+    const gender = candidate.gender || 'Unknown'
+    acc[gender] = (acc[gender] || 0) + 1
+    return acc
+  }, {})
+
+  const genderLabels = Object.keys(genderDistribution)
+  const genderSeries = Object.values(genderDistribution)
+  const genderColors = ['#3B82F6', '#EC4899', '#6B7280']
+
+  const genderChartOptions = {
+    chart: {
+      type: 'pie',
+    },
+    labels: genderLabels,
+    colors: genderColors,
+    responsive: [
+      {
+        breakpoint: 480,
+        options: {
+          chart: {
+            width: 200,
+          },
+          legend: {
+            position: 'bottom',
+          },
+        },
+      },
+    ],
+  }
+
   const performanceScores = [
     { label: 'Candidate Quality', score: `${candidateQualityScore}%`, status: candidateQualityScore >= 70 ? 'success' : 'warning' },
     { label: 'Request Fulfillment', score: `${requestFulfillmentScore}%`, status: requestFulfillmentScore >= 70 ? 'success' : 'warning' },
@@ -515,6 +547,53 @@ const fetchData = async () => {
           </div>
         </div>
       </Card>
+
+      {/* Gender Analysis */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-y-4 xl:gap-x-4">
+        <div className="col-span-2">
+          <Card>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-bold">Candidate Gender Analysis</h4>
+            </div>
+            {genderSeries.length > 0 ? (
+              <div style={{ minHeight: '400px' }}>
+                <Chart type="pie" height={350} series={genderSeries} customOptions={genderChartOptions} />
+              </div>
+            ) : (
+              <div className="flex items-center justify-center" style={{ minHeight: '400px' }}>
+                <p className="text-gray-500">No candidate data available</p>
+              </div>
+            )}
+          </Card>
+        </div>
+        <div>
+          <Card>
+            <div className="flex items-center justify-between mb-4">
+              <h4 className="text-lg font-bold">Gender Distribution</h4>
+            </div>
+            <div className="flex flex-col gap-4">
+              {genderLabels.map((label, index) => (
+                <div key={label} className="flex items-center gap-3">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: genderColors[index % genderColors.length] }}
+                  ></div>
+                  <div className="flex-1">
+                    <div className="font-semibold text-sm">{label}</div>
+                    <div className="text-xs text-gray-500">{genderSeries[index]} candidates</div>
+                  </div>
+                  <div className="font-bold text-sm">
+                    {genderSeries.reduce((a, b) => a + b, 0) > 0
+                      ? Math.round((genderSeries[index] / genderSeries.reduce((a, b) => a + b, 0)) * 100)
+                      : 0}
+                    %
+                  </div>
+                </div>
+              ))}
+            </div>
+          </Card>
+        </div>
+      </div>
 
       {/* Active Requests Table */}
       <Card>
