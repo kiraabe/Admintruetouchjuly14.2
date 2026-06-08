@@ -4,9 +4,10 @@ import Button from '@/components/ui/Button'
 import Tag from '@/components/ui/Tag'
 import Segment from '@/components/ui/Segment'
 import Avatar from '@/components/ui/Avatar'
-import Chart from '@/components/shared/Chart'
+import Chart from 'react-apexcharts'
 import { useSessionUser } from '@/store/authStore'
 import ApiService from '@/services/ApiService'
+import { COLORS } from '@/constants/chart.constant'
 
 interface KPI {
   title: string
@@ -157,12 +158,13 @@ const PartnershipDashboard = () => {
     return activeRequests
   }
 
-  // Generate last 12 days and calculate daily metrics
+  // Generate last 12 days and calculate daily metrics by status
   const getLast12DaysData = () => {
     const today = new Date()
     const days = []
-    const receivedData = []
-    const fulfilledData = []
+    const approvedData = []
+    const pendingData = []
+    const rejectedData = []
 
     for (let i = 11; i >= 0; i--) {
       const date = new Date(today)
@@ -180,30 +182,67 @@ const PartnershipDashboard = () => {
       })
 
       const dayApproved = dayRequests.filter((r) => r.status === 'Approved').length
+      const dayPending = dayRequests.filter((r) => r.status === 'Pending').length
+      const dayRejected = dayRequests.filter((r) => r.status === 'Rejected').length
 
       days.push(date.toLocaleDateString('en-US', { month: 'short', day: '2-digit' }))
-      receivedData.push(dayRequests.length)
-      fulfilledData.push(dayApproved)
+      approvedData.push(dayApproved)
+      pendingData.push(dayPending)
+      rejectedData.push(dayRejected)
     }
 
-    return { days, receivedData, fulfilledData }
+    return { days, approvedData, pendingData, rejectedData }
   }
 
-  const { days: chartXAxis, receivedData, fulfilledData } = getLast12DaysData()
+  const { days: chartXAxis, approvedData, pendingData, rejectedData } = getLast12DaysData()
   const totalFiltered = getFilteredRequests().length
   const approvedFiltered = getFilteredRequests().filter((r) => r.status === 'Approved').length
   const fulfillmentRate = totalFiltered > 0 ? Math.round((approvedFiltered / totalFiltered) * 100) : 0
 
   const chartSeries = [
     {
-      name: 'Requests Received',
-      data: receivedData,
+      name: 'Approved',
+      data: approvedData,
     },
     {
-      name: 'Requests Fulfilled',
-      data: fulfilledData,
+      name: 'Pending',
+      data: pendingData,
+    },
+    {
+      name: 'Rejected',
+      data: rejectedData,
     },
   ]
+
+  const chartOptions = {
+    plotOptions: {
+      bar: {
+        horizontal: false,
+        columnWidth: '55%',
+        borderRadius: 4,
+      },
+    },
+    colors: COLORS,
+    dataLabels: {
+      enabled: false,
+    },
+    stroke: {
+      show: true,
+      width: 2,
+      colors: ['transparent'],
+    },
+    xaxis: {
+      categories: chartXAxis,
+    },
+    fill: {
+      opacity: 1,
+    },
+    tooltip: {
+      y: {
+        formatter: (val: number) => `${val} requests`,
+      },
+    },
+  }
 
   // Calculate performance scores based on actual data only
   const performanceScores: PartnershipMetric[] = [
@@ -283,7 +322,12 @@ const PartnershipDashboard = () => {
               </Segment>
             </div>
             <div style={{ minHeight: '465px' }}>
-              <Chart type="line" height={450} series={chartSeries} xAxis={chartXAxis} />
+              <Chart
+                options={chartOptions}
+                series={chartSeries}
+                type="bar"
+                height={450}
+              />
             </div>
           </Card>
         </div>
