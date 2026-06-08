@@ -151,7 +151,7 @@ const fetchData = async () => {
         .slice(0, 3)
       setLatestRequests(latest3)
 
-      calculateKPIs(candidatesData, requestsData)
+      calculateKPIs(candidatesData, requestsData, partnershipsData)
       aggregateTopCountries(candidatesData, partnershipsData)
     } catch (error) {
       console.error('Error fetching data:', error)
@@ -197,7 +197,7 @@ const fetchData = async () => {
     }
   }
 
-  const calculateKPIs = (candidatesData: Candidate[], requestsData: EmployeeRequest[]) => {
+  const calculateKPIs = (candidatesData: Candidate[], requestsData: EmployeeRequest[], partnershipsData: Partnership[]) => {
     const totalCandidates = candidatesData.length
     const openPositions = requestsData.filter((r) => r.status === 'Pending').length
     const approvedRequests = requestsData.filter((r) => r.status === 'Approved').length
@@ -227,8 +227,8 @@ const fetchData = async () => {
       },
       {
         title: 'Total Partnership',
-        value: partnerships.length,
-        change: `${partnershipsData.length > 0 ? Math.round((partnershipsData.length / Math.max(partnershipsData.length, 1)) * 100) : 0}%`,
+        value: partnershipsData.length,
+        change: `${partnershipsData.length > 0 ? '100' : '0'}%`,
         icon: (
           <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg">
             <path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"></path>
