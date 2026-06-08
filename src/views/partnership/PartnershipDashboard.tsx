@@ -117,6 +117,7 @@ const PartnershipDashboard = () => {
             ...req,
             request_type: 'Special',
           }))
+          console.log('Special requests fetched:', specialRequestsData)
         } catch (error: any) {
           console.warn('Error fetching special requests:', error.message)
         }
@@ -131,11 +132,13 @@ const PartnershipDashboard = () => {
             ...req,
             request_type: req.request_type || 'Standard',
           }))
+          console.log('Standard requests fetched:', standardRequestsData)
         } catch (error: any) {
           console.warn('Error fetching standard requests:', error.message)
         }
 
         const allRequests = [...specialRequestsData, ...standardRequestsData]
+        console.log('All requests merged:', allRequests, 'Total:', allRequests.length)
         setRequests(allRequests)
         calculateKPIs(allRequests)
       } catch (error: any) {
