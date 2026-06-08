@@ -173,6 +173,43 @@ router.post('/', (req: Request, res: Response, next) => {
     }
 
     const candidate = await createCandidate(data)
+
+    // Create notifications for all admin users
+    try {
+      const poolModule = await import('../../db/config')
+      const dbPool = poolModule.default
+      const adminUsers = await dbPool.query(
+        'SELECT user_id FROM users WHERE authority = $1 AND is_active = true',
+        ['admin']
+      )
+
+      if (adminUsers.rows.length > 0) {
+        for (const admin of adminUsers.rows) {
+          await dbPool.query(
+            `INSERT INTO notifications (
+              user_id, target, description, type, status, location, location_label, image_url,
+              related_entity_id, related_entity_type
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            [
+              admin.user_id,
+              data.name || 'New Candidate',
+              `New candidate added: ${data.name || 'Unnamed'}`,
+              1,
+              'new',
+              'Candidates',
+              'Candidates',
+              '/img/icons/candidate.png',
+              candidate.candidate_id,
+              'candidate'
+            ]
+          )
+        }
+      }
+    } catch (notificationError) {
+      console.error('Error creating notifications for admins:', notificationError)
+      // Continue regardless, the candidate was created successfully
+    }
+
     res.status(201).json({ success: true, data: candidate })
   } catch (error) {
     console.error('Error creating candidate:', error)
