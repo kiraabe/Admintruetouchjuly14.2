@@ -15,7 +15,7 @@ const Settings = () => {
   ]
 
   return (
-    <PageContainer>
+    <PageContainer footer={false}>
       <div className="flex items-center justify-between mb-4">
         <div>
           <h3 className="font-bold">Settings</h3>
