@@ -364,7 +364,13 @@ const fetchData = async () => {
 
   const genderLabels = Object.keys(genderDistribution)
   const genderSeries = Object.values(genderDistribution)
-  const genderColors = ['#3B82F6', '#EC4899', '#6B7280']
+
+  const genderColors = genderLabels.map((label) => {
+    const lowerLabel = label.toLowerCase()
+    if (lowerLabel === 'female') return '#EC4899'
+    if (lowerLabel === 'male') return '#3B82F6'
+    return '#6B7280'
+  })
 
   const genderChartOptions = {
     chart: {
