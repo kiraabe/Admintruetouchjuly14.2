@@ -45,7 +45,8 @@ const SessionTimeoutWarning = ({
         </div>
 
         <p className="text-sm text-red-800 dark:text-red-200">
-          Click "Continue Session" to stay logged in, or you will be logged out automatically.
+          Click "Continue Session" to stay logged in, or you will be logged out
+          automatically.
         </p>
 
         <div className="flex gap-3 pt-2">
