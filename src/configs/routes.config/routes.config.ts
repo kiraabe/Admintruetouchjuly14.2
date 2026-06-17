@@ -61,6 +61,12 @@ export const protectedRoutes: Routes = [
         authority: [],
     },
     {
+        key: 'sessionAudit',
+        path: '/settings/session-audit',
+        component: lazy(() => import('@/views/SessionAudit')),
+        authority: [],
+    },
+    {
         key: 'employeeRequest',
         path: '/employee-request',
         component: lazy(() => import('@/views/EmployeeRequest')),
