@@ -3,7 +3,6 @@ import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { useSessionUser } from '@/store/authStore'
 import ApiService from '@/services/ApiService'
-import { useState, useEffect } from 'react'
 
 interface ProfileData {
     avatar: string
