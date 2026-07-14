@@ -711,6 +711,15 @@ const Candidates = () => {
             />
           </div>
 
+          <div>
+            <label className="form-label">Preferred Work Country</label>
+            <Input
+              placeholder="Filter by preferred work country"
+              value={filters.preferred_work_country || ''}
+              onChange={(e) => setFilters({ ...filters, preferred_work_country: e.target.value })}
+            />
+          </div>
+
           <div className="flex gap-2 pt-4">
             <Button onClick={() => setShowFilterModal(false)}>Close</Button>
             <Button onClick={() => { setFilters({}); setShowFilterModal(false); }}>
