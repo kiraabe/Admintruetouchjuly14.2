@@ -88,6 +88,8 @@ const EditCandidate = () => {
   const [filteredLocations, setFilteredLocations] = useState<string[]>([])
   const [locationSuggestions, setLocationSuggestions] = useState<Array<{ display_name: string; place_id: number }>>([])
   const [showLocationSuggestions, setShowLocationSuggestions] = useState(false)
+  const [nationalitySuggestions, setNationalitySuggestions] = useState<string[]>([])
+  const [showNationalitySuggestions, setShowNationalitySuggestions] = useState(false)
   const locationSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   const locationRequestController = useRef<AbortController | null>(null)
   const [languageSuggestions, setLanguageSuggestions] = useState<string[]>([])
@@ -249,6 +251,15 @@ const EditCandidate = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleNationalitySearch = (value: string) => {
+    handleFieldChange('nationality', value)
+    const suggestions = value.trim()
+      ? COUNTRIES.filter((country) => country.toLowerCase().includes(value.toLowerCase()))
+      : COUNTRIES
+    setNationalitySuggestions(suggestions)
+    setShowNationalitySuggestions(suggestions.length > 0)
   }
 
   const searchLocations = (query: string) => {
@@ -725,14 +736,54 @@ const EditCandidate = () => {
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">Nationality *</label>
-                          <Input
-                            value={formData.nationality}
-                            onChange={(e) => setFormData({ ...formData, nationality: e.target.value })}
-                            placeholder="Nationality"
-                            maxLength={255}
-                            className={fieldErrors.nationality ? 'border-red-500' : ''}
-                          />
+                          <label htmlFor="nationality" className="form-label mb-2">Nationality *</label>
+                          <div className="relative">
+                            <Input
+                              id="nationality"
+                              value={formData.nationality}
+                              onChange={(e) => handleNationalitySearch(e.target.value)}
+                              onFocus={() => {
+                                setNationalitySuggestions(
+                                  formData.nationality
+                                    ? COUNTRIES.filter((country) => country.toLowerCase().includes(formData.nationality.toLowerCase()))
+                                    : COUNTRIES,
+                                )
+                                setShowNationalitySuggestions(true)
+                              }}
+                              onBlur={() => setTimeout(() => setShowNationalitySuggestions(false), 150)}
+                              placeholder="Search nationality"
+                              maxLength={255}
+                              autoComplete="off"
+                              role="combobox"
+                              aria-autocomplete="list"
+                              aria-expanded={showNationalitySuggestions}
+                              aria-controls="nationality-suggestions"
+                              className={fieldErrors.nationality ? 'border-red-500' : ''}
+                            />
+                            {showNationalitySuggestions && nationalitySuggestions.length > 0 && (
+                              <div
+                                id="nationality-suggestions"
+                                role="listbox"
+                                className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-700"
+                              >
+                                {nationalitySuggestions.map((country) => (
+                                  <button
+                                    key={country}
+                                    type="button"
+                                    role="option"
+                                    className="block w-full px-4 py-3 text-left text-sm text-gray-900 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-600"
+                                    onMouseDown={(e) => e.preventDefault()}
+                                    onClick={() => {
+                                      handleFieldChange('nationality', country)
+                                      setShowNationalitySuggestions(false)
+                                    }}
+                                  >
+                                    {country}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
                           {fieldErrors.nationality && (
                             <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.nationality}</p>
                           )}
