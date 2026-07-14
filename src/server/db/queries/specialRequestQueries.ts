@@ -59,7 +59,9 @@ export async function ensureSpecialRequestTableExists() {
 
 export async function getAllSpecialRequests() {
   const result = await pool.query(`
-    SELECT sr.* FROM special_requests sr
+    SELECT sr.*, p.company_logo
+    FROM special_requests sr
+    LEFT JOIN partnerships p ON sr.partnership_id = p.partner_id
     ORDER BY sr.created_at DESC
   `)
   return result.rows

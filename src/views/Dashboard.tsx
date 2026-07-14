@@ -25,6 +25,7 @@ interface Campaign {
   conversions: string
   startDate: string
   endDate: string
+  companyLogo?: string | null
   icon: React.ReactNode
 }
 
@@ -53,6 +54,7 @@ interface EmployeeRequest {
   start_date: string
   created_at: string
   updated_at: string
+  company_logo?: string | null
 }
 
 // Generate last 12 days as labels e.g. ["28 May", "29 May", ..., "08 Jun"]
@@ -305,6 +307,7 @@ const fetchData = async () => {
       conversions: `${conversionRate}%`,
       startDate: new Date(request.start_date || request.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
       endDate: new Date(request.updated_at || request.created_at).toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' }),
+      companyLogo: request.company_logo,
       icon: getIconSvg(),
     }
   })
@@ -636,7 +639,14 @@ const fetchData = async () => {
                     <td className="py-3 px-4"><input type="checkbox" /></td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
-                        <Avatar size={50} className="text-2xl">{campaign.icon}</Avatar>
+                        <Avatar
+                          size={50}
+                          className="text-2xl"
+                          src={campaign.companyLogo || undefined}
+                          alt={`${campaign.name} company logo`}
+                        >
+                          {campaign.icon}
+                        </Avatar>
                         <div>
                           <div className="font-bold">{campaign.name}</div>
                           <div className="text-xs text-gray-500">{campaign.type}</div>
