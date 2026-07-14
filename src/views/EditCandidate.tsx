@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useParams, useNavigate } from 'react-router'
 import Button from '@/components/ui/Button'
 import Input from '@/components/ui/Input'
@@ -86,6 +86,10 @@ const EditCandidate = () => {
   const [resume, setResume] = useState<File | null>(null)
   const [resumeUrl, setResumeUrl] = useState<string | null>(null)
   const [filteredLocations, setFilteredLocations] = useState<string[]>([])
+  const [locationSuggestions, setLocationSuggestions] = useState<Array<{ display_name: string; place_id: number }>>([])
+  const [showLocationSuggestions, setShowLocationSuggestions] = useState(false)
+  const locationSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const locationRequestController = useRef<AbortController | null>(null)
   const [languageSuggestions, setLanguageSuggestions] = useState<string[]>([])
   const [showLanguageSuggestions, setShowLanguageSuggestions] = useState(false)
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
@@ -246,6 +250,45 @@ const EditCandidate = () => {
       setLoading(false)
     }
   }
+
+  const searchLocations = (query: string) => {
+    if (locationSearchTimeout.current) clearTimeout(locationSearchTimeout.current)
+    locationRequestController.current?.abort()
+
+    if (query.trim().length < 3) {
+      setLocationSuggestions([])
+      setShowLocationSuggestions(false)
+      return
+    }
+
+    locationSearchTimeout.current = setTimeout(async () => {
+      const controller = new AbortController()
+      locationRequestController.current = controller
+
+      try {
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&addressdetails=1&q=${encodeURIComponent(query.trim())}`,
+          { signal: controller.signal, headers: { Accept: 'application/json' } },
+        )
+        if (!response.ok) return
+        const results = await response.json()
+        setLocationSuggestions(results)
+        setShowLocationSuggestions(results.length > 0)
+      } catch (error) {
+        if ((error as Error).name !== 'AbortError') {
+          setLocationSuggestions([])
+          setShowLocationSuggestions(false)
+        }
+      }
+    }, 350)
+  }
+
+  useEffect(() => {
+    return () => {
+      if (locationSearchTimeout.current) clearTimeout(locationSearchTimeout.current)
+      locationRequestController.current?.abort()
+    }
+  }, [])
 
   const validateName = (name: string): string => {
     if (!name || name.trim().length === 0) return 'Candidate name is required'
@@ -918,14 +961,52 @@ const EditCandidate = () => {
                         </div>
 
                         <div>
-                          <label className="form-label mb-2">Current Location *</label>
-                          <Input
-                            value={formData.current_location}
-                            onChange={(e) => setFormData({ ...formData, current_location: e.target.value })}
-                            placeholder="Current Location"
-                            maxLength={255}
-                            className={fieldErrors.current_location ? 'border-red-500' : ''}
-                          />
+                          <label htmlFor="current-location" className="form-label mb-2">Current Location *</label>
+                          <div className="relative">
+                            <Input
+                              id="current-location"
+                              value={formData.current_location}
+                              onChange={(e) => {
+                                handleFieldChange('current_location', e.target.value)
+                                searchLocations(e.target.value)
+                              }}
+                              onFocus={() => locationSuggestions.length > 0 && setShowLocationSuggestions(true)}
+                              onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)}
+                              placeholder="Search for an address"
+                              maxLength={255}
+                              autoComplete="off"
+                              role="combobox"
+                              aria-autocomplete="list"
+                              aria-expanded={showLocationSuggestions}
+                              aria-controls="location-suggestions"
+                              className={fieldErrors.current_location ? 'border-red-500' : ''}
+                            />
+                            {showLocationSuggestions && (
+                              <div
+                                id="location-suggestions"
+                                role="listbox"
+                                className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-gray-200 bg-white shadow-lg dark:border-gray-600 dark:bg-gray-700"
+                              >
+                                {locationSuggestions.map((suggestion) => (
+                                  <button
+                                    key={suggestion.place_id}
+                                    type="button"
+                                    role="option"
+                                    className="block w-full px-4 py-3 text-left text-sm text-gray-900 hover:bg-gray-100 dark:text-gray-100 dark:hover:bg-gray-600"
+                                    onMouseDown={(e) => e.preventDefault()}
+                                    onClick={() => {
+                                      handleFieldChange('current_location', suggestion.display_name)
+                                      setLocationSuggestions([])
+                                      setShowLocationSuggestions(false)
+                                    }}
+                                  >
+                                    {suggestion.display_name}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">Start typing to search for a location.</p>
                           {fieldErrors.current_location && (
                             <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.current_location}</p>
                           )}
