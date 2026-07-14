@@ -24,6 +24,7 @@ interface Candidate {
   education_level: string | null
   language_skills: string | null
   country: string | null
+  preferred_work_country: string | null
   city: string | null
   current_location: string | null
   resume_url: string | null
@@ -111,6 +112,7 @@ const EditCandidate = () => {
     skill_level: '',
     education_level: '',
     country: '',
+    preferred_work_country: '',
     city: '',
     current_location: '',
     medical_status: '',
@@ -153,6 +155,7 @@ const EditCandidate = () => {
           skill_level: cand.skill_level || '',
           education_level: cand.education_level || '',
           country: cand.country || '',
+          preferred_work_country: cand.preferred_work_country || '',
           city: cand.city || '',
           current_location: cand.current_location || '',
           medical_status: cand.medical_status || '',
@@ -986,6 +989,16 @@ const EditCandidate = () => {
                           {fieldErrors.country && (
                             <p className="text-red-600 dark:text-red-400 text-xs mt-1">{fieldErrors.country}</p>
                           )}
+                        </div>
+
+                        <div>
+                          <label className="form-label mb-2">Preferred Work Country</label>
+                          <Input
+                            value={formData.preferred_work_country}
+                            onChange={(e) => handleFieldChange('preferred_work_country', e.target.value)}
+                            placeholder="Preferred Work Country"
+                            maxLength={255}
+                          />
                         </div>
 
                         <div>

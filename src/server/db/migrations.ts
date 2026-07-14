@@ -55,6 +55,7 @@ async function runMigrations() {
         education_level VARCHAR(255),
         language_skills TEXT,
         country VARCHAR(255),
+        preferred_work_country VARCHAR(255),
         city VARCHAR(255),
         current_location VARCHAR(255),
         resume_url VARCHAR(255),
@@ -66,6 +67,8 @@ async function runMigrations() {
     `)
 
     console.log('✓ Candidates table created')
+
+    await pool.query(`ALTER TABLE candidates ADD COLUMN IF NOT EXISTS preferred_work_country VARCHAR(255)`)
 
     // Alter candidates table to increase skill_level to TEXT to support multiple skills
     try {

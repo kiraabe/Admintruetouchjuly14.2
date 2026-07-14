@@ -20,6 +20,7 @@ export interface Candidate {
   education_level: string | null
   language_skills: string | null
   country: string | null
+  preferred_work_country: string | null
   city: string | null
   current_location: string | null
   resume_url: string | null

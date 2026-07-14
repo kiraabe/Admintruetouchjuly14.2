@@ -32,6 +32,7 @@ interface Candidate {
   education_level: string | null
   language_skills: string | null
   country: string | null
+  preferred_work_country: string | null
   city: string | null
   current_location: string | null
   profile_picture: string | null

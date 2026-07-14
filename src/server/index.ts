@@ -411,6 +411,7 @@ async function startServer() {
         education_level VARCHAR(255),
         language_skills TEXT,
         country VARCHAR(255),
+        preferred_work_country VARCHAR(255),
         city VARCHAR(255),
         current_location VARCHAR(255),
         resume_url VARCHAR(255),
@@ -422,6 +423,7 @@ async function startServer() {
     `)
 
     await pool.query(`ALTER TABLE candidates ADD COLUMN IF NOT EXISTS status VARCHAR(50) DEFAULT 'available'`)
+    await pool.query(`ALTER TABLE candidates ADD COLUMN IF NOT EXISTS preferred_work_country VARCHAR(255)`)
 
     try {
       await pool.query(`ALTER TABLE candidates ALTER COLUMN skill_level TYPE TEXT`)
