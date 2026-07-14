@@ -971,7 +971,7 @@ const EditCandidate = () => {
                   <Card className="card-border">
                     <div className="card-body">
                       <h4 className="mb-6 font-semibold">Location Information</h4>
-                      <div className="space-y-4">
+                      <div className="grid md:grid-cols-2 gap-4">
                         <div>
                           <label className="form-label mb-2">Country *</label>
                           <select
