@@ -1,5 +1,5 @@
 import express from 'express'
-import type { Request, Response, Router as ExpressRouter } from 'express'
+import type { NextFunction, Request, Response, Router as ExpressRouter } from 'express'
 import multer from 'multer'
 import type { File } from 'multer'
 import path from 'path'
@@ -108,7 +108,7 @@ router.post('/candidate/profile_picture', (req: Request, res: Response, next) =>
   })
 })
 
-router.post('/blog/featured-image', uploaders.blogImage.single('file'), (req: Request, res: Response) => {
+const handleBlogImageUpload = (req: Request, res: Response) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file provided' })
   }
@@ -118,7 +118,10 @@ router.post('/blog/featured-image', uploaders.blogImage.single('file'), (req: Re
     path: relativePath,
     url: getFileUrl(req.file.filename, 'blogs'),
   })
-})
+}
+
+router.post('/blog/featured-image', uploaders.blogImage.single('file'), handleBlogImageUpload)
+router.post('/blog/author-avatar', uploaders.blogImage.single('file'), handleBlogImageUpload)
 
 router.post('/candidate/cv', (req: Request, res: Response, next) => {
   uploaders.cv.single('file')(req, res, (err) => {
@@ -244,7 +247,7 @@ router.get('/candidate/profile_picture/:filename', (req: Request, res: Response)
 })
 
 // Error handling middleware
-router.use((err: any, req: Request, res: Response) => {
+router.use((err: any, req: Request, res: Response, next: NextFunction) => {
   if (err instanceof multer.MulterError) {
     if (err.code === 'LIMIT_FILE_SIZE') {
       return res.status(400).json({ error: 'File size exceeds the limit' })
