@@ -57,7 +57,6 @@ type BlogForm = {
   og_image: string
   previous_post_slug: string
   next_post_slug: string
-  view_count: string
 }
 
 const emptyForm: BlogForm = {
@@ -65,7 +64,7 @@ const emptyForm: BlogForm = {
   author_name: '', author_avatar: '', author_role_en: '', author_bio_en: '',
   tags: '', pull_quote_en: '', pull_quote_author: '', status: 'draft',
   meta_title: '', meta_description: '', meta_keywords: '', canonical_url: '', og_image: '',
-  previous_post_slug: '', next_post_slug: '', view_count: '0',
+  previous_post_slug: '', next_post_slug: '',
 }
 
 const formatDateTime = (value: string | null) => value ? new Date(value).toLocaleString() : 'Not scheduled'
@@ -143,7 +142,6 @@ const Blog = () => {
       og_image: blog.og_image || '',
       previous_post_slug: blog.previous_post_slug || '',
       next_post_slug: blog.next_post_slug || '',
-      view_count: String(blog.view_count ?? 0),
     })
     setShowDialog(true)
   }
@@ -183,6 +181,7 @@ const Blog = () => {
         publish_date: getTodayDateTime(),
         reading_time: calculateReadingTime(formData.body_en),
         created_by: user?.userId || '',
+        view_count: selectedBlog ? selectedBlog.view_count : 0,
       }
       const response = await fetch(selectedBlog ? `/api/blogs/${selectedBlog.id}` : '/api/blogs', {
         method: selectedBlog ? 'PUT' : 'POST',
@@ -269,7 +268,7 @@ const Blog = () => {
           <section className="space-y-4"><h2 className="font-semibold">Content</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Slug *" field="slug" placeholder="seo-friendly-url" /><Field label="English title *" field="title_en" /><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Featured image</span><input type="file" accept="image/*" onChange={handleFeaturedImageChange} className="w-full rounded-md border border-gray-300 px-3 py-2" /></label>{featuredImageFile && <div className="col-span-2 flex items-center gap-2"><img src={URL.createObjectURL(featuredImageFile)} alt="Featured" className="h-20 w-32 rounded object-cover" /><button type="button" onClick={() => setFeaturedImageFile(null)} className="text-sm text-red-500 hover:text-red-700">Remove</button></div>}{formData.featured_image && !featuredImageFile && <div className="col-span-2 flex items-center gap-2"><img src={formData.featured_image} alt="Featured" className="h-20 w-32 rounded object-cover" /><button type="button" onClick={() => updateField('featured_image', '')} className="text-sm text-red-500 hover:text-red-700">Remove</button></div>}<Field label="Tags" field="tags" placeholder="hiring, career, tips" /><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Status</span><select value={formData.status} onChange={(event) => updateField('status', event.target.value as BlogStatus)} className="w-full rounded-md border border-gray-300 px-3 py-2"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label></div><TextArea label="English excerpt" field="excerpt_en" /><TextArea label="English body *" field="body_en" rows={8} /></section>
           <section className="space-y-4"><h2 className="font-semibold">Author and quote</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Author name" field="author_name" /><Field label="Author role" field="author_role_en" /><Field label="Author avatar URL" field="author_avatar" type="url" /><Field label="Quote author" field="pull_quote_author" /></div><TextArea label="Author bio" field="author_bio_en" /><TextArea label="Pull quote" field="pull_quote_en" /></section>
           <section className="space-y-4"><h2 className="font-semibold">SEO</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Meta title" field="meta_title" /><Field label="Meta keywords" field="meta_keywords" placeholder="jobs, careers, hiring" /><Field label="Canonical URL" field="canonical_url" type="url" /><Field label="Open Graph image URL" field="og_image" type="url" /></div><TextArea label="Meta description" field="meta_description" /></section>
-          <section className="space-y-4"><h2 className="font-semibold">Links and tracking</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Previous post slug" field="previous_post_slug" /><Field label="Next post slug" field="next_post_slug" /><Field label="View count" field="view_count" type="number" /></div></section>
+          <section className="space-y-4"><h2 className="font-semibold">Links and tracking</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Previous post slug" field="previous_post_slug" /><Field label="Next post slug" field="next_post_slug" /></div></section>
         </div>
       </Dialog>
     </div>
