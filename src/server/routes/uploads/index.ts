@@ -21,6 +21,7 @@ const uploadsBaseDir = path.join(process.cwd(), 'uploads')
 const uploadDirs = {
   profilePictures: path.join(uploadsBaseDir, 'candidates', 'profile_pictures'),
   cvs: path.join(uploadsBaseDir, 'candidates', 'cvs'),
+  blogImages: path.join(uploadsBaseDir, 'blogs'),
 }
 
 Object.values(uploadDirs).forEach((dir) => {
@@ -72,6 +73,11 @@ const uploaders = {
     fileFilter: pdfFilter,
     limits: { fileSize: 10 * 1024 * 1024 },
   }),
+  blogImage: multer({
+    storage: createStorage(uploadDirs.blogImages),
+    fileFilter: imageFilter,
+    limits: { fileSize: 5 * 1024 * 1024 },
+  }),
 }
 
 // Helper function to get file URL (returns relative path for frontend use)
@@ -99,6 +105,18 @@ router.post('/candidate/profile_picture', (req: Request, res: Response, next) =>
       path: path,
       url: getFileUrl(req.file.filename, 'candidates/profile_pictures'),
     })
+  })
+})
+
+router.post('/blog/featured-image', uploaders.blogImage.single('file'), (req: Request, res: Response) => {
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file provided' })
+  }
+  const relativePath = getRelativePath(req.file.filename, 'blogs')
+  res.json({
+    filename: req.file.filename,
+    path: relativePath,
+    url: getFileUrl(req.file.filename, 'blogs'),
   })
 })
 

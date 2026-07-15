@@ -5,6 +5,7 @@ import Input from '@/components/ui/Input'
 import Dialog from '@/components/ui/Dialog'
 import Pagination from '@/components/ui/Pagination'
 import { toast } from 'sonner'
+import { useAuth } from '@/auth'
 
 type BlogStatus = 'draft' | 'published' | 'archived'
 
@@ -37,7 +38,6 @@ type Blog = {
 }
 
 type BlogForm = {
-  slug: string
   title_en: string
   excerpt_en: string
   body_en: string
@@ -64,7 +64,7 @@ type BlogForm = {
 }
 
 const emptyForm: BlogForm = {
-  slug: '', title_en: '', excerpt_en: '', body_en: '', featured_image: '',
+  title_en: '', excerpt_en: '', body_en: '', featured_image: '',
   author_name: '', author_avatar: '', author_role_en: '', author_bio_en: '', publish_date: '',
   reading_time: '', tags: '', pull_quote_en: '', pull_quote_author: '', status: 'draft',
   meta_title: '', meta_description: '', meta_keywords: '', canonical_url: '', og_image: '',
@@ -72,6 +72,11 @@ const emptyForm: BlogForm = {
 }
 
 const formatDateTime = (value: string | null) => value ? new Date(value).toLocaleString() : 'Not scheduled'
+const getTodayDateTime = () => {
+  const date = new Date()
+  const offset = date.getTimezoneOffset()
+  return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 16)
+}
 
 const Blog = () => {
   const [blogs, setBlogs] = useState<Blog[]>([])
@@ -81,6 +86,8 @@ const Blog = () => {
   const [selectedBlog, setSelectedBlog] = useState<Blog | null>(null)
   const [showDialog, setShowDialog] = useState(false)
   const [formData, setFormData] = useState<BlogForm>(emptyForm)
+  const [featuredImageFile, setFeaturedImageFile] = useState<File | null>(null)
+  const { user } = useAuth()
   const pageSize = 10
 
   const fetchBlogs = async (page: number) => {
@@ -108,14 +115,21 @@ const Blog = () => {
 
   const handleCreate = () => {
     setSelectedBlog(null)
-    setFormData(emptyForm)
+    setFeaturedImageFile(null)
+    setFormData({
+      ...emptyForm,
+      author_name: user?.userName || '',
+      publish_date: getTodayDateTime(),
+      created_by: user?.userId || '',
+    })
     setShowDialog(true)
   }
 
   const handleEdit = (blog: Blog) => {
     setSelectedBlog(blog)
+    setFeaturedImageFile(null)
     setFormData({
-      slug: blog.slug,
+      title_en: blog.title_en,
       title_en: blog.title_en,
       excerpt_en: blog.excerpt_en || '',
       body_en: blog.body_en,
@@ -138,22 +152,43 @@ const Blog = () => {
       previous_post_slug: blog.previous_post_slug || '',
       next_post_slug: blog.next_post_slug || '',
       view_count: String(blog.view_count ?? 0),
-      created_by: blog.created_by || '',
+      created_by: blog.created_by || user?.userId || '',
     })
     setShowDialog(true)
   }
 
+  const handleFeaturedImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setFeaturedImageFile(event.target.files?.[0] || null)
+  }
+
   const handleSave = async () => {
-    if (!formData.slug.trim() || !formData.title_en.trim() || !formData.body_en.trim()) {
-      toast.error('Slug, English title, and English body are required')
+    if (!formData.title_en.trim() || !formData.body_en.trim()) {
+      toast.error('English title and English body are required')
       return
     }
 
     try {
+      let featuredImage = formData.featured_image
+      if (featuredImageFile) {
+        const imageData = new FormData()
+        imageData.append('file', featuredImageFile)
+        const uploadResponse = await fetch('/api/upload/blog/featured-image', { method: 'POST', body: imageData })
+        const uploadData = await uploadResponse.json()
+        if (!uploadResponse.ok) throw new Error(uploadData.error || 'Failed to upload featured image')
+        featuredImage = uploadData.path
+      }
+
+      const payload = {
+        ...formData,
+        slug: selectedBlog?.slug || '',
+        featured_image: featuredImage,
+        publish_date: formData.publish_date || getTodayDateTime(),
+        created_by: formData.created_by || user?.userId || '',
+      }
       const response = await fetch(selectedBlog ? `/api/blogs/${selectedBlog.id}` : '/api/blogs', {
         method: selectedBlog ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, publish_date: formData.publish_date || null }),
+        body: JSON.stringify(payload),
       })
       const data = await response.json()
       if (!response.ok || !data.success) throw new Error(data.error || 'Failed to save blog')
