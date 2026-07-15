@@ -74,6 +74,36 @@ const getTodayDateTime = () => {
   return new Date(date.getTime() - offset * 60000).toISOString().slice(0, 16)
 }
 
+interface FieldProps {
+  label: string
+  type?: string
+  placeholder?: string
+  value: string
+  onChange: (value: string) => void
+}
+
+const Field = ({ label, type = 'text', placeholder, value, onChange }: FieldProps) => (
+  <label className="block">
+    <span className="mb-1 block text-sm font-medium text-gray-700">{label}</span>
+    <Input type={type} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} />
+  </label>
+)
+
+interface TextAreaProps {
+  label: string
+  rows?: number
+  placeholder?: string
+  value: string
+  onChange: (value: string) => void
+}
+
+const TextArea = ({ label, rows = 3, placeholder, value, onChange }: TextAreaProps) => (
+  <label className="block">
+    <span className="mb-1 block text-sm font-medium text-gray-700">{label}</span>
+    <textarea value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} rows={rows} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+  </label>
+)
+
 const Blog = () => {
   const [blogs, setBlogs] = useState<Blog[]>([])
   const [loading, setLoading] = useState(true)
@@ -199,7 +229,7 @@ const Blog = () => {
   }
 
   const handleDelete = async (blog: Blog) => {
-    if (!confirm(`Delete “${blog.title_en}”?`)) return
+    if (!confirm(`Delete "${blog.title_en}"?`)) return
     try {
       const response = await fetch(`/api/blogs/${blog.id}`, { method: 'DELETE' })
       const data = await response.json()
@@ -212,20 +242,6 @@ const Blog = () => {
     }
   }
 
-  const Field = ({ label, field, type = 'text', placeholder }: { label: string, field: keyof BlogForm, type?: string, placeholder?: string }) => (
-    <label className="block">
-      <span className="mb-1 block text-sm font-medium text-gray-700">{label}</span>
-      <Input type={type} value={formData[field]} onChange={(event) => updateField(field, event.target.value as never)} placeholder={placeholder} />
-    </label>
-  )
-
-  const TextArea = ({ label, field, rows = 3, placeholder }: { label: string, field: keyof BlogForm, rows?: number, placeholder?: string }) => (
-    <label className="block">
-      <span className="mb-1 block text-sm font-medium text-gray-700">{label}</span>
-      <textarea value={formData[field]} onChange={(event) => updateField(field, event.target.value as never)} placeholder={placeholder} rows={rows} className="w-full rounded-md border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500" />
-    </label>
-  )
-
   return (
     <div className="p-6">
       <div className="mb-6 flex items-center justify-between">
@@ -237,7 +253,7 @@ const Blog = () => {
       </div>
 
       {loading ? <div className="py-8 text-center">Loading blog posts...</div> : blogs.length === 0 ? (
-        <Card><div className="py-12 text-center text-gray-500">No blog posts yet. Click “Add Blog Post” to create one.</div></Card>
+        <Card><div className="py-12 text-center text-gray-500">No blog posts yet. Click "Add Blog Post" to create one.</div></Card>
       ) : (
         <div className="grid gap-4">
           {blogs.map((blog) => (
@@ -265,9 +281,9 @@ const Blog = () => {
 
       <Dialog isOpen={showDialog} onClose={() => setShowDialog(false)} onConfirm={handleSave} title={selectedBlog ? 'Edit Blog Post' : 'Add Blog Post'} confirmText={selectedBlog ? 'Update Blog' : 'Create Blog'} width={1000}>
         <div className="space-y-6 pr-2">
-          <section className="space-y-4"><h2 className="font-semibold">Content</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Slug *" field="slug" placeholder="seo-friendly-url" /><Field label="English title *" field="title_en" /><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Featured image</span><input type="file" accept="image/*" onChange={handleFeaturedImageChange} className="w-full rounded-md border border-gray-300 px-3 py-2" /></label>{featuredImageFile && <div className="col-span-2 flex items-center gap-2"><img src={URL.createObjectURL(featuredImageFile)} alt="Featured" className="h-20 w-32 rounded object-cover" /><button type="button" onClick={() => setFeaturedImageFile(null)} className="text-sm text-red-500 hover:text-red-700">Remove</button></div>}{formData.featured_image && !featuredImageFile && <div className="col-span-2 flex items-center gap-2"><img src={formData.featured_image} alt="Featured" className="h-20 w-32 rounded object-cover" /><button type="button" onClick={() => updateField('featured_image', '')} className="text-sm text-red-500 hover:text-red-700">Remove</button></div>}<Field label="Tags" field="tags" placeholder="hiring, career, tips" /><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Status</span><select value={formData.status} onChange={(event) => updateField('status', event.target.value as BlogStatus)} className="w-full rounded-md border border-gray-300 px-3 py-2"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label></div><TextArea label="English excerpt" field="excerpt_en" /><TextArea label="English body *" field="body_en" rows={8} /></section>
-          <section className="space-y-4"><h2 className="font-semibold">Author and quote</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Author name" field="author_name" /><Field label="Author role" field="author_role_en" /><Field label="Author avatar URL" field="author_avatar" type="url" /><Field label="Quote author" field="pull_quote_author" /></div><TextArea label="Author bio" field="author_bio_en" /><TextArea label="Pull quote" field="pull_quote_en" /></section>
-          <section className="space-y-4"><h2 className="font-semibold">SEO</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Meta title" field="meta_title" /><Field label="Meta keywords" field="meta_keywords" placeholder="jobs, careers, hiring" /><Field label="Canonical URL" field="canonical_url" type="url" /><Field label="Open Graph image URL" field="og_image" type="url" /></div><TextArea label="Meta description" field="meta_description" /></section>
+          <section className="space-y-4"><h2 className="font-semibold">Content</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Slug *" value={formData.slug} onChange={(value) => updateField('slug', value)} placeholder="seo-friendly-url" /><Field label="English title *" value={formData.title_en} onChange={(value) => updateField('title_en', value)} /><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Featured image</span><input type="file" accept="image/*" onChange={handleFeaturedImageChange} className="w-full rounded-md border border-gray-300 px-3 py-2" /></label>{featuredImageFile && <div className="col-span-2 flex items-center gap-2"><img src={URL.createObjectURL(featuredImageFile)} alt="Featured" className="h-20 w-32 rounded object-cover" /><button type="button" onClick={() => setFeaturedImageFile(null)} className="text-sm text-red-500 hover:text-red-700">Remove</button></div>}{formData.featured_image && !featuredImageFile && <div className="col-span-2 flex items-center gap-2"><img src={formData.featured_image} alt="Featured" className="h-20 w-32 rounded object-cover" /><button type="button" onClick={() => updateField('featured_image', '')} className="text-sm text-red-500 hover:text-red-700">Remove</button></div>}<Field label="Tags" value={formData.tags} onChange={(value) => updateField('tags', value)} placeholder="hiring, career, tips" /><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Status</span><select value={formData.status} onChange={(event) => updateField('status', event.target.value as BlogStatus)} className="w-full rounded-md border border-gray-300 px-3 py-2"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label></div><TextArea label="English excerpt" value={formData.excerpt_en} onChange={(value) => updateField('excerpt_en', value)} /><TextArea label="English body *" value={formData.body_en} onChange={(value) => updateField('body_en', value)} rows={8} /></section>
+          <section className="space-y-4"><h2 className="font-semibold">Author and quote</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Author name" value={formData.author_name} onChange={(value) => updateField('author_name', value)} /><Field label="Author role" value={formData.author_role_en} onChange={(value) => updateField('author_role_en', value)} /><Field label="Author avatar URL" value={formData.author_avatar} onChange={(value) => updateField('author_avatar', value)} type="url" /><Field label="Quote author" value={formData.pull_quote_author} onChange={(value) => updateField('pull_quote_author', value)} /></div><TextArea label="Author bio" value={formData.author_bio_en} onChange={(value) => updateField('author_bio_en', value)} /><TextArea label="Pull quote" value={formData.pull_quote_en} onChange={(value) => updateField('pull_quote_en', value)} /></section>
+          <section className="space-y-4"><h2 className="font-semibold">SEO</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Meta title" value={formData.meta_title} onChange={(value) => updateField('meta_title', value)} /><Field label="Meta keywords" value={formData.meta_keywords} onChange={(value) => updateField('meta_keywords', value)} placeholder="jobs, careers, hiring" /><Field label="Canonical URL" value={formData.canonical_url} onChange={(value) => updateField('canonical_url', value)} type="url" /><Field label="Open Graph image URL" value={formData.og_image} onChange={(value) => updateField('og_image', value)} type="url" /></div><TextArea label="Meta description" value={formData.meta_description} onChange={(value) => updateField('meta_description', value)} /></section>
           <section className="space-y-4"><h2 className="font-semibold">Links and tracking</h2><div className="grid gap-4 md:grid-cols-2"><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Previous post</span><select value={formData.previous_post_slug} onChange={(event) => updateField('previous_post_slug', event.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2"><option value="">None</option>{blogs.filter(b => b.slug !== selectedBlog?.slug).map(b => <option key={b.id} value={b.slug}>{b.title_en}</option>)}</select></label><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Next post</span><select value={formData.next_post_slug} onChange={(event) => updateField('next_post_slug', event.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2"><option value="">None</option>{blogs.filter(b => b.slug !== selectedBlog?.slug).map(b => <option key={b.id} value={b.slug}>{b.title_en}</option>)}</select></label></div></section>
         </div>
       </Dialog>
