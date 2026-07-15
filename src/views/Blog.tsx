@@ -6,6 +6,7 @@ import Dialog from '@/components/ui/Dialog'
 import Pagination from '@/components/ui/Pagination'
 import { toast } from 'sonner'
 import { useAuth } from '@/auth'
+import { getBlogImageUrl } from '@/utils/imageUrl'
 
 type BlogStatus = 'draft' | 'published' | 'archived'
 
@@ -451,7 +452,7 @@ const Blog = () => {
                             <div className="flex gap-5">
                                 {blog.featured_image && (
                                     <img
-                                        src={blog.featured_image}
+                                        src={getBlogImageUrl(blog.featured_image)}
                                         alt=""
                                         className="h-24 w-32 rounded object-cover"
                                         onError={(event) => {
@@ -604,7 +605,7 @@ const Blog = () => {
                             {formData.featured_image && !featuredImageFile && (
                                 <div className="flex items-center gap-2">
                                     <img
-                                        src={formData.featured_image}
+                                        src={getBlogImageUrl(formData.featured_image)}
                                         alt="Featured"
                                         className="h-20 w-32 rounded object-cover"
                                     />
@@ -690,7 +691,7 @@ const Blog = () => {
                             {formData.author_avatar && !authorAvatarFile && (
                                 <div className="flex items-center gap-2">
                                     <img
-                                        src={formData.author_avatar}
+                                        src={getBlogImageUrl(formData.author_avatar)}
                                         alt="Author avatar"
                                         className="h-20 w-20 rounded object-cover"
                                     />

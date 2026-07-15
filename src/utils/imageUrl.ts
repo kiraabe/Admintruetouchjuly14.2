@@ -15,10 +15,18 @@ export function getCandidateProfilePictureUrl(candidateId: string | null | undef
 
 export function getCandidateCVUrl(filename: string | null | undefined): string {
   if (!filename) return ''
-  
+
   if (filename.startsWith('http') || filename.startsWith('/uploads')) {
     return filename
   }
-  
+
   return `/uploads/candidates/cvs/${filename}`
+}
+
+export function getBlogImageUrl(filename: string | null | undefined): string {
+  if (!filename) return ''
+  if (filename.startsWith('http') || filename.startsWith('/uploads')) {
+    return filename
+  }
+  return `/uploads/${filename.replace(/^\/?uploads\//, '')}`
 }
