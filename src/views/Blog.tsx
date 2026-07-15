@@ -46,8 +46,6 @@ type BlogForm = {
   author_avatar: string
   author_role_en: string
   author_bio_en: string
-  publish_date: string
-  reading_time: string
   tags: string
   pull_quote_en: string
   pull_quote_author: string
@@ -60,15 +58,14 @@ type BlogForm = {
   previous_post_slug: string
   next_post_slug: string
   view_count: string
-  created_by: string
 }
 
 const emptyForm: BlogForm = {
   title_en: '', excerpt_en: '', body_en: '', featured_image: '',
-  author_name: '', author_avatar: '', author_role_en: '', author_bio_en: '', publish_date: '',
-  reading_time: '', tags: '', pull_quote_en: '', pull_quote_author: '', status: 'draft',
+  author_name: '', author_avatar: '', author_role_en: '', author_bio_en: '',
+  tags: '', pull_quote_en: '', pull_quote_author: '', status: 'draft',
   meta_title: '', meta_description: '', meta_keywords: '', canonical_url: '', og_image: '',
-  previous_post_slug: '', next_post_slug: '', view_count: '0', created_by: '',
+  previous_post_slug: '', next_post_slug: '', view_count: '0',
 }
 
 const formatDateTime = (value: string | null) => value ? new Date(value).toLocaleString() : 'Not scheduled'
@@ -119,8 +116,6 @@ const Blog = () => {
     setFormData({
       ...emptyForm,
       author_name: user?.userName || '',
-      publish_date: getTodayDateTime(),
-      created_by: user?.userId || '',
     })
     setShowDialog(true)
   }
@@ -130,7 +125,6 @@ const Blog = () => {
     setFeaturedImageFile(null)
     setFormData({
       title_en: blog.title_en,
-      title_en: blog.title_en,
       excerpt_en: blog.excerpt_en || '',
       body_en: blog.body_en,
       featured_image: blog.featured_image || '',
@@ -138,8 +132,6 @@ const Blog = () => {
       author_avatar: blog.author_avatar || '',
       author_role_en: blog.author_role_en || '',
       author_bio_en: blog.author_bio_en || '',
-      publish_date: blog.publish_date ? new Date(blog.publish_date).toISOString().slice(0, 16) : '',
-      reading_time: blog.reading_time || '',
       tags: (blog.tags || []).join(', '),
       pull_quote_en: blog.pull_quote_en || '',
       pull_quote_author: blog.pull_quote_author || '',
@@ -152,13 +144,19 @@ const Blog = () => {
       previous_post_slug: blog.previous_post_slug || '',
       next_post_slug: blog.next_post_slug || '',
       view_count: String(blog.view_count ?? 0),
-      created_by: blog.created_by || user?.userId || '',
     })
     setShowDialog(true)
   }
 
   const handleFeaturedImageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFeaturedImageFile(event.target.files?.[0] || null)
+  }
+
+  const calculateReadingTime = (text: string): string => {
+    const wordsPerMinute = 200
+    const wordCount = text.trim().split(/\s+/).length
+    const minutes = Math.ceil(wordCount / wordsPerMinute)
+    return `${minutes} min read`
   }
 
   const handleSave = async () => {
@@ -182,8 +180,9 @@ const Blog = () => {
         ...formData,
         slug: selectedBlog?.slug || '',
         featured_image: featuredImage,
-        publish_date: formData.publish_date || getTodayDateTime(),
-        created_by: formData.created_by || user?.userId || '',
+        publish_date: getTodayDateTime(),
+        reading_time: calculateReadingTime(formData.body_en),
+        created_by: user?.userId || '',
       }
       const response = await fetch(selectedBlog ? `/api/blogs/${selectedBlog.id}` : '/api/blogs', {
         method: selectedBlog ? 'PUT' : 'POST',
@@ -267,10 +266,10 @@ const Blog = () => {
 
       <Dialog isOpen={showDialog} onClose={() => setShowDialog(false)} onConfirm={handleSave} title={selectedBlog ? 'Edit Blog Post' : 'Add Blog Post'} confirmText={selectedBlog ? 'Update Blog' : 'Create Blog'} width={1000}>
         <div className="max-h-[70vh] space-y-6 overflow-y-auto pr-2">
-          <section className="space-y-4"><h2 className="font-semibold">Content</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Slug *" field="slug" placeholder="seo-friendly-url" /><Field label="English title *" field="title_en" /><Field label="Reading time" field="reading_time" placeholder="5 min read" /><Field label="Featured image URL" field="featured_image" type="url" /><Field label="Publish date" field="publish_date" type="datetime-local" /><Field label="Tags" field="tags" placeholder="hiring, career, tips" /><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Status</span><select value={formData.status} onChange={(event) => updateField('status', event.target.value as BlogStatus)} className="w-full rounded-md border border-gray-300 px-3 py-2"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label></div><TextArea label="English excerpt" field="excerpt_en" /><TextArea label="English body *" field="body_en" rows={8} /></section>
+          <section className="space-y-4"><h2 className="font-semibold">Content</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Slug *" field="slug" placeholder="seo-friendly-url" /><Field label="English title *" field="title_en" /><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Featured image</span><input type="file" accept="image/*" onChange={handleFeaturedImageChange} className="w-full rounded-md border border-gray-300 px-3 py-2" /></label>{featuredImageFile && <div className="col-span-2 flex items-center gap-2"><img src={URL.createObjectURL(featuredImageFile)} alt="Featured" className="h-20 w-32 rounded object-cover" /><button type="button" onClick={() => setFeaturedImageFile(null)} className="text-sm text-red-500 hover:text-red-700">Remove</button></div>}{formData.featured_image && !featuredImageFile && <div className="col-span-2 flex items-center gap-2"><img src={formData.featured_image} alt="Featured" className="h-20 w-32 rounded object-cover" /><button type="button" onClick={() => updateField('featured_image', '')} className="text-sm text-red-500 hover:text-red-700">Remove</button></div>}<Field label="Tags" field="tags" placeholder="hiring, career, tips" /><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Status</span><select value={formData.status} onChange={(event) => updateField('status', event.target.value as BlogStatus)} className="w-full rounded-md border border-gray-300 px-3 py-2"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label></div><TextArea label="English excerpt" field="excerpt_en" /><TextArea label="English body *" field="body_en" rows={8} /></section>
           <section className="space-y-4"><h2 className="font-semibold">Author and quote</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Author name" field="author_name" /><Field label="Author role" field="author_role_en" /><Field label="Author avatar URL" field="author_avatar" type="url" /><Field label="Quote author" field="pull_quote_author" /></div><TextArea label="Author bio" field="author_bio_en" /><TextArea label="Pull quote" field="pull_quote_en" /></section>
           <section className="space-y-4"><h2 className="font-semibold">SEO</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Meta title" field="meta_title" /><Field label="Meta keywords" field="meta_keywords" placeholder="jobs, careers, hiring" /><Field label="Canonical URL" field="canonical_url" type="url" /><Field label="Open Graph image URL" field="og_image" type="url" /></div><TextArea label="Meta description" field="meta_description" /></section>
-          <section className="space-y-4"><h2 className="font-semibold">Links and tracking</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Previous post slug" field="previous_post_slug" /><Field label="Next post slug" field="next_post_slug" /><Field label="View count" field="view_count" type="number" /><Field label="Created by (User/Admin ID)" field="created_by" /></div></section>
+          <section className="space-y-4"><h2 className="font-semibold">Links and tracking</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Previous post slug" field="previous_post_slug" /><Field label="Next post slug" field="next_post_slug" /><Field label="View count" field="view_count" type="number" /></div></section>
         </div>
       </Dialog>
     </div>
