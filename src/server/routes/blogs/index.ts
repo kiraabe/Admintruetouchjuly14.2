@@ -46,9 +46,6 @@ const getBlogValues = (body: Record<string, unknown>) => {
         [body.author_bio_en, 250, 'Author bio'],
         [body.pull_quote_en, 200, 'Pull quote'],
         [body.pull_quote_author, 50, 'Quote attribution'],
-        [body.meta_title, 60, 'Meta title'],
-        [body.meta_keywords, 255, 'Meta keywords'],
-        [body.meta_description, 160, 'Meta description'],
     ]
 
     if (!titleEn || !bodyEn || !slug) {
@@ -92,11 +89,6 @@ const getBlogValues = (body: Record<string, unknown>) => {
         toNullableString(body.pull_quote_en),
         toNullableString(body.pull_quote_author),
         status,
-        toNullableString(body.meta_title),
-        toNullableString(body.meta_description),
-        toNullableString(body.meta_keywords),
-        toNullableString(body.canonical_url),
-        toNullableString(body.og_image),
         toNullableString(body.previous_post_slug),
         toNullableString(body.next_post_slug),
         viewCount,
@@ -168,12 +160,11 @@ router.post('/', async (req: Request, res: Response) => {
             `INSERT INTO blogs (
         slug, title_en, title_am, excerpt_en, body_en, featured_image,
         author_name, author_avatar, author_role_en, author_bio_en, publish_date,
-        reading_time, tags, pull_quote_en, pull_quote_author, status, meta_title,
-        meta_description, meta_keywords, canonical_url, og_image, previous_post_slug,
+        reading_time, tags, pull_quote_en, pull_quote_author, status, previous_post_slug,
         next_post_slug, view_count, created_by
       ) VALUES (
         $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15,
-        $16, $17, $18, $19, $20, $21, $22, $23, $24, $25
+        $16, $17, $18, $19, $20
       ) RETURNING *`,
             values,
         )
@@ -201,11 +192,10 @@ router.put('/:id', async (req: Request, res: Response) => {
         slug = $1, title_en = $2, title_am = $3, excerpt_en = $4, body_en = $5,
         featured_image = $6, author_name = $7, author_avatar = $8, author_role_en = $9,
         author_bio_en = $10, publish_date = $11, reading_time = $12, tags = $13,
-        pull_quote_en = $14, pull_quote_author = $15, status = $16, meta_title = $17,
-        meta_description = $18, meta_keywords = $19, canonical_url = $20, og_image = $21,
-        previous_post_slug = $22, next_post_slug = $23, view_count = $24, created_by = $25,
+        pull_quote_en = $14, pull_quote_author = $15, status = $16,
+        previous_post_slug = $17, next_post_slug = $18, view_count = $19, created_by = $20,
         updated_at = CURRENT_TIMESTAMP
-      WHERE id = $26
+      WHERE id = $21
       RETURNING *`,
             [...values, req.params.id],
         )

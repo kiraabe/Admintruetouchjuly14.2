@@ -26,11 +26,6 @@ type Blog = {
     pull_quote_en: string | null
     pull_quote_author: string | null
     status: BlogStatus
-    meta_title: string | null
-    meta_description: string | null
-    meta_keywords: string | null
-    canonical_url: string | null
-    og_image: string | null
     previous_post_slug: string | null
     next_post_slug: string | null
     view_count: number
@@ -51,11 +46,6 @@ type BlogForm = {
     pull_quote_en: string
     pull_quote_author: string
     status: BlogStatus
-    meta_title: string
-    meta_description: string
-    meta_keywords: string
-    canonical_url: string
-    og_image: string
     previous_post_slug: string
     next_post_slug: string
 }
@@ -74,11 +64,6 @@ const emptyForm: BlogForm = {
     pull_quote_en: '',
     pull_quote_author: '',
     status: 'draft',
-    meta_title: '',
-    meta_description: '',
-    meta_keywords: '',
-    canonical_url: '',
-    og_image: '',
     previous_post_slug: '',
     next_post_slug: '',
 }
@@ -320,11 +305,6 @@ const Blog = () => {
             pull_quote_en: blog.pull_quote_en || '',
             pull_quote_author: blog.pull_quote_author || '',
             status: blog.status,
-            meta_title: blog.meta_title || '',
-            meta_description: blog.meta_description || '',
-            meta_keywords: blog.meta_keywords || '',
-            canonical_url: blog.canonical_url || '',
-            og_image: blog.og_image || '',
             previous_post_slug: blog.previous_post_slug || '',
             next_post_slug: blog.next_post_slug || '',
         })
@@ -447,8 +427,7 @@ const Blog = () => {
                 <div>
                     <h1 className="text-2xl font-bold">Blog Posts</h1>
                     <p className="mt-1 text-sm text-gray-500">
-                        Create and manage editorial content, authors, and SEO
-                        metadata.
+                        Create and manage editorial content and authors.
                     </p>
                 </div>
                 <Button variant="solid" onClick={handleCreate}>
@@ -742,53 +721,6 @@ const Blog = () => {
                                 updateField('pull_quote_en', value)
                             }
                             maxLength={200}
-                        />
-                    </section>
-
-                    <section className="space-y-4">
-                        <h2 className="font-semibold">SEO</h2>
-                        <div className="grid gap-4 md:grid-cols-2">
-                            <Field
-                                label="Meta title"
-                                value={formData.meta_title}
-                                onChange={(value) =>
-                                    updateField('meta_title', value)
-                                }
-                                maxLength={60}
-                            />
-                            <Field
-                                label="Meta keywords"
-                                value={formData.meta_keywords}
-                                onChange={(value) =>
-                                    updateField('meta_keywords', value)
-                                }
-                                placeholder="jobs, careers, hiring"
-                                maxLength={255}
-                            />
-                            <Field
-                                label="Canonical URL"
-                                value={formData.canonical_url}
-                                onChange={(value) =>
-                                    updateField('canonical_url', value)
-                                }
-                                type="url"
-                            />
-                            <Field
-                                label="Open Graph image URL"
-                                value={formData.og_image}
-                                onChange={(value) =>
-                                    updateField('og_image', value)
-                                }
-                                type="url"
-                            />
-                        </div>
-                        <TextArea
-                            label="Meta description"
-                            value={formData.meta_description}
-                            onChange={(value) =>
-                                updateField('meta_description', value)
-                            }
-                            maxLength={160}
                         />
                     </section>
 
