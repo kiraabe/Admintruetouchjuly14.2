@@ -113,6 +113,7 @@ const Blog = () => {
   const [showDialog, setShowDialog] = useState(false)
   const [formData, setFormData] = useState<BlogForm>(emptyForm)
   const [featuredImageFile, setFeaturedImageFile] = useState<File | null>(null)
+  const [authorAvatarFile, setAuthorAvatarFile] = useState<File | null>(null)
   const { user } = useAuth()
   const pageSize = 10
 
@@ -142,6 +143,7 @@ const Blog = () => {
   const handleCreate = () => {
     setSelectedBlog(null)
     setFeaturedImageFile(null)
+    setAuthorAvatarFile(null)
     setFormData({
       ...emptyForm,
       author_name: user?.userName || '',
@@ -152,6 +154,7 @@ const Blog = () => {
   const handleEdit = (blog: Blog) => {
     setSelectedBlog(blog)
     setFeaturedImageFile(null)
+    setAuthorAvatarFile(null)
     setFormData({
       title_en: blog.title_en,
       excerpt_en: blog.excerpt_en || '',
@@ -180,6 +183,10 @@ const Blog = () => {
     setFeaturedImageFile(event.target.files?.[0] || null)
   }
 
+  const handleAuthorAvatarChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setAuthorAvatarFile(event.target.files?.[0] || null)
+  }
+
   const calculateReadingTime = (text: string): string => {
     const wordsPerMinute = 200
     const wordCount = text.trim().split(/\s+/).length
@@ -204,10 +211,21 @@ const Blog = () => {
         featuredImage = uploadData.path
       }
 
+      let authorAvatar = formData.author_avatar
+      if (authorAvatarFile) {
+        const imageData = new FormData()
+        imageData.append('file', authorAvatarFile)
+        const uploadResponse = await fetch('/api/upload/blog/author-avatar', { method: 'POST', body: imageData })
+        const uploadData = await uploadResponse.json()
+        if (!uploadResponse.ok) throw new Error(uploadData.error || 'Failed to upload author avatar')
+        authorAvatar = uploadData.path
+      }
+
       const payload = {
         ...formData,
         slug: selectedBlog?.slug || '',
         featured_image: featuredImage,
+        author_avatar: authorAvatar,
         publish_date: getTodayDateTime(),
         reading_time: calculateReadingTime(formData.body_en),
         created_by: user?.userId || '',
@@ -282,7 +300,7 @@ const Blog = () => {
       <Dialog isOpen={showDialog} onClose={() => setShowDialog(false)} onConfirm={handleSave} title={selectedBlog ? 'Edit Blog Post' : 'Add Blog Post'} confirmText={selectedBlog ? 'Update Blog' : 'Create Blog'} width={1000}>
         <div className="space-y-6 pr-2">
           <section className="space-y-4"><h2 className="font-semibold">Content</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Slug *" value={formData.slug} onChange={(value) => updateField('slug', value)} placeholder="seo-friendly-url" /><Field label="English title *" value={formData.title_en} onChange={(value) => updateField('title_en', value)} /><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Featured image</span><input type="file" accept="image/*" onChange={handleFeaturedImageChange} className="w-full rounded-md border border-gray-300 px-3 py-2" /></label>{featuredImageFile && <div className="col-span-2 flex items-center gap-2"><img src={URL.createObjectURL(featuredImageFile)} alt="Featured" className="h-20 w-32 rounded object-cover" /><button type="button" onClick={() => setFeaturedImageFile(null)} className="text-sm text-red-500 hover:text-red-700">Remove</button></div>}{formData.featured_image && !featuredImageFile && <div className="col-span-2 flex items-center gap-2"><img src={formData.featured_image} alt="Featured" className="h-20 w-32 rounded object-cover" /><button type="button" onClick={() => updateField('featured_image', '')} className="text-sm text-red-500 hover:text-red-700">Remove</button></div>}<Field label="Tags" value={formData.tags} onChange={(value) => updateField('tags', value)} placeholder="hiring, career, tips" /><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Status</span><select value={formData.status} onChange={(event) => updateField('status', event.target.value as BlogStatus)} className="w-full rounded-md border border-gray-300 px-3 py-2"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label></div><TextArea label="English excerpt" value={formData.excerpt_en} onChange={(value) => updateField('excerpt_en', value)} /><TextArea label="English body *" value={formData.body_en} onChange={(value) => updateField('body_en', value)} rows={8} /></section>
-          <section className="space-y-4"><h2 className="font-semibold">Author and quote</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Author name" value={formData.author_name} onChange={(value) => updateField('author_name', value)} /><Field label="Author role" value={formData.author_role_en} onChange={(value) => updateField('author_role_en', value)} /><Field label="Author avatar URL" value={formData.author_avatar} onChange={(value) => updateField('author_avatar', value)} type="url" /><Field label="Quote author" value={formData.pull_quote_author} onChange={(value) => updateField('pull_quote_author', value)} /></div><TextArea label="Author bio" value={formData.author_bio_en} onChange={(value) => updateField('author_bio_en', value)} /><TextArea label="Pull quote" value={formData.pull_quote_en} onChange={(value) => updateField('pull_quote_en', value)} /></section>
+          <section className="space-y-4"><h2 className="font-semibold">Author and quote</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Author name" value={formData.author_name} onChange={(value) => updateField('author_name', value)} /><Field label="Author role" value={formData.author_role_en} onChange={(value) => updateField('author_role_en', value)} /><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Author avatar</span><input type="file" accept="image/*" onChange={handleAuthorAvatarChange} className="w-full rounded-md border border-gray-300 px-3 py-2" /></label>{authorAvatarFile && <div className="col-span-2 flex items-center gap-2"><img src={URL.createObjectURL(authorAvatarFile)} alt="Author avatar" className="h-20 w-20 rounded object-cover" /><button type="button" onClick={() => setAuthorAvatarFile(null)} className="text-sm text-red-500 hover:text-red-700">Remove</button></div>}{formData.author_avatar && !authorAvatarFile && <div className="col-span-2 flex items-center gap-2"><img src={formData.author_avatar} alt="Author avatar" className="h-20 w-20 rounded object-cover" /><button type="button" onClick={() => updateField('author_avatar', '')} className="text-sm text-red-500 hover:text-red-700">Remove</button></div>}<Field label="Quote author" value={formData.pull_quote_author} onChange={(value) => updateField('pull_quote_author', value)} /></div><TextArea label="Author bio" value={formData.author_bio_en} onChange={(value) => updateField('author_bio_en', value)} /><TextArea label="Pull quote" value={formData.pull_quote_en} onChange={(value) => updateField('pull_quote_en', value)} /></section>
           <section className="space-y-4"><h2 className="font-semibold">SEO</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Meta title" value={formData.meta_title} onChange={(value) => updateField('meta_title', value)} /><Field label="Meta keywords" value={formData.meta_keywords} onChange={(value) => updateField('meta_keywords', value)} placeholder="jobs, careers, hiring" /><Field label="Canonical URL" value={formData.canonical_url} onChange={(value) => updateField('canonical_url', value)} type="url" /><Field label="Open Graph image URL" value={formData.og_image} onChange={(value) => updateField('og_image', value)} type="url" /></div><TextArea label="Meta description" value={formData.meta_description} onChange={(value) => updateField('meta_description', value)} /></section>
           <section className="space-y-4"><h2 className="font-semibold">Links and tracking</h2><div className="grid gap-4 md:grid-cols-2"><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Previous post</span><select value={formData.previous_post_slug} onChange={(event) => updateField('previous_post_slug', event.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2"><option value="">None</option>{blogs.filter(b => b.slug !== selectedBlog?.slug).map(b => <option key={b.id} value={b.slug}>{b.title_en}</option>)}</select></label><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Next post</span><select value={formData.next_post_slug} onChange={(event) => updateField('next_post_slug', event.target.value)} className="w-full rounded-md border border-gray-300 px-3 py-2"><option value="">None</option>{blogs.filter(b => b.slug !== selectedBlog?.slug).map(b => <option key={b.id} value={b.slug}>{b.title_en}</option>)}</select></label></div></section>
         </div>
