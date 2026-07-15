@@ -16,7 +16,6 @@ import employeeRequestsRouter from './routes/employeeRequests/index'
 import standardRequestsRouter from './routes/standardRequests/index'
 import specialRequestsRouter from './routes/specialRequests/index'
 import licensesRouter from './routes/licenses/index'
-import jobsRouter from './routes/jobs/index'
 import blogsRouter from './routes/blogs/index'
 import notificationsRouter from './routes/notifications/index'
 import uploadsRouter from './routes/uploads/index'
@@ -221,7 +220,6 @@ app.use('/api/employee-requests', employeeRequestsRouter)
 app.use('/api/standard-requests', standardRequestsRouter)
 app.use('/api/special-requests', specialRequestsRouter)
 app.use('/api/licenses', licensesRouter)
-app.use('/api/jobs', jobsRouter)
 app.use('/api/blogs', blogsRouter)
 app.use('/api/notification', notificationsRouter)
 app.use('/api/contact-us', contactRouter)
@@ -534,43 +532,8 @@ async function startServer() {
       console.error('Error creating licenses table:', tableError)
     }
 
-    try {
-      console.log('Creating jobs table...')
-      await pool.query(`
-        CREATE TABLE IF NOT EXISTS jobs (
-          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-          title VARCHAR(56) NOT NULL,
-          description TEXT NOT NULL,
-          author VARCHAR(15) DEFAULT 'admin',
-          image_url VARCHAR(255),
-          expire_date DATE NOT NULL,
-          status VARCHAR(20) DEFAULT 'active',
-          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-          updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-      `)
-      console.log('✓ Jobs table ready')
-
-      try {
-        await pool.query(`ALTER TABLE jobs ALTER COLUMN description TYPE TEXT`)
-        console.log('✓ Updated jobs description column to TEXT')
-      } catch (alterError) {
-        console.log('Note: Jobs description column migration:', alterError instanceof Error ? alterError.message : alterError)
-      }
-
-      const jobCount = await pool.query('SELECT COUNT(*) as count FROM jobs')
-      if (jobCount.rows[0].count === '0') {
-        await pool.query(`
-          INSERT INTO jobs (title, description, author, expire_date, status) VALUES
-          ('Software Engineer', 'Looking for experienced software engineers', 'admin', '2024-12-31', 'active'),
-          ('Product Manager', 'Lead product development for our platform', 'admin', '2024-12-31', 'active'),
-          ('UI/UX Designer', 'Design intuitive user interfaces', 'admin', '2024-12-31', 'active')
-        `)
-        console.log('✓ Jobs seeded successfully')
-      }
-    } catch (tableError) {
-      console.error('Error creating jobs table:', tableError)
-    }
+    await pool.query('DROP TABLE IF EXISTS jobs')
+    console.log('✓ Jobs table removed')
 
     try {
       console.log('Creating blogs table...')

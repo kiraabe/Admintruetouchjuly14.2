@@ -92,27 +92,6 @@ const adminNavigation: NavigationTree[] = [
         ],
     },
     {
-        key: 'jobGroup',
-        path: '',
-        title: 'Job',
-        translateKey: 'nav.job',
-        icon: '',
-        type: NAV_ITEM_TYPE_TITLE,
-        authority: [],
-        subMenu: [
-            {
-                key: 'job',
-                path: '/job',
-                title: 'Job',
-                translateKey: 'nav.job',
-                icon: 'briefcase',
-                type: NAV_ITEM_TYPE_ITEM,
-                authority: [],
-                subMenu: [],
-            },
-        ],
-    },
-    {
         key: 'blogGroup',
         path: '',
         title: 'Blogs',

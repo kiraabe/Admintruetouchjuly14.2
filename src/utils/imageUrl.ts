@@ -22,13 +22,3 @@ export function getCandidateCVUrl(filename: string | null | undefined): string {
   
   return `/uploads/candidates/cvs/${filename}`
 }
-
-export function getJobImageUrl(filename: string | null | undefined): string {
-  if (!filename) return ''
-  
-  if (filename.startsWith('http') || filename.startsWith('/uploads')) {
-    return filename
-  }
-  
-  return `/uploads/jobs/${filename}`
-}

@@ -21,7 +21,6 @@ const uploadsBaseDir = path.join(process.cwd(), 'uploads')
 const uploadDirs = {
   profilePictures: path.join(uploadsBaseDir, 'candidates', 'profile_pictures'),
   cvs: path.join(uploadsBaseDir, 'candidates', 'cvs'),
-  jobImages: path.join(uploadsBaseDir, 'jobs'),
 }
 
 Object.values(uploadDirs).forEach((dir) => {
@@ -73,11 +72,6 @@ const uploaders = {
     fileFilter: pdfFilter,
     limits: { fileSize: 10 * 1024 * 1024 },
   }),
-  jobImage: multer({
-    storage: createStorage(uploadDirs.jobImages),
-    fileFilter: imageFilter,
-    limits: { fileSize: 5 * 1024 * 1024 },
-  }),
 }
 
 // Helper function to get file URL (returns relative path for frontend use)
@@ -125,18 +119,6 @@ router.post('/candidate/cv', (req: Request, res: Response, next) => {
   })
 })
 
-router.post('/job/image', uploaders.jobImage.single('file'), (req: Request, res: Response) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file provided' })
-  }
-  const path = getRelativePath(req.file.filename, 'jobs')
-  res.json({
-    filename: req.file.filename,
-    path: path,
-    url: getFileUrl(req.file.filename, 'jobs'),
-  })
-})
-
 // GET Endpoints - List files
 router.get('/candidates/profile_pictures', (req: Request, res: Response) => {
   fs.readdir(uploadDirs.profilePictures, (err, files) => {
@@ -159,19 +141,6 @@ router.get('/candidates/cvs', (req: Request, res: Response) => {
     const filesWithUrls = files.map((file) => ({
       filename: file,
       url: getFileUrl(file, 'candidates/cvs'),
-    }))
-    res.json(filesWithUrls)
-  })
-})
-
-router.get('/jobs', (req: Request, res: Response) => {
-  fs.readdir(uploadDirs.jobImages, (err, files) => {
-    if (err) {
-      return res.status(500).json({ error: 'Unable to read directory' })
-    }
-    const filesWithUrls = files.map((file) => ({
-      filename: file,
-      url: getFileUrl(file, 'jobs'),
     }))
     res.json(filesWithUrls)
   })

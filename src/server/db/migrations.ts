@@ -154,30 +154,6 @@ async function runMigrations() {
     }
 
 
-    // Add image_data column to jobs if it doesn't exist
-    try {
-      const jobsTableCheck = await pool.query(`
-        SELECT EXISTS (
-          SELECT FROM information_schema.tables
-          WHERE table_name = 'jobs'
-        )
-      `)
-      if (jobsTableCheck.rows[0].exists) {
-        const checkColumn = await pool.query(`
-          SELECT EXISTS (
-            SELECT FROM information_schema.columns
-            WHERE table_name = 'jobs' AND column_name = 'image_data'
-          )
-        `)
-        if (!checkColumn.rows[0].exists) {
-          await pool.query(`ALTER TABLE jobs ADD COLUMN image_data BYTEA`)
-          console.log('✓ Added image_data column to jobs table')
-        }
-      }
-    } catch (err) {
-      console.log('Note: image_data column check/creation:', err instanceof Error ? err.message : err)
-    }
-
     await pool.query(`
       CREATE TABLE IF NOT EXISTS contact_us (
         id SERIAL PRIMARY KEY,
