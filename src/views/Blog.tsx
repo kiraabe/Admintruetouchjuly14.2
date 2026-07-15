@@ -12,7 +12,6 @@ type Blog = {
   id: string
   slug: string
   title_en: string
-  title_am: string | null
   excerpt_en: string | null
   body_en: string
   featured_image: string | null
@@ -40,7 +39,6 @@ type Blog = {
 type BlogForm = {
   slug: string
   title_en: string
-  title_am: string
   excerpt_en: string
   body_en: string
   featured_image: string
@@ -66,7 +64,7 @@ type BlogForm = {
 }
 
 const emptyForm: BlogForm = {
-  slug: '', title_en: '', title_am: '', excerpt_en: '', body_en: '', featured_image: '',
+  slug: '', title_en: '', excerpt_en: '', body_en: '', featured_image: '',
   author_name: '', author_avatar: '', author_role_en: '', author_bio_en: '', publish_date: '',
   reading_time: '', tags: '', pull_quote_en: '', pull_quote_author: '', status: 'draft',
   meta_title: '', meta_description: '', meta_keywords: '', canonical_url: '', og_image: '',
@@ -119,7 +117,6 @@ const Blog = () => {
     setFormData({
       slug: blog.slug,
       title_en: blog.title_en,
-      title_am: blog.title_am || '',
       excerpt_en: blog.excerpt_en || '',
       body_en: blog.body_en,
       featured_image: blog.featured_image || '',
@@ -235,7 +232,7 @@ const Blog = () => {
 
       <Dialog isOpen={showDialog} onClose={() => setShowDialog(false)} onConfirm={handleSave} title={selectedBlog ? 'Edit Blog Post' : 'Add Blog Post'} confirmText={selectedBlog ? 'Update Blog' : 'Create Blog'} width={1000}>
         <div className="max-h-[70vh] space-y-6 overflow-y-auto pr-2">
-          <section className="space-y-4"><h2 className="font-semibold">Content</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Slug *" field="slug" placeholder="seo-friendly-url" /><Field label="English title *" field="title_en" /><Field label="Amharic title" field="title_am" /><Field label="Reading time" field="reading_time" placeholder="5 min read" /><Field label="Featured image URL" field="featured_image" type="url" /><Field label="Publish date" field="publish_date" type="datetime-local" /><Field label="Tags" field="tags" placeholder="hiring, career, tips" /><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Status</span><select value={formData.status} onChange={(event) => updateField('status', event.target.value as BlogStatus)} className="w-full rounded-md border border-gray-300 px-3 py-2"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label></div><TextArea label="English excerpt" field="excerpt_en" /><TextArea label="English body *" field="body_en" rows={8} /></section>
+          <section className="space-y-4"><h2 className="font-semibold">Content</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Slug *" field="slug" placeholder="seo-friendly-url" /><Field label="English title *" field="title_en" /><Field label="Reading time" field="reading_time" placeholder="5 min read" /><Field label="Featured image URL" field="featured_image" type="url" /><Field label="Publish date" field="publish_date" type="datetime-local" /><Field label="Tags" field="tags" placeholder="hiring, career, tips" /><label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Status</span><select value={formData.status} onChange={(event) => updateField('status', event.target.value as BlogStatus)} className="w-full rounded-md border border-gray-300 px-3 py-2"><option value="draft">Draft</option><option value="published">Published</option><option value="archived">Archived</option></select></label></div><TextArea label="English excerpt" field="excerpt_en" /><TextArea label="English body *" field="body_en" rows={8} /></section>
           <section className="space-y-4"><h2 className="font-semibold">Author and quote</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Author name" field="author_name" /><Field label="Author role" field="author_role_en" /><Field label="Author avatar URL" field="author_avatar" type="url" /><Field label="Quote author" field="pull_quote_author" /></div><TextArea label="Author bio" field="author_bio_en" /><TextArea label="Pull quote" field="pull_quote_en" /></section>
           <section className="space-y-4"><h2 className="font-semibold">SEO</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Meta title" field="meta_title" /><Field label="Meta keywords" field="meta_keywords" placeholder="jobs, careers, hiring" /><Field label="Canonical URL" field="canonical_url" type="url" /><Field label="Open Graph image URL" field="og_image" type="url" /></div><TextArea label="Meta description" field="meta_description" /></section>
           <section className="space-y-4"><h2 className="font-semibold">Links and tracking</h2><div className="grid gap-4 md:grid-cols-2"><Field label="Previous post slug" field="previous_post_slug" /><Field label="Next post slug" field="next_post_slug" /><Field label="View count" field="view_count" type="number" /><Field label="Created by (User/Admin ID)" field="created_by" /></div></section>
