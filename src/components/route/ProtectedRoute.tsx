@@ -10,6 +10,7 @@ const adminOnlyRoutes = [
     '/candidates',
     '/partnership/',
     '/job',
+    '/blog',
     '/employee-request',
     '/license-info',
     '/setting',

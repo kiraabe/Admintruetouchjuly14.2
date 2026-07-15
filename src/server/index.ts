@@ -17,6 +17,7 @@ import standardRequestsRouter from './routes/standardRequests/index'
 import specialRequestsRouter from './routes/specialRequests/index'
 import licensesRouter from './routes/licenses/index'
 import jobsRouter from './routes/jobs/index'
+import blogsRouter from './routes/blogs/index'
 import notificationsRouter from './routes/notifications/index'
 import uploadsRouter from './routes/uploads/index'
 import contactRouter from './routes/contact/index'
@@ -221,6 +222,7 @@ app.use('/api/standard-requests', standardRequestsRouter)
 app.use('/api/special-requests', specialRequestsRouter)
 app.use('/api/licenses', licensesRouter)
 app.use('/api/jobs', jobsRouter)
+app.use('/api/blogs', blogsRouter)
 app.use('/api/notification', notificationsRouter)
 app.use('/api/contact-us', contactRouter)
 app.use('/api/upload', uploadsRouter)
@@ -568,6 +570,47 @@ async function startServer() {
       }
     } catch (tableError) {
       console.error('Error creating jobs table:', tableError)
+    }
+
+    try {
+      console.log('Creating blogs table...')
+      await pool.query(`
+        CREATE TABLE IF NOT EXISTS blogs (
+          id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+          slug VARCHAR(255) UNIQUE NOT NULL,
+          title_en TEXT NOT NULL,
+          title_am TEXT,
+          excerpt_en TEXT,
+          body_en TEXT NOT NULL,
+          featured_image TEXT,
+          author_name VARCHAR(255),
+          author_avatar TEXT,
+          author_role_en VARCHAR(255),
+          author_bio_en TEXT,
+          publish_date TIMESTAMP,
+          reading_time VARCHAR(100),
+          tags TEXT[] DEFAULT '{}',
+          pull_quote_en TEXT,
+          pull_quote_author VARCHAR(255),
+          status VARCHAR(20) NOT NULL DEFAULT 'draft' CHECK (status IN ('draft', 'published', 'archived')),
+          meta_title VARCHAR(255),
+          meta_description TEXT,
+          meta_keywords TEXT,
+          canonical_url TEXT,
+          og_image TEXT,
+          previous_post_slug VARCHAR(255),
+          next_post_slug VARCHAR(255),
+          view_count INTEGER NOT NULL DEFAULT 0 CHECK (view_count >= 0),
+          created_by UUID,
+          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+      `)
+      await pool.query('CREATE INDEX IF NOT EXISTS idx_blogs_status_publish_date ON blogs(status, publish_date DESC)')
+      console.log('✓ Blogs table ready')
+    } catch (tableError) {
+      console.error('Error creating blogs table:', tableError)
+      throw tableError
     }
 
     try {

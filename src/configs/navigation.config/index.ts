@@ -113,6 +113,27 @@ const adminNavigation: NavigationTree[] = [
         ],
     },
     {
+        key: 'blogGroup',
+        path: '',
+        title: 'Blogs',
+        translateKey: 'nav.blogs',
+        icon: '',
+        type: NAV_ITEM_TYPE_TITLE,
+        authority: [],
+        subMenu: [
+            {
+                key: 'blog',
+                path: '/blog',
+                title: 'Blogs',
+                translateKey: 'nav.blogs',
+                icon: 'collapseMenu',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [],
+                subMenu: [],
+            },
+        ],
+    },
+    {
         key: 'employeeRequestGroup',
         path: '',
         title: 'Employee Request',
