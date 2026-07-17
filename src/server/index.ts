@@ -102,6 +102,39 @@ app.get('/health', (req, res) => {
     res.json({ status: 'ok' })
 })
 
+app.get('/api/location-search', async (req, res) => {
+    const query = typeof req.query.q === 'string' ? req.query.q.trim() : ''
+    if (query.length < 3) {
+        return res.json([])
+    }
+
+    try {
+        const url = new URL('https://nominatim.openstreetmap.org/search')
+        url.search = new URLSearchParams({
+            format: 'jsonv2',
+            limit: '5',
+            addressdetails: '1',
+            q: query,
+        }).toString()
+
+        const response = await fetch(url, {
+            headers: {
+                Accept: 'application/json',
+                'User-Agent': 'TrueTouch candidate location search',
+            },
+        })
+
+        if (!response.ok) {
+            return res.status(response.status).json({ error: 'Location search failed' })
+        }
+
+        return res.json(await response.json())
+    } catch (error) {
+        console.error('Location search failed:', error)
+        return res.status(502).json({ error: 'Location search unavailable' })
+    }
+})
+
 // ─── Static uploads (no auth) ─────────────────────────────────────────────────
 const uploadsBaseDir = path.join(process.cwd(), 'uploads')
 console.log(`[UPLOADS] CWD: ${process.cwd()}`)

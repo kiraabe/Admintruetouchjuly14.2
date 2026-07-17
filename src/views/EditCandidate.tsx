@@ -281,10 +281,14 @@ const EditCandidate = () => {
 
       try {
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=5&addressdetails=1&q=${encodeURIComponent(query.trim())}`,
+          `/api/location-search?q=${encodeURIComponent(query.trim())}`,
           { signal: controller.signal, headers: { Accept: 'application/json' } },
         )
-        if (!response.ok) return
+        if (!response.ok) {
+          setLocationSuggestions([])
+          setShowLocationSuggestions(false)
+          return
+        }
         const results = await response.json()
         setLocationSuggestions(results)
         setShowLocationSuggestions(results.length > 0)
