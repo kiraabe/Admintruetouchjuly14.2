@@ -1036,7 +1036,7 @@ const EditCandidate = () => {
                               }}
                               onFocus={() => locationSuggestions.length > 0 && setShowLocationSuggestions(true)}
                               onBlur={() => setTimeout(() => setShowLocationSuggestions(false), 150)}
-                              placeholder="Search for an address"
+                              placeholder="Start typing to search for a location, just like Google Maps"
                               maxLength={255}
                               autoComplete="off"
                               role="combobox"
