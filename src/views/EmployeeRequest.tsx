@@ -50,6 +50,23 @@ interface Candidate {
 
 const STATUS_OPTIONS = ['Pending', 'Approved', 'Rejected', 'In Progress', 'Completed']
 
+const cleanSkillLevel = (text: string | undefined): string => {
+  if (!text) return ''
+  let result = text
+  let depth = 10
+  while (depth-- > 0) {
+    try {
+      const p = JSON.parse(result)
+      if (typeof p === 'string') result = p
+      else if (Array.isArray(p)) {
+        result = p.filter(Boolean).join(', ')
+        break
+      } else break
+    } catch { break }
+  }
+  return result.replace(/[{}[\]":\\]/g, ' ').replace(/\s+/g, ' ').trim()
+}
+
 const EmployeeRequest = () => {
   const [requests, setRequests] = useState<EmployeeRequest[]>([])
   const [filteredRequests, setFilteredRequests] = useState<EmployeeRequest[]>([])
@@ -1029,7 +1046,7 @@ const EmployeeRequest = () => {
                         <p className="font-medium text-gray-900 dark:text-gray-100">{candidate.name}</p>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           {candidate.job_category && `${candidate.job_category}`}
-                          {candidate.skill_level && ` • ${candidate.skill_level}`}
+                          {candidate.skill_level && ` • ${cleanSkillLevel(candidate.skill_level)}`}
                         </p>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
@@ -1189,7 +1206,7 @@ const EmployeeRequest = () => {
                         {candidate.job_category}
                       </td>
                       <td className="py-3 px-4 text-gray-700 dark:text-gray-300">
-                        {candidate.skill_level}
+                        {cleanSkillLevel(candidate.skill_level)}
                       </td>
                       <td className="py-3 px-4 text-gray-700 dark:text-gray-300">
                         {candidate.education_level}
