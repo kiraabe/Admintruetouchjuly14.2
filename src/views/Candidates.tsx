@@ -219,7 +219,7 @@ const Candidates = () => {
       'Age',
       'Nationality',
       'Job Category',
-      'Skill Level',
+      'Preferred Work Country',
       'Country',
       'Status',
     ]
@@ -233,7 +233,7 @@ const Candidates = () => {
         c.age || '',
         c.nationality || '',
         c.job_category || '',
-        parseSkillLevel(c.skill_level),
+        c.preferred_work_country || '',
         c.country || '',
         c.status || '',
       ]),
@@ -476,14 +476,14 @@ const Candidates = () => {
                 </th>
                 <th
                   className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
-                  onClick={() => handleSort('skill_level')}
+                  onClick={() => handleSort('preferred_work_country')}
                 >
                   <div className="flex items-center gap-2">
-                    Skill Level
+                    Preferred Work Country
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                      {sortColumn === 'skill_level' && sortDirection === 'asc' ? (
+                      {sortColumn === 'preferred_work_country' && sortDirection === 'asc' ? (
                         <path d="M7 14l5-5 5 5z" />
-                      ) : sortColumn === 'skill_level' && sortDirection === 'desc' ? (
+                      ) : sortColumn === 'preferred_work_country' && sortDirection === 'desc' ? (
                         <path d="M7 10l5 5 5-5z" />
                       ) : (
                         <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
@@ -554,7 +554,7 @@ const Candidates = () => {
                       {candidate.job_category || '-'}
                     </td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.nationality || '-'}</td>
-                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{parseSkillLevel(candidate.skill_level)}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.preferred_work_country || '-'}</td>
                     <td className="py-3 px-4">
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize ${
                         candidate.status === 'available'
@@ -662,19 +662,12 @@ const Candidates = () => {
           </div>
 
           <div>
-            <label className="form-label">Skill Level</label>
-            <select
-              value={filters.skill_level || ''}
-              onChange={(e) => setFilters({ ...filters, skill_level: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            >
-              <option value="">All levels</option>
-              {SKILL_LEVELS.map((level) => (
-                <option key={level} value={level}>
-                  {level}
-                </option>
-              ))}
-            </select>
+            <label className="form-label">Preferred Work Country</label>
+            <Input
+              placeholder="Filter by preferred work country"
+              value={filters.preferred_work_country || ''}
+              onChange={(e) => setFilters({ ...filters, preferred_work_country: e.target.value })}
+            />
           </div>
 
           <div>
