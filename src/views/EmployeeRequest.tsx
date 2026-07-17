@@ -79,6 +79,7 @@ const EmployeeRequest = () => {
   const [showFilterModal, setShowFilterModal] = useState(false)
   const [showDetailsModal, setShowDetailsModal] = useState(false)
   const [selectedRequest, setSelectedRequest] = useState<EmployeeRequest | null>(null)
+  const [requestStatusBeforeEdit, setRequestStatusBeforeEdit] = useState<string | null>(null)
   const [filters, setFilters] = useState<Partial<EmployeeRequest>>({})
   const [sortColumn, setSortColumn] = useState<string | null>(null)
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc')
@@ -811,6 +812,7 @@ const EmployeeRequest = () => {
                         <button
                           onClick={() => {
                             setSelectedRequest(request)
+                            setRequestStatusBeforeEdit(request.status)
                             setShowDetailsModal(true)
                           }}
                           className="text-xl cursor-pointer hover:text-primary"
@@ -942,7 +944,15 @@ const EmployeeRequest = () => {
       </Dialog>
 
       {/* Details Modal */}
-      <Dialog isOpen={showDetailsModal} onClose={() => setShowDetailsModal(false)} width="95vw" height="95vh" contentClassName="!max-h-none !overflow-visible">
+      <Dialog
+        isOpen={showDetailsModal}
+        onClose={() => {
+          setShowDetailsModal(false)
+          setRequestStatusBeforeEdit(null)
+        }}
+        width={720}
+        contentClassName="!max-h-[85vh] !overflow-y-auto"
+      >
         {selectedRequest && (
           <div className="space-y-4 w-full">
             <div className="mb-4">
@@ -1085,8 +1095,9 @@ const EmployeeRequest = () => {
                 </select>
                 <button
                   onClick={() => {
-                    if (selectedRequest && selectedRequest.status !== selectedRequest.status) {
+                    if (selectedRequest && selectedRequest.status !== requestStatusBeforeEdit) {
                       handleUpdateStatus(selectedRequest, selectedRequest.status)
+                      setRequestStatusBeforeEdit(selectedRequest.status)
                     }
                   }}
                   className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-dark"
@@ -1097,7 +1108,14 @@ const EmployeeRequest = () => {
             </div>
 
             <div className="flex gap-2 pt-4">
-              <Button onClick={() => setShowDetailsModal(false)}>Close</Button>
+              <Button
+                onClick={() => {
+                  setShowDetailsModal(false)
+                  setRequestStatusBeforeEdit(null)
+                }}
+              >
+                Close
+              </Button>
               {selectedRequest.status !== 'Approved' && (
                 <Button
                   onClick={() => {
