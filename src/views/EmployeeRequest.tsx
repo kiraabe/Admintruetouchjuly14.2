@@ -64,7 +64,10 @@ const cleanSkillLevel = (text: string | undefined): string => {
       } else break
     } catch { break }
   }
-  return result.replace(/[{}[\]":\\]/g, ' ').replace(/\s+/g, ' ').trim()
+  result = result.replace(/[{}[\]":\\]/g, ' ').replace(/\s+/g, ' ').trim()
+  const skills = result.split(',').map(s => s.trim()).filter(Boolean)
+  const unique = Array.from(new Set(skills))
+  return unique.join(', ')
 }
 
 const EmployeeRequest = () => {
