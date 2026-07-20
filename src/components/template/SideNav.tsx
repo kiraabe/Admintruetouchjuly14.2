@@ -67,11 +67,11 @@ const SideNav = ({
             <Link
                 to={appConfig.authenticatedEntryPath}
                 className="side-nav-header flex flex-col justify-center"
-                style={{ height: HEADER_HEIGHT }}
+                style={{ height: sideNavCollapse ? HEADER_HEIGHT : 72 }}
             >
                 <Logo
-                    imgClass="max-h-10"
-                    logoWidth={sideNavCollapse ? 56 : 220}
+                    imgClass="max-h-14"
+                    logoWidth={sideNavCollapse ? 56 : 235}
                     mode={mode || defaultMode}
                     type={sideNavCollapse ? 'streamline' : 'full'}
                     className={classNames(
