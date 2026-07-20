@@ -12,14 +12,7 @@ interface LogoProps extends CommonProps {
 const LOGO_SRC_PATH = '/static/logo/'
 
 const Logo = (props: LogoProps) => {
-    const {
-        type = 'full',
-        mode = 'light',
-        className,
-        imgClass,
-        style,
-        logoWidth = 'auto',
-    } = props
+    const { className, imgClass, style, logoWidth = 'auto' } = props
 
     return (
         <div
@@ -30,8 +23,8 @@ const Logo = (props: LogoProps) => {
             }}
         >
             <img
-                className={imgClass}
-                src={`${LOGO_SRC_PATH}logo-${mode}-${type}.png`}
+                className={classNames('block h-auto w-full object-contain', imgClass)}
+                src={`${LOGO_SRC_PATH}true-touch-logo.webp`}
                 alt={`${APP_NAME} logo`}
             />
         </div>

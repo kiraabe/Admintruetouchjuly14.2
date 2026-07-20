@@ -71,6 +71,7 @@ const SideNav = ({
             >
                 <Logo
                     imgClass="max-h-10"
+                    logoWidth={sideNavCollapse ? 56 : 220}
                     mode={mode || defaultMode}
                     type={sideNavCollapse ? 'streamline' : 'full'}
                     className={classNames(
