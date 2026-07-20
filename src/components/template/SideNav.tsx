@@ -13,7 +13,6 @@ import {
     SIDE_NAV_COLLAPSED_WIDTH,
     SIDE_NAV_CONTENT_GUTTER,
     HEADER_HEIGHT,
-    LOGO_X_GUTTER,
 } from '@/constants/theme.constant'
 import type { Mode } from '@/@types/theme'
 
@@ -67,18 +66,18 @@ const SideNav = ({
             <Link
                 to={appConfig.authenticatedEntryPath}
                 className="side-nav-header flex flex-col justify-center"
-                style={{ height: sideNavCollapse ? HEADER_HEIGHT : 72 }}
+                style={{ height: sideNavCollapse ? HEADER_HEIGHT : 84 }}
             >
                 <Logo
-                    imgClass="max-h-14"
-                    logoWidth={sideNavCollapse ? 56 : 235}
+                    imgClass="max-h-16"
+                    logoWidth={sideNavCollapse ? 56 : 260}
                     mode={mode || defaultMode}
                     type={sideNavCollapse ? 'streamline' : 'full'}
                     className={classNames(
                         sideNavCollapse && 'ltr:ml-[11.5px] ltr:mr-[11.5px]',
                         sideNavCollapse
                             ? SIDE_NAV_CONTENT_GUTTER
-                            : LOGO_X_GUTTER,
+                            : 'px-3',
                     )}
                 />
             </Link>
