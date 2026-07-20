@@ -110,7 +110,8 @@ const PartnershipCandidates = () => {
         (c) =>
           c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
           c.phone_number?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          c.nationality?.toLowerCase().includes(searchTerm.toLowerCase())
+          c.nationality?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          c.preferred_work_country?.toLowerCase().includes(searchTerm.toLowerCase())
       )
     }
 
@@ -270,6 +271,7 @@ const PartnershipCandidates = () => {
       'Age',
       'Nationality',
       'Job Category',
+      'Preferred Work Country',
       'Skill Level',
       'Country',
       'Status',
@@ -284,6 +286,7 @@ const PartnershipCandidates = () => {
         c.age || '',
         c.nationality || '',
         c.job_category || '',
+        c.preferred_work_country || '',
         parseSkillLevel(c.skill_level),
         c.country || '',
         c.status || '',
@@ -491,6 +494,14 @@ const PartnershipCandidates = () => {
                 </th>
                 <th
                   className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                  onClick={() => handleSort('preferred_work_country')}
+                >
+                  <div className="flex items-center gap-2">
+                    Preferred Work Country
+                  </div>
+                </th>
+                <th
+                  className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
                   onClick={() => handleSort('skill_level')}
                 >
                   <div className="flex items-center gap-2">
@@ -511,7 +522,7 @@ const PartnershipCandidates = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-4">
+                  <td colSpan={10} className="text-center py-4">
                     Loading...
                   </td>
                 </tr>
@@ -552,6 +563,7 @@ const PartnershipCandidates = () => {
                       {candidate.job_category || '-'}
                     </td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.nationality || '-'}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.preferred_work_country || '-'}</td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{parseSkillLevel(candidate.skill_level)}</td>
                     <td className="py-3 px-4">
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize ${
@@ -712,6 +724,10 @@ const PartnershipCandidates = () => {
                 <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                   <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Country</p>
                   <p className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.country || '-'}</p>
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
+                  <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Preferred Work Country</p>
+                  <p className="text-gray-900 dark:text-gray-100 font-medium">{selectedCandidate.preferred_work_country || '-'}</p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
                   <p className="text-xs text-gray-600 dark:text-gray-400 font-semibold mb-1">Current Location</p>
@@ -906,6 +922,15 @@ const PartnershipCandidates = () => {
               placeholder="Filter by nationality"
               value={filters.nationality || ''}
               onChange={(e) => setFilters({ ...filters, nationality: e.target.value })}
+            />
+          </div>
+
+          <div>
+            <label className="form-label">Preferred Work Country</label>
+            <Input
+              placeholder="Filter by preferred work country"
+              value={filters.preferred_work_country || ''}
+              onChange={(e) => setFilters({ ...filters, preferred_work_country: e.target.value })}
             />
           </div>
 
