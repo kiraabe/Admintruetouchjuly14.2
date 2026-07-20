@@ -23,7 +23,7 @@ export const SignInBase = ({
                     type="streamline"
                     mode={mode}
                     imgClass="mx-auto"
-                    logoWidth={250}
+                    logoWidth={320}
                 />
             </div>
             <div className="mb-10">
