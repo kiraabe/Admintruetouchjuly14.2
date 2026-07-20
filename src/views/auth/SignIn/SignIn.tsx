@@ -1,6 +1,7 @@
 import Logo from '@/components/template/Logo'
+import { useState } from 'react'
+import Dialog from '@/components/ui/Dialog'
 import SignInForm from './components/SignInForm'
-import ActionLink from '@/components/shared/ActionLink'
 import { useThemeStore } from '@/store/themeStore'
 
 type SignInProps = {
@@ -15,6 +16,7 @@ export const SignInBase = ({
     disableSubmit,
 }: SignInProps) => {
     const mode = useThemeStore((state) => state.mode)
+    const [showContactAdmin, setShowContactAdmin] = useState(false)
 
     return (
         <>
@@ -36,16 +38,38 @@ export const SignInBase = ({
                 disableSubmit={disableSubmit}
                 passwordHint={
                     <div className="mb-7 mt-2">
-                        <ActionLink
-                            to={forgetPasswordUrl}
+                        <button
+                            type="button"
+                            onClick={() => setShowContactAdmin(true)}
                             className="font-semibold heading-text mt-2 underline"
-                            themeColor={false}
                         >
                             Forgot password
-                        </ActionLink>
+                        </button>
                     </div>
                 }
             />
+            <Dialog
+                isOpen={showContactAdmin}
+                onClose={() => setShowContactAdmin(false)}
+                title="Contact your administrator"
+                width={460}
+            >
+                <div className="space-y-4">
+                    <p className="text-gray-600 dark:text-gray-300">
+                        Please contact your administrator to reset your password.
+                        They can verify your account and help you regain access.
+                    </p>
+                    <div className="flex justify-end">
+                        <button
+                            type="button"
+                            onClick={() => setShowContactAdmin(false)}
+                            className="button bg-primary text-white hover:bg-primary/90 px-4 py-2 rounded-lg"
+                        >
+                            Close
+                        </button>
+                    </div>
+                </div>
+            </Dialog>
         </>
     )
 }
