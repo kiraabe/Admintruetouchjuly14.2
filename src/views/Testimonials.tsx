@@ -46,6 +46,27 @@ const Field = ({ label, value, onChange, type = 'text', placeholder }: { label: 
     </label>
 )
 
+const StarRating = ({ value, onChange }: { value: number; onChange: (value: number) => void }) => (
+    <div>
+        <span className="mb-1 block text-sm font-medium text-gray-700">Rating *</span>
+        <div className="flex h-12 items-center gap-1" role="radiogroup" aria-label="Rating">
+            {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                    key={star}
+                    type="button"
+                    role="radio"
+                    aria-checked={value === star}
+                    aria-label={`${star} star${star === 1 ? '' : 's'}`}
+                    onClick={() => onChange(star)}
+                    className={`text-3xl leading-none transition-colors ${star <= value ? 'text-amber-400' : 'text-gray-300'} hover:text-amber-400`}
+                >
+                    ★
+                </button>
+            ))}
+        </div>
+    </div>
+)
+
 const Testimonials = () => {
     const [testimonials, setTestimonials] = useState<Testimonial[]>([])
     const [loading, setLoading] = useState(true)
@@ -196,7 +217,7 @@ const Testimonials = () => {
                         <Field label="Client name *" value={formData.client_name} onChange={(value) => updateField('client_name', value)} />
                         <Field label="Company name *" value={formData.company_name} onChange={(value) => updateField('company_name', value)} />
                         <Field label="Designation *" value={formData.designation} onChange={(value) => updateField('designation', value)} />
-                        <Field label="Rating (1–5) *" type="number" value={formData.rating} onChange={(value) => updateField('rating', Number(value))} />
+                        <StarRating value={formData.rating} onChange={(value) => updateField('rating', value)} />
                         <Field label="Display order" type="number" value={formData.display_order} onChange={(value) => updateField('display_order', Number(value))} />
                         <label className="block"><span className="mb-1 block text-sm font-medium text-gray-700">Status</span><select value={formData.status} onChange={(event) => updateField('status', event.target.value as TestimonialStatus)} className="w-full rounded-md border border-gray-300 px-3 py-2"><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
                     </div>
