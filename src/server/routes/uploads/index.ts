@@ -22,6 +22,7 @@ const uploadDirs = {
   profilePictures: path.join(uploadsBaseDir, 'candidates', 'profile_pictures'),
   cvs: path.join(uploadsBaseDir, 'candidates', 'cvs'),
   blogImages: path.join(uploadsBaseDir, 'blogs'),
+  testimonialAvatars: path.join(uploadsBaseDir, 'testimonials'),
 }
 
 Object.values(uploadDirs).forEach((dir) => {
@@ -78,6 +79,11 @@ const uploaders = {
     fileFilter: imageFilter,
     limits: { fileSize: 5 * 1024 * 1024 },
   }),
+  testimonialAvatar: multer({
+    storage: createStorage(uploadDirs.testimonialAvatars),
+    fileFilter: imageFilter,
+    limits: { fileSize: 5 * 1024 * 1024 },
+  }),
 }
 
 // Helper function to get file URL (returns relative path for frontend use)
@@ -122,6 +128,11 @@ const handleBlogImageUpload = (req: Request, res: Response) => {
 
 router.post('/blog/featured-image', uploaders.blogImage.single('file'), handleBlogImageUpload)
 router.post('/blog/author-avatar', uploaders.blogImage.single('file'), handleBlogImageUpload)
+router.post('/testimonial/avatar', uploaders.testimonialAvatar.single('file'), (req: Request, res: Response) => {
+  if (!req.file) return res.status(400).json({ error: 'No file provided' })
+  const relativePath = getRelativePath(req.file.filename, 'testimonials')
+  res.json({ filename: req.file.filename, path: relativePath, url: getFileUrl(req.file.filename, 'testimonials') })
+})
 
 router.post('/candidate/cv', (req: Request, res: Response, next) => {
   uploaders.cv.single('file')(req, res, (err) => {

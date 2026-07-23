@@ -17,6 +17,7 @@ import standardRequestsRouter from './routes/standardRequests/index'
 import specialRequestsRouter from './routes/specialRequests/index'
 import licensesRouter from './routes/licenses/index'
 import blogsRouter from './routes/blogs/index'
+import testimonialsRouter from './routes/testimonials/index'
 import notificationsRouter from './routes/notifications/index'
 import uploadsRouter from './routes/uploads/index'
 import contactRouter from './routes/contact/index'
@@ -55,11 +56,14 @@ const PORT = process.env.PORT || 5000
 const profilesDir = path.join(process.cwd(), 'uploads', 'profiles')
 const candidatesDir = path.join(process.cwd(), 'uploads', 'candidates')
 const partnershipsDir = path.join(process.cwd(), 'uploads', 'partnerships')
+const testimonialsDir = path.join(process.cwd(), 'uploads', 'testimonials')
 if (!fs.existsSync(profilesDir)) fs.mkdirSync(profilesDir, { recursive: true })
 if (!fs.existsSync(candidatesDir))
     fs.mkdirSync(candidatesDir, { recursive: true })
 if (!fs.existsSync(partnershipsDir))
     fs.mkdirSync(partnershipsDir, { recursive: true })
+if (!fs.existsSync(testimonialsDir))
+    fs.mkdirSync(testimonialsDir, { recursive: true })
 
 // ─── Multer ───────────────────────────────────────────────────────────────────
 const storage = multer.diskStorage({
@@ -350,6 +354,7 @@ app.use('/api/standard-requests', standardRequestsRouter)
 app.use('/api/special-requests', specialRequestsRouter)
 app.use('/api/licenses', licensesRouter)
 app.use('/api/blogs', blogsRouter)
+app.use('/api/testimonials', testimonialsRouter)
 app.use('/api/notification', notificationsRouter)
 app.use('/api/contact-us', contactRouter)
 app.use('/api/upload', uploadsRouter)
@@ -824,6 +829,29 @@ async function startServer() {
             console.log('✓ Blogs table ready')
         } catch (tableError) {
             console.error('Error creating blogs table:', tableError)
+            throw tableError
+        }
+
+        try {
+            console.log('Creating testimonials table...')
+            await pool.query(`
+        CREATE TABLE IF NOT EXISTS testimonials (
+          id SERIAL PRIMARY KEY,
+          client_name VARCHAR(255) NOT NULL,
+          company_name VARCHAR(255) NOT NULL,
+          designation VARCHAR(255) NOT NULL,
+          avatar_image TEXT,
+          rating INTEGER NOT NULL DEFAULT 5 CHECK (rating BETWEEN 1 AND 5),
+          testimonial_text TEXT NOT NULL,
+          status VARCHAR(20) NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'inactive')),
+          display_order INTEGER NOT NULL DEFAULT 0 CHECK (display_order >= 0),
+          created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+        )
+      `)
+            console.log('✓ Testimonials table ready')
+        } catch (tableError) {
+            console.error('Error creating testimonials table:', tableError)
             throw tableError
         }
 

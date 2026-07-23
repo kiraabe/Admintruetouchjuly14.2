@@ -113,6 +113,27 @@ const adminNavigation: NavigationTree[] = [
         ],
     },
     {
+        key: 'testimonialsGroup',
+        path: '',
+        title: 'Testimonials',
+        translateKey: 'nav.testimonials',
+        icon: '',
+        type: NAV_ITEM_TYPE_TITLE,
+        authority: [],
+        subMenu: [
+            {
+                key: 'testimonials',
+                path: '/testimonials',
+                title: 'Testimonials',
+                translateKey: 'nav.testimonials',
+                icon: 'singleMenu',
+                type: NAV_ITEM_TYPE_ITEM,
+                authority: [],
+                subMenu: [],
+            },
+        ],
+    },
+    {
         key: 'employeeRequestGroup',
         path: '',
         title: 'Employee Request',
