@@ -64,8 +64,10 @@ router.get('/:contactId', async (req: Request, res: Response) => {
 
 // POST create contact message
 router.post('/', async (req: Request, res: Response) => {
+  const dbPool = await initPool()
+  const client = await dbPool.connect()
+
   try {
-    const dbPool = await initPool()
     const { name, email, phone, subject, message } = req.body
 
     if (!name || !email || !subject || !message) {
@@ -75,57 +77,51 @@ router.post('/', async (req: Request, res: Response) => {
       })
     }
 
-    const result = await dbPool.query(
+    await client.query('BEGIN')
+
+    const result = await client.query(
       'INSERT INTO contact_us (name, email, phone, subject, message, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
       [name, email, phone || null, subject, message, 'new']
     )
-
     const newContact = result.rows[0]
 
-    // Create notifications for all admin users
-    try {
-      const adminUsers = await dbPool.query(
-        'SELECT user_id FROM users WHERE authority = $1 AND is_active = true',
-        ['admin']
-      )
+    const adminUsers = await client.query(
+      'SELECT user_id FROM users WHERE authority = $1 AND is_active = true',
+      ['admin']
+    )
 
-      if (adminUsers.rows.length > 0) {
-        for (const admin of adminUsers.rows) {
-          await dbPool.query(
-            `INSERT INTO notifications (
-              user_id, target, description, type, status, location, location_label, image_url,
-              related_entity_id, related_entity_type
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-            [
-              admin.user_id,
-              name,
-              `New message from ${name}: "${subject}"`,
-              1,
-              'new',
-              'Contact Messages',
-              'Contact Us',
-              '/img/icons/contact.png',
-              newContact.contact_id,
-              'contact_message'
-            ]
-          )
-        }
-      }
-    } catch (notificationError) {
-      console.error('Error creating notifications for admins:', notificationError)
-      // Continue regardless, the message was created successfully
+    for (const admin of adminUsers.rows) {
+      await client.query(
+        `INSERT INTO notifications (
+          user_id, target, description, type, status, location, location_label, image_url,
+          related_entity_id, related_entity_type
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        [
+          admin.user_id,
+          name,
+          `New message from ${name}: "${subject}"`,
+          1,
+          'new',
+          'Contact Messages',
+          'Contact Us',
+          '/img/icons/contact.png',
+          newContact.contact_id,
+          'contact_message',
+        ],
+      )
     }
 
-    res.status(201).json({
-      success: true,
-      data: newContact,
-    })
+    await client.query('COMMIT')
+    res.status(201).json({ success: true, data: newContact })
   } catch (error) {
-    console.error('Error creating contact message:', error)
+    await client.query('ROLLBACK')
+    console.error('Error creating contact message and notification:', error)
     res.status(500).json({
       success: false,
       error: 'Failed to create contact message',
     })
+  } finally {
+    client.release()
   }
 })
 
