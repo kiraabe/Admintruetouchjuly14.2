@@ -3,6 +3,8 @@ import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { useSessionUser } from '@/store/authStore'
 import ApiService from '@/services/ApiService'
+import { uploadCandidateProfilePicture } from '@/utils/fileServer'
+import { notify } from '@/utils/notification'
 
 interface ProfileData {
     avatar: string
@@ -17,6 +19,7 @@ interface ProfileFormProps {
 const ProfileForm = ({ data }: ProfileFormProps) => {
     const [formData, setFormData] = useState<ProfileData>(data)
     const [loading, setLoading] = useState(false)
+    const [avatarUploading, setAvatarUploading] = useState(false)
     const [partnershipLogo, setPartnershipLogo] = useState<string>('')
     const setUser = useSessionUser((state) => state.setUser)
     const { partnershipId } = useSessionUser((state) => state.user)
@@ -42,6 +45,22 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
             ...prev,
             [name]: value,
         }))
+    }
+
+    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0]
+        if (!file) return
+
+        setAvatarUploading(true)
+        try {
+            const uploaded = await uploadCandidateProfilePicture(file)
+            setFormData((prev) => ({ ...prev, avatar: uploaded.url }))
+        } catch (error) {
+            notify.error('Avatar upload failed', error instanceof Error ? error.message : 'Unable to upload avatar')
+        } finally {
+            setAvatarUploading(false)
+            e.target.value = ''
+        }
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -100,13 +119,29 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
                 <label className="form-label" htmlFor="avatar">
                     Avatar URL
                 </label>
-                <Input
-                    id="avatar"
-                    name="avatar"
-                    placeholder="Enter avatar image URL"
-                    value={formData.avatar}
-                    onChange={handleChange}
-                />
+                <div className="flex flex-col sm:flex-row gap-2">
+                    <Input
+                        id="avatar"
+                        name="avatar"
+                        placeholder="Enter avatar image URL"
+                        value={formData.avatar}
+                        onChange={handleChange}
+                    />
+                    <input
+                        id="avatar-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarChange}
+                    />
+                    <label
+                        htmlFor="avatar-upload"
+                        className={`inline-flex h-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition-colors hover:border-primary hover:text-primary dark:border-gray-600 dark:text-gray-200 dark:hover:border-white dark:hover:text-white ${avatarUploading ? 'pointer-events-none opacity-60' : ''}`}
+                    >
+                        {avatarUploading ? 'Uploading...' : 'Browse'}
+                    </label>
+                </div>
+                <p className="mt-1 text-xs text-gray-500">Choose an image or enter an image URL.</p>
                 <div className="mt-3 flex items-center gap-4">
                     <div className="text-sm text-gray-600 dark:text-gray-400">Preview:</div>
                     <div
