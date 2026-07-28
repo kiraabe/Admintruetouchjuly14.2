@@ -75,7 +75,6 @@ const PartnershipCandidates = () => {
   const [filteredCandidates, setFilteredCandidates] = useState<Candidate[]>([])
   const [selectedCandidates, setSelectedCandidates] = useState<string[]>([])
   const [searchTerm, setSearchTerm] = useState('')
-  const [showFilterModal, setShowFilterModal] = useState(false)
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null)
   const [loading, setLoading] = useState(false)
@@ -385,9 +384,9 @@ const PartnershipCandidates = () => {
           ))}
         </div>
 
-        {/* Search and Filter */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-2">
-          <div className="input-wrapper relative flex-1">
+        {/* Search and Filters */}
+        <div className="space-y-4">
+          <div className="input-wrapper relative">
             <Input
               placeholder="Quick search..."
               value={searchTerm}
@@ -412,29 +411,59 @@ const PartnershipCandidates = () => {
               </svg>
             </div>
           </div>
-          <button
-            onClick={() => setShowFilterModal(true)}
-            className="button bg-white border border-gray-300 dark:bg-gray-700 dark:border-gray-700 ring-primary dark:ring-white hover:border-primary dark:hover:border-white hover:ring-1 hover:text-primary dark:hover:text-white dark:hover:bg-transparent text-gray-600 dark:text-gray-100 h-12 rounded-xl px-5 py-2 button-press-feedback"
-          >
-            <span className="flex gap-1 items-center justify-center">
-              <span className="text-lg">
-                <svg
-                  stroke="currentColor"
-                  fill="none"
-                  strokeWidth="2"
-                  viewBox="0 0 24 24"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  height="1em"
-                  width="1em"
-                  xmlns="http://www.w3.org/2000/svg"
+
+          <div className="rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              <div>
+                <label className="form-label">Job Category</label>
+                <select
+                  value={filters.job_category || ''}
+                  onChange={(e) => setFilters({ ...filters, job_category: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
                 >
-                  <path d="M4 4h16v2.172a2 2 0 0 1 -.586 1.414l-4.414 4.414v7l-6 2v-8.5l-4.48 -4.928a2 2 0 0 1 -.52 -1.345v-2.227z"></path>
-                </svg>
-              </span>
-              <span>Filter</span>
-            </span>
-          </button>
+                  <option value="">All categories</option>
+                  {JOB_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="form-label">Skill Level</label>
+                <select
+                  value={filters.skill_level || ''}
+                  onChange={(e) => setFilters({ ...filters, skill_level: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
+                >
+                  <option value="">All levels</option>
+                  {SKILL_LEVELS.map((level) => (
+                    <option key={level} value={level}>{level}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="form-label">Nationality</label>
+                <Input
+                  placeholder="Filter by nationality"
+                  value={filters.nationality || ''}
+                  onChange={(e) => setFilters({ ...filters, nationality: e.target.value })}
+                />
+              </div>
+
+              <div>
+                <label className="form-label">Preferred Work Country</label>
+                <Input
+                  placeholder="Filter by preferred work country"
+                  value={filters.preferred_work_country || ''}
+                  onChange={(e) => setFilters({ ...filters, preferred_work_country: e.target.value })}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end pt-4">
+              <Button onClick={() => setFilters({})}>Reset Filters</Button>
+            </div>
+          </div>
         </div>
 
         {/* Table */}
@@ -869,70 +898,6 @@ const PartnershipCandidates = () => {
         )}
       </Dialog>
 
-      {/* Filter Modal */}
-      <Dialog isOpen={showFilterModal} onClose={() => setShowFilterModal(false)}>
-        <div className="mb-4">
-          <h2 className="text-lg font-bold">Filter Candidates</h2>
-        </div>
-        <div className="space-y-4 max-h-96 overflow-y-auto">
-          <div>
-            <label className="form-label">Job Category</label>
-            <select
-              value={filters.job_category || ''}
-              onChange={(e) => setFilters({ ...filters, job_category: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            >
-              <option value="">All categories</option>
-              {JOB_CATEGORIES.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="form-label">Skill Level</label>
-            <select
-              value={filters.skill_level || ''}
-              onChange={(e) => setFilters({ ...filters, skill_level: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-            >
-              <option value="">All levels</option>
-              {SKILL_LEVELS.map((level) => (
-                <option key={level} value={level}>
-                  {level}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="form-label">Nationality</label>
-            <Input
-              placeholder="Filter by nationality"
-              value={filters.nationality || ''}
-              onChange={(e) => setFilters({ ...filters, nationality: e.target.value })}
-            />
-          </div>
-
-          <div>
-            <label className="form-label">Preferred Work Country</label>
-            <Input
-              placeholder="Filter by preferred work country"
-              value={filters.preferred_work_country || ''}
-              onChange={(e) => setFilters({ ...filters, preferred_work_country: e.target.value })}
-            />
-          </div>
-
-          <div className="flex gap-2 pt-4">
-            <Button onClick={() => setShowFilterModal(false)}>Close</Button>
-            <Button onClick={() => { setFilters({}); setShowFilterModal(false); }}>
-              Reset Filters
-            </Button>
-          </div>
-        </div>
-      </Dialog>
     </Card>
   )
 }
