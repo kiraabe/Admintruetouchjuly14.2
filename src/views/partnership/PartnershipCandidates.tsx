@@ -494,14 +494,6 @@ const PartnershipCandidates = () => {
                 </th>
                 <th
                   className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
-                  onClick={() => handleSort('skill_level')}
-                >
-                  <div className="flex items-center gap-2">
-                    Skill Level
-                  </div>
-                </th>
-                <th
-                  className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
                   onClick={() => handleSort('preferred_work_country')}
                 >
                   <div className="flex items-center gap-2">
@@ -522,13 +514,13 @@ const PartnershipCandidates = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="text-center py-4">
+                  <td colSpan={9} className="text-center py-4">
                     Loading...
                   </td>
                 </tr>
               ) : filteredCandidates.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="text-center py-4 text-gray-500">
+                  <td colSpan={8} className="text-center py-4 text-gray-500">
                     No candidates found
                   </td>
                 </tr>
@@ -563,7 +555,6 @@ const PartnershipCandidates = () => {
                       {candidate.job_category || '-'}
                     </td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.nationality || '-'}</td>
-                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{parseSkillLevel(candidate.skill_level)}</td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.preferred_work_country || '-'}</td>
                     <td className="py-3 px-4">
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize ${
