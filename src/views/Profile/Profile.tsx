@@ -6,11 +6,18 @@ import Input from '@/components/ui/Input'
 import { notify } from '@/utils/notification'
 import ApiService from '@/services/ApiService'
 
+type PartnershipResponse = {
+    success: boolean
+    data?: {
+        company_name?: string
+        company_logo?: string
+    }
+}
+
 const Profile = () => {
     const { avatar, userName, email, authority, partnershipId } = useSessionUser(
         (state) => state.user,
     )
-    const setUser = useSessionUser((state) => state.setUser)
     const [showPasswordModal, setShowPasswordModal] = useState(false)
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
@@ -19,7 +26,7 @@ const Profile = () => {
 
     useEffect(() => {
         if (partnershipId) {
-            ApiService.fetchDataWithAxios<any>({
+            ApiService.fetchDataWithAxios<PartnershipResponse>({
                 method: 'GET',
                 url: `/partnerships/${partnershipId}`,
             })
@@ -104,7 +111,6 @@ const Profile = () => {
                                     userName: userName || '',
                                     email: email || '',
                                 }}
-                                onAvatarChange={(nextAvatar) => setUser({ avatar: nextAvatar })}
                             />
                         </div>
                     </div>

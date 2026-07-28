@@ -3,9 +3,9 @@ import Dropdown from '@/components/ui/Dropdown'
 import withHeaderItem from '@/utils/hoc/withHeaderItem'
 import { useSessionUser } from '@/store/authStore'
 import { Link } from 'react-router'
-import { PiUserDuotone, PiSignOutDuotone } from 'react-icons/pi'
+import { PiUserDuotone } from 'react-icons/pi'
 import { useAuth } from '@/auth'
-import { UserIcon, Cog6ToothIcon, ArrowTrendingUpIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline'
+import { UserIcon, Cog6ToothIcon, ArrowRightOnRectangleIcon } from '@heroicons/react/24/outline'
 import type { JSX } from 'react'
 import { useState, useEffect } from 'react'
 
@@ -50,7 +50,7 @@ const _UserDropdown = () => {
         signOut()
     }
 
-    const displayAvatar = partnershipLogo || avatar
+    const displayAvatar = avatar || partnershipLogo
     const avatarProps = {
         ...(displayAvatar ? { src: displayAvatar } : { icon: <PiUserDuotone /> }),
     }

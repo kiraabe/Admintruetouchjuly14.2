@@ -3,7 +3,6 @@ import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { useSessionUser } from '@/store/authStore'
 import ApiService from '@/services/ApiService'
-import { uploadCandidateProfilePicture } from '@/utils/fileServer'
 import { notify } from '@/utils/notification'
 
 interface ProfileData {
@@ -14,20 +13,24 @@ interface ProfileData {
 
 interface ProfileFormProps {
     data: ProfileData
-    onAvatarChange: (avatar: string) => void
 }
 
-const ProfileForm = ({ data, onAvatarChange }: ProfileFormProps) => {
+type PartnershipResponse = {
+    success: boolean
+    data?: { company_logo?: string }
+}
+
+const ProfileForm = ({ data }: ProfileFormProps) => {
     const [formData, setFormData] = useState<ProfileData>(data)
     const [loading, setLoading] = useState(false)
-    const [avatarUploading, setAvatarUploading] = useState(false)
+    const [avatarFile, setAvatarFile] = useState<File | null>(null)
     const [partnershipLogo, setPartnershipLogo] = useState<string>('')
     const setUser = useSessionUser((state) => state.setUser)
     const { partnershipId } = useSessionUser((state) => state.user)
 
     useEffect(() => {
         if (partnershipId) {
-            ApiService.fetchDataWithAxios<any>({
+            ApiService.fetchDataWithAxios<PartnershipResponse>({
                 method: 'GET',
                 url: `/partnerships/${partnershipId}`,
             })
@@ -48,21 +51,13 @@ const ProfileForm = ({ data, onAvatarChange }: ProfileFormProps) => {
         }))
     }
 
-    const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleAvatarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0]
         if (!file) return
 
-        setAvatarUploading(true)
-        try {
-            const uploaded = await uploadCandidateProfilePicture(file)
-            setFormData((prev) => ({ ...prev, avatar: uploaded.url }))
-            onAvatarChange(uploaded.url)
-        } catch (error) {
-            notify.error('Avatar upload failed', error instanceof Error ? error.message : 'Unable to upload avatar')
-        } finally {
-            setAvatarUploading(false)
-            e.target.value = ''
-        }
+        setAvatarFile(file)
+        setFormData((prev) => ({ ...prev, avatar: URL.createObjectURL(file) }))
+        e.target.value = ''
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -70,13 +65,36 @@ const ProfileForm = ({ data, onAvatarChange }: ProfileFormProps) => {
         setLoading(true)
 
         try {
+            let savedAvatar = formData.avatar
+
+            if (avatarFile) {
+                const data = new FormData()
+                data.append('companyLogo', avatarFile)
+
+                const response = await ApiService.fetchDataWithAxios<PartnershipResponse & { error?: string }>({
+                    method: 'PUT',
+                    url: '/partnerships/own/data',
+                    data,
+                })
+
+                if (!response.success || !response.data?.company_logo) {
+                    throw new Error(response.error || 'Unable to save profile picture')
+                }
+
+                savedAvatar = response.data.company_logo
+                setAvatarFile(null)
+                setPartnershipLogo(savedAvatar)
+                setFormData((prev) => ({ ...prev, avatar: savedAvatar }))
+            }
+
             setUser({
-                avatar: formData.avatar,
+                avatar: savedAvatar,
                 userName: formData.userName,
                 email: formData.email,
             })
-
-            await new Promise((resolve) => setTimeout(resolve, 500))
+            notify.success('Success', 'Profile updated successfully')
+        } catch (error) {
+            notify.error('Error', error instanceof Error ? error.message : 'Unable to update profile')
         } finally {
             setLoading(false)
         }
@@ -131,9 +149,9 @@ const ProfileForm = ({ data, onAvatarChange }: ProfileFormProps) => {
                     />
                     <label
                         htmlFor="avatar-upload"
-                        className={`inline-flex h-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition-colors hover:border-primary hover:text-primary dark:border-gray-600 dark:text-gray-200 dark:hover:border-white dark:hover:text-white ${avatarUploading ? 'pointer-events-none opacity-60' : ''}`}
+                        className="inline-flex h-11 shrink-0 cursor-pointer items-center justify-center rounded-lg border border-gray-300 px-4 text-sm font-medium text-gray-700 transition-colors hover:border-primary hover:text-primary dark:border-gray-600 dark:text-gray-200 dark:hover:border-white dark:hover:text-white"
                     >
-                        {avatarUploading ? 'Uploading...' : 'Browse'}
+                        Browse
                     </label>
                 </div>
                 <div className="mt-3 flex items-center gap-4">
