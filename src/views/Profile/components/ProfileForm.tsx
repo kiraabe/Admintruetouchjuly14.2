@@ -116,17 +116,10 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
             </div>
 
             <div>
-                <label className="form-label" htmlFor="avatar">
-                    Avatar URL
-                </label>
-                <div className="flex flex-col sm:flex-row gap-2">
-                    <Input
-                        id="avatar"
-                        name="avatar"
-                        placeholder="Enter avatar image URL"
-                        value={formData.avatar}
-                        onChange={handleChange}
-                    />
+                <div className="flex items-center justify-between gap-4">
+                    <label className="form-label mb-0" htmlFor="avatar-upload">
+                        Avatar
+                    </label>
                     <input
                         id="avatar-upload"
                         type="file"
@@ -141,7 +134,6 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
                         {avatarUploading ? 'Uploading...' : 'Browse'}
                     </label>
                 </div>
-                <p className="mt-1 text-xs text-gray-500">Choose an image or enter an image URL.</p>
                 <div className="mt-3 flex items-center gap-4">
                     <div className="text-sm text-gray-600 dark:text-gray-400">Preview:</div>
                     <div
