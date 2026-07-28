@@ -92,7 +92,8 @@ const StandardRequestsHistory = () => {
     }
 
     if (statusFilter) {
-      filtered = filtered.filter((r) => r.status === statusFilter)
+      const normalizedStatus = statusFilter.trim().toLowerCase()
+      filtered = filtered.filter((r) => r.status?.trim().toLowerCase() === normalizedStatus)
     }
 
     setFilteredRequests(filtered)
@@ -137,12 +138,18 @@ const StandardRequestsHistory = () => {
               type="text"
               placeholder="Search by company, position, or contact person..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={(e) => {
+                setSearchTerm(e.target.value)
+                setCurrentPage(1)
+              }}
             />
           </div>
           <select
             value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
+            onChange={(e) => {
+              setStatusFilter(e.target.value)
+              setCurrentPage(1)
+            }}
             className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
           >
             <option value="">All Statuses</option>
