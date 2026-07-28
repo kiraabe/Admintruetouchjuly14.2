@@ -219,6 +219,267 @@ async function runMigrations() {
         )
         console.log('✓ Blogs table created')
 
+        // Create dropdown base tables
+        await pool.query(`
+      CREATE TABLE IF NOT EXISTS gender_options (
+        id SERIAL PRIMARY KEY,
+        slug VARCHAR(50) UNIQUE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+        console.log('✓ Gender options table created')
+
+        await pool.query(`
+      CREATE TABLE IF NOT EXISTS gender_translations (
+        id SERIAL PRIMARY KEY,
+        gender_id INT REFERENCES gender_options(id) ON DELETE CASCADE,
+        locale VARCHAR(10) NOT NULL,
+        label VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(gender_id, locale)
+      )
+    `)
+        console.log('✓ Gender translations table created')
+
+        await pool.query(`
+      CREATE TABLE IF NOT EXISTS religion_options (
+        id SERIAL PRIMARY KEY,
+        slug VARCHAR(100) UNIQUE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+        console.log('✓ Religion options table created')
+
+        await pool.query(`
+      CREATE TABLE IF NOT EXISTS religion_translations (
+        id SERIAL PRIMARY KEY,
+        religion_id INT REFERENCES religion_options(id) ON DELETE CASCADE,
+        locale VARCHAR(10) NOT NULL,
+        label VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(religion_id, locale)
+      )
+    `)
+        console.log('✓ Religion translations table created')
+
+        await pool.query(`
+      CREATE TABLE IF NOT EXISTS marital_status_options (
+        id SERIAL PRIMARY KEY,
+        slug VARCHAR(50) UNIQUE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+        console.log('✓ Marital status options table created')
+
+        await pool.query(`
+      CREATE TABLE IF NOT EXISTS marital_status_translations (
+        id SERIAL PRIMARY KEY,
+        marital_status_id INT REFERENCES marital_status_options(id) ON DELETE CASCADE,
+        locale VARCHAR(10) NOT NULL,
+        label VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(marital_status_id, locale)
+      )
+    `)
+        console.log('✓ Marital status translations table created')
+
+        await pool.query(`
+      CREATE TABLE IF NOT EXISTS job_category_options (
+        id SERIAL PRIMARY KEY,
+        slug VARCHAR(255) UNIQUE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+        console.log('✓ Job category options table created')
+
+        await pool.query(`
+      CREATE TABLE IF NOT EXISTS job_category_translations (
+        id SERIAL PRIMARY KEY,
+        job_category_id INT REFERENCES job_category_options(id) ON DELETE CASCADE,
+        locale VARCHAR(10) NOT NULL,
+        label VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(job_category_id, locale)
+      )
+    `)
+        console.log('✓ Job category translations table created')
+
+        await pool.query(`
+      CREATE TABLE IF NOT EXISTS education_level_options (
+        id SERIAL PRIMARY KEY,
+        slug VARCHAR(100) UNIQUE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+        console.log('✓ Education level options table created')
+
+        await pool.query(`
+      CREATE TABLE IF NOT EXISTS education_level_translations (
+        id SERIAL PRIMARY KEY,
+        education_level_id INT REFERENCES education_level_options(id) ON DELETE CASCADE,
+        locale VARCHAR(10) NOT NULL,
+        label VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(education_level_id, locale)
+      )
+    `)
+        console.log('✓ Education level translations table created')
+
+        await pool.query(`
+      CREATE TABLE IF NOT EXISTS medical_status_options (
+        id SERIAL PRIMARY KEY,
+        slug VARCHAR(100) UNIQUE NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      )
+    `)
+        console.log('✓ Medical status options table created')
+
+        await pool.query(`
+      CREATE TABLE IF NOT EXISTS medical_status_translations (
+        id SERIAL PRIMARY KEY,
+        medical_status_id INT REFERENCES medical_status_options(id) ON DELETE CASCADE,
+        locale VARCHAR(10) NOT NULL,
+        label VARCHAR(255) NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        UNIQUE(medical_status_id, locale)
+      )
+    `)
+        console.log('✓ Medical status translations table created')
+
+        // Populate gender options and translations
+        await pool.query(`
+      INSERT INTO gender_options (slug) VALUES
+        ('male'), ('female'), ('other')
+      ON CONFLICT (slug) DO NOTHING
+    `)
+        await pool.query(`
+      INSERT INTO gender_translations (gender_id, locale, label)
+      SELECT id, 'en',
+        CASE slug WHEN 'male' THEN 'Male' WHEN 'female' THEN 'Female' WHEN 'other' THEN 'Other' END
+      FROM gender_options
+      ON CONFLICT (gender_id, locale) DO NOTHING
+    `)
+        console.log('✓ Gender options populated')
+
+        // Populate religion options and translations
+        await pool.query(`
+      INSERT INTO religion_options (slug) VALUES
+        ('christianity'), ('islam'), ('hinduism'), ('buddhism'), ('judaism'), ('sikhism'), ('atheism'), ('agnosticism'), ('other')
+      ON CONFLICT (slug) DO NOTHING
+    `)
+        await pool.query(`
+      INSERT INTO religion_translations (religion_id, locale, label)
+      SELECT id, 'en',
+        CASE slug
+          WHEN 'christianity' THEN 'Christianity'
+          WHEN 'islam' THEN 'Islam'
+          WHEN 'hinduism' THEN 'Hinduism'
+          WHEN 'buddhism' THEN 'Buddhism'
+          WHEN 'judaism' THEN 'Judaism'
+          WHEN 'sikhism' THEN 'Sikhism'
+          WHEN 'atheism' THEN 'Atheism'
+          WHEN 'agnosticism' THEN 'Agnosticism'
+          WHEN 'other' THEN 'Other'
+        END
+      FROM religion_options
+      ON CONFLICT (religion_id, locale) DO NOTHING
+    `)
+        console.log('✓ Religion options populated')
+
+        // Populate marital status options and translations
+        await pool.query(`
+      INSERT INTO marital_status_options (slug) VALUES
+        ('single'), ('married'), ('divorced'), ('widowed')
+      ON CONFLICT (slug) DO NOTHING
+    `)
+        await pool.query(`
+      INSERT INTO marital_status_translations (marital_status_id, locale, label)
+      SELECT id, 'en',
+        CASE slug
+          WHEN 'single' THEN 'Single'
+          WHEN 'married' THEN 'Married'
+          WHEN 'divorced' THEN 'Divorced'
+          WHEN 'widowed' THEN 'Widowed'
+        END
+      FROM marital_status_options
+      ON CONFLICT (marital_status_id, locale) DO NOTHING
+    `)
+        console.log('✓ Marital status options populated')
+
+        // Populate job category options and translations
+        await pool.query(`
+      INSERT INTO job_category_options (slug) VALUES
+        ('housekeepers'), ('cleaners'), ('nannies-and-caregivers'), ('drivers'), ('warehouse-staff'),
+        ('retail-store-employees'), ('waiters-waitresses'), ('laundry-services'), ('hotel-security'),
+        ('kitchen-helpers'), ('construction-workers'), ('laborers'), ('electricians')
+      ON CONFLICT (slug) DO NOTHING
+    `)
+        await pool.query(`
+      INSERT INTO job_category_translations (job_category_id, locale, label)
+      SELECT id, 'en',
+        CASE slug
+          WHEN 'housekeepers' THEN 'Housekeepers'
+          WHEN 'cleaners' THEN 'Cleaners'
+          WHEN 'nannies-and-caregivers' THEN 'Nannies and caregivers'
+          WHEN 'drivers' THEN 'Drivers'
+          WHEN 'warehouse-staff' THEN 'Warehouse staff'
+          WHEN 'retail-store-employees' THEN 'Retail store employees'
+          WHEN 'waiters-waitresses' THEN 'Waiters/waitresses'
+          WHEN 'laundry-services' THEN 'Laundry services'
+          WHEN 'hotel-security' THEN '5-star hotel security'
+          WHEN 'kitchen-helpers' THEN 'Kitchen helpers'
+          WHEN 'construction-workers' THEN 'Construction workers'
+          WHEN 'laborers' THEN 'Laborers'
+          WHEN 'electricians' THEN 'Electricians'
+        END
+      FROM job_category_options
+      ON CONFLICT (job_category_id, locale) DO NOTHING
+    `)
+        console.log('✓ Job category options populated')
+
+        // Populate education level options and translations
+        await pool.query(`
+      INSERT INTO education_level_options (slug) VALUES
+        ('primary'), ('secondary'), ('diploma'), ('bachelor'), ('master'), ('phd')
+      ON CONFLICT (slug) DO NOTHING
+    `)
+        await pool.query(`
+      INSERT INTO education_level_translations (education_level_id, locale, label)
+      SELECT id, 'en',
+        CASE slug
+          WHEN 'primary' THEN 'Primary'
+          WHEN 'secondary' THEN 'Secondary'
+          WHEN 'diploma' THEN 'Diploma'
+          WHEN 'bachelor' THEN 'Bachelor'
+          WHEN 'master' THEN 'Master'
+          WHEN 'phd' THEN 'PhD'
+        END
+      FROM education_level_options
+      ON CONFLICT (education_level_id, locale) DO NOTHING
+    `)
+        console.log('✓ Education level options populated')
+
+        // Populate medical status options and translations
+        await pool.query(`
+      INSERT INTO medical_status_options (slug) VALUES
+        ('fit'), ('fit-with-restrictions'), ('unfit'), ('under-review'), ('not-assessed')
+      ON CONFLICT (slug) DO NOTHING
+    `)
+        await pool.query(`
+      INSERT INTO medical_status_translations (medical_status_id, locale, label)
+      SELECT id, 'en',
+        CASE slug
+          WHEN 'fit' THEN 'Fit'
+          WHEN 'fit-with-restrictions' THEN 'Fit with restrictions'
+          WHEN 'unfit' THEN 'Unfit'
+          WHEN 'under-review' THEN 'Under review'
+          WHEN 'not-assessed' THEN 'Not assessed'
+        END
+      FROM medical_status_options
+      ON CONFLICT (medical_status_id, locale) DO NOTHING
+    `)
+        console.log('✓ Medical status options populated')
+
         console.log('Migrations completed successfully')
         process.exit(0)
     } catch (error) {

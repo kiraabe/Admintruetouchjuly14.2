@@ -6,6 +6,7 @@ import Card from '@/components/ui/Card'
 import { notify } from '@/utils/notification'
 import { uploadCandidateProfilePicture, uploadCandidateCV } from '@/utils/fileServer'
 import { getCandidateProfilePictureUrl, getCandidateCVUrl } from '@/utils/imageUrl'
+import { useDropdownOptions } from '@/hooks/useDropdownOptions'
 
 interface Candidate {
   id: number
@@ -79,6 +80,7 @@ const EditCandidate = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const isNewCandidate = id === 'new'
+  const { options: dropdownOptions } = useDropdownOptions()
   const [candidate, setCandidate] = useState<Candidate | null>(null)
   const [loading, setLoading] = useState(!isNewCandidate)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -704,9 +706,9 @@ const EditCandidate = () => {
                             className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12 ${fieldErrors.gender ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                           >
                             <option value="">Select gender</option>
-                            {GENDERS.map((g) => (
-                              <option key={g} value={g}>
-                                {g}
+                            {dropdownOptions?.genders?.map((g) => (
+                              <option key={g.slug} value={g.slug}>
+                                {g.label}
                               </option>
                             ))}
                           </select>
@@ -804,9 +806,9 @@ const EditCandidate = () => {
                             className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12 ${fieldErrors.religion ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                           >
                             <option value="">Select religion</option>
-                            {RELIGIONS.map((r) => (
-                              <option key={r} value={r}>
-                                {r}
+                            {dropdownOptions?.religions?.map((r) => (
+                              <option key={r.slug} value={r.slug}>
+                                {r.label}
                               </option>
                             ))}
                           </select>
@@ -823,9 +825,9 @@ const EditCandidate = () => {
                             className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12 ${fieldErrors.marital_status ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                           >
                             <option value="">Select status</option>
-                            {MARITAL_STATUS.map((s) => (
-                              <option key={s} value={s}>
-                                {s}
+                            {dropdownOptions?.maritalStatuses?.map((s) => (
+                              <option key={s.slug} value={s.slug}>
+                                {s.label}
                               </option>
                             ))}
                           </select>
@@ -842,9 +844,9 @@ const EditCandidate = () => {
                             className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12 ${fieldErrors.job_category ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                           >
                             <option value="">Select job category</option>
-                            {JOB_CATEGORIES.map((cat) => (
-                              <option key={cat} value={cat}>
-                                {cat}
+                            {dropdownOptions?.jobCategories?.map((cat) => (
+                              <option key={cat.slug} value={cat.slug}>
+                                {cat.label}
                               </option>
                             ))}
                           </select>
@@ -861,9 +863,9 @@ const EditCandidate = () => {
                             className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12 ${fieldErrors.education_level ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                           >
                             <option value="">Select education level</option>
-                            {EDUCATION_LEVELS.map((level) => (
-                              <option key={level} value={level}>
-                                {level}
+                            {dropdownOptions?.educationLevels?.map((level) => (
+                              <option key={level.slug} value={level.slug}>
+                                {level.label}
                               </option>
                             ))}
                           </select>
@@ -880,9 +882,9 @@ const EditCandidate = () => {
                             className={`w-full px-3 py-2 border rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 h-12 ${fieldErrors.medical_status ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'}`}
                           >
                             <option value="">Select medical status</option>
-                            {MEDICAL_STATUS.map((status) => (
-                              <option key={status} value={status}>
-                                {status}
+                            {dropdownOptions?.medicalStatuses?.map((status) => (
+                              <option key={status.slug} value={status.slug}>
+                                {status.label}
                               </option>
                             ))}
                           </select>
