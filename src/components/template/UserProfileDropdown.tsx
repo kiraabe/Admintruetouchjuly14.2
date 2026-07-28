@@ -2,6 +2,7 @@ import Avatar from '@/components/ui/Avatar'
 import Dropdown from '@/components/ui/Dropdown'
 import withHeaderItem from '@/utils/hoc/withHeaderItem'
 import { useSessionUser } from '@/store/authStore'
+import ApiService from '@/services/ApiService'
 import { Link } from 'react-router'
 import { PiUserDuotone } from 'react-icons/pi'
 import { useAuth } from '@/auth'
@@ -13,6 +14,11 @@ type DropdownList = {
     label: string
     path: string
     icon: JSX.Element
+}
+
+type PartnershipResponse = {
+    success: boolean
+    data?: { company_logo?: string }
 }
 
 const dropdownItemList: DropdownList[] = [
@@ -35,8 +41,10 @@ const _UserDropdown = () => {
 
     useEffect(() => {
         if (partnershipId) {
-            fetch(`/api/partnerships/${partnershipId}`)
-                .then((res) => res.json())
+            ApiService.fetchDataWithAxios<PartnershipResponse>({
+                method: 'GET',
+                url: `/partnerships/${partnershipId}`,
+            })
                 .then((data) => {
                     if (data.success && data.data?.company_logo) {
                         setPartnershipLogo(data.data.company_logo)
