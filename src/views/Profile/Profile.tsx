@@ -10,6 +10,7 @@ const Profile = () => {
     const { avatar, userName, email, authority, partnershipId } = useSessionUser(
         (state) => state.user,
     )
+    const setUser = useSessionUser((state) => state.setUser)
     const [showPasswordModal, setShowPasswordModal] = useState(false)
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
@@ -103,6 +104,7 @@ const Profile = () => {
                                     userName: userName || '',
                                     email: email || '',
                                 }}
+                                onAvatarChange={(nextAvatar) => setUser({ avatar: nextAvatar })}
                             />
                         </div>
                     </div>

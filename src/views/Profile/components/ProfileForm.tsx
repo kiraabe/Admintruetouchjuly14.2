@@ -14,9 +14,10 @@ interface ProfileData {
 
 interface ProfileFormProps {
     data: ProfileData
+    onAvatarChange: (avatar: string) => void
 }
 
-const ProfileForm = ({ data }: ProfileFormProps) => {
+const ProfileForm = ({ data, onAvatarChange }: ProfileFormProps) => {
     const [formData, setFormData] = useState<ProfileData>(data)
     const [loading, setLoading] = useState(false)
     const [avatarUploading, setAvatarUploading] = useState(false)
@@ -55,6 +56,7 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
         try {
             const uploaded = await uploadCandidateProfilePicture(file)
             setFormData((prev) => ({ ...prev, avatar: uploaded.url }))
+            onAvatarChange(uploaded.url)
         } catch (error) {
             notify.error('Avatar upload failed', error instanceof Error ? error.message : 'Unable to upload avatar')
         } finally {
