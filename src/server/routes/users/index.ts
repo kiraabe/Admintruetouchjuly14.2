@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express'
 import bcrypt from 'bcryptjs'
 import pool from '../../db/config'
+import { validatePartnershipSession } from '../../middleware/partnershipAuth'
 
 const router = Router()
 
@@ -110,6 +111,32 @@ router.get('/:id', async (req: Request, res: Response) => {
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : 'Failed to fetch user'
     console.error('Error fetching user:', error)
+    res.status(500).json({ error: errorMsg })
+  }
+})
+
+router.put('/me', validatePartnershipSession, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as Request & { user: { user_id: string } }).user.user_id
+    const { avatar, user_name } = req.body
+
+    const result = await pool.query(
+      'UPDATE users SET avatar = $1, user_name = COALESCE($2, user_name), updated_at = CURRENT_TIMESTAMP WHERE user_id = $3 RETURNING user_id, email, user_name, authority, avatar, partnership_id',
+      [avatar ?? '', user_name, userId]
+    )
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'User not found' })
+    }
+
+    res.json({
+      success: true,
+      data: result.rows[0],
+      message: 'Profile updated successfully',
+    })
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : 'Failed to update profile'
+    console.error('Error updating profile:', error)
     res.status(500).json({ error: errorMsg })
   }
 })

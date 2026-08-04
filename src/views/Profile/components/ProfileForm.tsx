@@ -3,6 +3,7 @@ import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import { useSessionUser } from '@/store/authStore'
 import ApiService from '@/services/ApiService'
+import { notify } from '@/utils/notification'
 
 interface ProfileData {
     avatar: string
@@ -49,13 +50,32 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
         setLoading(true)
 
         try {
-            setUser({
-                avatar: formData.avatar,
-                userName: formData.userName,
-                email: formData.email,
+            const response = await ApiService.fetchDataWithAxios<{
+                success: boolean
+                data: { avatar: string; user_name: string }
+            }>({
+                method: 'PUT',
+                url: '/users/me',
+                data: {
+                    avatar: formData.avatar,
+                    user_name: formData.userName,
+                },
             })
 
-            await new Promise((resolve) => setTimeout(resolve, 500))
+            if (!response.success) {
+                throw new Error('Failed to save profile')
+            }
+
+            setUser({
+                avatar: response.data.avatar,
+                userName: response.data.user_name,
+                email: formData.email,
+            })
+        } catch (error) {
+            notify.error(
+                'Error',
+                error instanceof Error ? error.message : 'Failed to save profile',
+            )
         } finally {
             setLoading(false)
         }
@@ -98,12 +118,12 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
 
             <div>
                 <label className="form-label" htmlFor="avatar">
-                    Avatar URL
+                    Profile picture URL
                 </label>
                 <Input
                     id="avatar"
                     name="avatar"
-                    placeholder="Enter avatar image URL"
+                    placeholder="Enter an image URL"
                     value={formData.avatar}
                     onChange={handleChange}
                 />
