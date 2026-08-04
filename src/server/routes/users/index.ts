@@ -129,6 +129,14 @@ router.put('/me', validatePartnershipSession, async (req: Request, res: Response
       return res.status(404).json({ error: 'User not found' })
     }
 
+    const partnershipId = result.rows[0].partnership_id
+    if (partnershipId && typeof avatar === 'string' && avatar.startsWith('/uploads/partnerships/')) {
+      await pool.query(
+        'UPDATE partnerships SET company_logo = $1, updated_at = CURRENT_TIMESTAMP WHERE partner_id = $2',
+        [avatar, partnershipId],
+      )
+    }
+
     res.json({
       success: true,
       data: result.rows[0],

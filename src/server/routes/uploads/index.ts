@@ -24,7 +24,7 @@ const uploadDirs = {
   cvs: path.join(uploadsBaseDir, 'candidates', 'cvs'),
   blogImages: path.join(uploadsBaseDir, 'blogs'),
   testimonialAvatars: path.join(uploadsBaseDir, 'testimonials'),
-  profileAvatars: path.join(uploadsBaseDir, 'profile-avatars'),
+  profileAvatars: path.join(uploadsBaseDir, 'partnerships'),
 }
 
 Object.values(uploadDirs).forEach((dir) => {
@@ -113,7 +113,7 @@ router.post('/profile/avatar', validatePartnershipSession, (req: Request, res: R
       return res.status(400).json({ error: 'No file provided' })
     }
     res.json({
-      path: getFileUrl(req.file.filename, 'profile-avatars'),
+      path: getFileUrl(req.file.filename, 'partnerships'),
     })
   })
 })
