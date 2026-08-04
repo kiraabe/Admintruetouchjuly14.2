@@ -135,20 +135,13 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
 
             <div>
                 <label className="form-label" htmlFor="avatarFile">
-                    Profile picture
+                    Choose profile picture
                 </label>
                 <Input
                     id="avatarFile"
                     type="file"
                     accept="image/jpeg,image/png,image/gif,image/webp"
                     onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
-                />
-                <Input
-                    id="avatar"
-                    name="avatar"
-                    placeholder="Or enter an image URL"
-                    value={formData.avatar}
-                    onChange={handleChange}
                 />
                 <div className="mt-3 flex items-center gap-4">
                     <div className="text-sm text-gray-600 dark:text-gray-400">Preview:</div>
