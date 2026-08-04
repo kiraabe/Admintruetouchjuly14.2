@@ -484,6 +484,30 @@ const EmployeeRequest = () => {
     a.click()
   }
 
+  const handleViewDetails = async (request: EmployeeRequest) => {
+    let requestWithCandidates = request
+
+    if (request.request_type === 'Standard') {
+      try {
+        const data = await ApiService.fetchDataWithAxios<any>({
+          method: 'GET',
+          url: `/standard-requests/${request.request_id}`,
+        })
+        requestWithCandidates = {
+          ...request,
+          candidates: data.data?.candidates || [],
+        }
+      } catch (error) {
+        console.error('Error loading request candidates:', error)
+        notify.error('Fetch Error', 'Failed to load request candidates')
+      }
+    }
+
+    setSelectedRequest(requestWithCandidates)
+    setRequestStatusBeforeEdit(request.status)
+    setShowDetailsModal(true)
+  }
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
       setSelectedRequests(filteredRequests.map((r) => r.request_id))
@@ -810,11 +834,7 @@ const EmployeeRequest = () => {
                           </button>
                         )}
                         <button
-                          onClick={() => {
-                            setSelectedRequest(request)
-                            setRequestStatusBeforeEdit(request.status)
-                            setShowDetailsModal(true)
-                          }}
+                          onClick={() => handleViewDetails(request)}
                           className="text-xl cursor-pointer hover:text-primary"
                           title="View Details"
                         >
