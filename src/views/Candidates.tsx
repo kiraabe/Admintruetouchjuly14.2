@@ -37,6 +37,7 @@ interface Candidate {
   status: string | null
   created_at: Date
   updated_at: Date
+  employed_by?: string | null
 }
 
 const JOB_CATEGORIES = [
@@ -491,6 +492,7 @@ const Candidates = () => {
                     </svg>
                   </div>
                 </th>
+                <th className="text-left py-3 px-4">Employed by</th>
                 <th
                   className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
                   onClick={() => handleSort('status')}
@@ -514,7 +516,7 @@ const Candidates = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="text-center py-4">
+                  <td colSpan={9} className="text-center py-4">
                     Loading...
                   </td>
                 </tr>
@@ -555,6 +557,9 @@ const Candidates = () => {
                     </td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.nationality || '-'}</td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">{candidate.preferred_work_country || '-'}</td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                      {candidate.employed_by || '-'}
+                    </td>
                     <td className="py-3 px-4">
                       <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold capitalize ${
                         candidate.status === 'available'

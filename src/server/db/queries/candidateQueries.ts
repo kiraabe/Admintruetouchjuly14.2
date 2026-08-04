@@ -28,10 +28,23 @@ export interface Candidate {
   status: string | null
   created_at: Date
   updated_at: Date
+  employed_by?: string | null
 }
 
 export async function getAllCandidates(): Promise<Candidate[]> {
-  const result = await pool.query('SELECT * FROM candidates ORDER BY created_at DESC')
+  const result = await pool.query(
+    `SELECT c.*,
+      (
+        SELECT STRING_AGG(DISTINCT p.company_name, ', ')
+        FROM standard_request_candidates src
+        INNER JOIN standard_requests sr ON sr.request_id = src.request_id
+        INNER JOIN partnerships p ON p.partner_id = sr.partnership_id
+        WHERE src.candidate_id = c.candidate_id
+          AND c.status = 'employee'
+      ) AS employed_by
+     FROM candidates c
+     ORDER BY c.created_at DESC`,
+  )
   return result.rows
 }
 
