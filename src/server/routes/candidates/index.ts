@@ -101,13 +101,18 @@ const upload = multer({
 
 router.get('/', async (req, res) => {
   try {
-    const { search, page: pageStr, limit: limitStr, ...filters } = req.query
+    const {
+      search,
+      page: pageStr,
+      limit: limitStr,
+      partnership_id: partnershipId,
+      ...filters
+    } = req.query
     const page = Math.max(1, parseInt(pageStr as string) || 1)
     const limit = Math.min(100, parseInt(limitStr as string) || 10)
     const offset = (page - 1) * limit
 
     let candidates
-    const partnershipId = req.query.partnership_id
 
     if (partnershipId && typeof partnershipId === 'string' && !search && Object.keys(filters).length === 0) {
       candidates = await getCandidatesForPartnership(partnershipId)
