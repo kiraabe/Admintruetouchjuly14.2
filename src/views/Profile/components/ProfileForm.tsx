@@ -18,6 +18,7 @@ interface ProfileFormProps {
 const ProfileForm = ({ data }: ProfileFormProps) => {
     const [formData, setFormData] = useState<ProfileData>(data)
     const [loading, setLoading] = useState(false)
+    const [avatarFile, setAvatarFile] = useState<File | null>(null)
     const [partnershipLogo, setPartnershipLogo] = useState<string>('')
     const setUser = useSessionUser((state) => state.setUser)
     const { partnershipId } = useSessionUser((state) => state.user)
@@ -50,6 +51,19 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
         setLoading(true)
 
         try {
+            let avatar = formData.avatar
+
+            if (avatarFile) {
+                const uploadData = new FormData()
+                uploadData.append('file', avatarFile)
+                const uploadResponse = await ApiService.fetchDataWithAxios<{ path: string }>({
+                    method: 'POST',
+                    url: '/upload/profile/avatar',
+                    data: uploadData,
+                })
+                avatar = uploadResponse.path
+            }
+
             const response = await ApiService.fetchDataWithAxios<{
                 success: boolean
                 data: { avatar: string; user_name: string }
@@ -57,7 +71,7 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
                 method: 'PUT',
                 url: '/users/me',
                 data: {
-                    avatar: formData.avatar,
+                    avatar,
                     user_name: formData.userName,
                 },
             })
@@ -66,6 +80,8 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
                 throw new Error('Failed to save profile')
             }
 
+            setFormData((current) => ({ ...current, avatar: response.data.avatar }))
+            setAvatarFile(null)
             setUser({
                 avatar: response.data.avatar,
                 userName: response.data.user_name,
@@ -117,13 +133,19 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
             </div>
 
             <div>
-                <label className="form-label" htmlFor="avatar">
-                    Profile picture URL
+                <label className="form-label" htmlFor="avatarFile">
+                    Profile picture
                 </label>
+                <Input
+                    id="avatarFile"
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={(e) => setAvatarFile(e.target.files?.[0] || null)}
+                />
                 <Input
                     id="avatar"
                     name="avatar"
-                    placeholder="Enter an image URL"
+                    placeholder="Or enter an image URL"
                     value={formData.avatar}
                     onChange={handleChange}
                 />
@@ -132,14 +154,14 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
                     <div
                         className="w-12 h-12 rounded-full bg-gradient-to-r from-blue-400 to-purple-500 flex items-center justify-center text-white font-bold text-sm"
                         style={{
-                            backgroundImage: (formData.avatar || partnershipLogo)
-                                ? `url(${formData.avatar || partnershipLogo})`
+                            backgroundImage: (avatarFile || formData.avatar || partnershipLogo)
+                                ? `url(${avatarFile ? URL.createObjectURL(avatarFile) : formData.avatar || partnershipLogo})`
                                 : undefined,
                             backgroundSize: 'cover',
                             backgroundPosition: 'center',
                         }}
                     >
-                        {!(formData.avatar || partnershipLogo) &&
+                        {!(avatarFile || formData.avatar || partnershipLogo) &&
                             formData.userName?.charAt(0).toUpperCase()}
                     </div>
                 </div>

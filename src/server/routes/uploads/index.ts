@@ -4,6 +4,7 @@ import multer from 'multer'
 import type { File } from 'multer'
 import path from 'path'
 import fs from 'fs'
+import { validatePartnershipSession } from '../../middleware/partnershipAuth'
 
 declare global {
   namespace Express {
@@ -23,6 +24,7 @@ const uploadDirs = {
   cvs: path.join(uploadsBaseDir, 'candidates', 'cvs'),
   blogImages: path.join(uploadsBaseDir, 'blogs'),
   testimonialAvatars: path.join(uploadsBaseDir, 'testimonials'),
+  profileAvatars: path.join(uploadsBaseDir, 'profile-avatars'),
 }
 
 Object.values(uploadDirs).forEach((dir) => {
@@ -84,6 +86,11 @@ const uploaders = {
     fileFilter: imageFilter,
     limits: { fileSize: 5 * 1024 * 1024 },
   }),
+  profileAvatar: multer({
+    storage: createStorage(uploadDirs.profileAvatars),
+    fileFilter: imageFilter,
+    limits: { fileSize: 5 * 1024 * 1024 },
+  }),
 }
 
 // Helper function to get file URL (returns relative path for frontend use)
@@ -97,6 +104,20 @@ const getRelativePath = (filename: string, subpath: string) => {
 }
 
 // POST Endpoints - Upload
+router.post('/profile/avatar', validatePartnershipSession, (req: Request, res: Response, next) => {
+  uploaders.profileAvatar.single('file')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ error: err.message })
+    }
+    if (!req.file) {
+      return res.status(400).json({ error: 'No file provided' })
+    }
+    res.json({
+      path: getFileUrl(req.file.filename, 'profile-avatars'),
+    })
+  })
+})
+
 router.post('/candidate/profile_picture', (req: Request, res: Response, next) => {
   uploaders.profilePicture.single('file')(req, res, (err) => {
     if (err) {
