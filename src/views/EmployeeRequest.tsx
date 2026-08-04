@@ -541,6 +541,94 @@ const EmployeeRequest = () => {
     }
   }
 
+  if (showDetailsModal && selectedRequest) {
+    return (
+      <Card>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4">
+            <div>
+              <h3 className="text-xl font-bold">Request Details</h3>
+              <p className="text-sm text-gray-500 mt-1">{selectedRequest.request_type} request</p>
+            </div>
+            <Button
+              onClick={() => {
+                setShowDetailsModal(false)
+                setRequestStatusBeforeEdit(null)
+              }}
+            >
+              Back to Requests
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              ['Company Name', selectedRequest.company_name],
+              ['Contact Person', selectedRequest.contact_person],
+              ['Email', selectedRequest.email],
+              ['Phone', selectedRequest.phone_number || '-'],
+              ['Position', selectedRequest.position],
+              ['Number of Employees', String(selectedRequest.number_of_employees)],
+              ['Location', selectedRequest.location || '-'],
+              ['Start Date', selectedRequest.start_date ? new Date(selectedRequest.start_date).toLocaleDateString() : '-'],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-lg bg-gray-50 dark:bg-gray-800 p-4">
+                <label className="form-label">{label}</label>
+                <p className="text-gray-700 dark:text-gray-300">{value}</p>
+              </div>
+            ))}
+          </div>
+
+          {selectedRequest.candidates && selectedRequest.candidates.length > 0 ? (
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
+              <h4 className="font-semibold mb-3">Selected Candidates ({selectedRequest.candidates.length})</h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {selectedRequest.candidates.map((candidate) => (
+                  <div key={candidate.candidate_id} className="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                    <p className="font-medium">{candidate.name}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {candidate.job_category || 'No category'}
+                      {candidate.skill_level && ` • ${cleanSkillLevel(candidate.skill_level)}`}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-2">Status: {candidate.status || 'Unknown'}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-5 text-gray-500">
+              No candidates have been selected for this request.
+            </div>
+          )}
+
+          <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
+            <label className="form-label">Status</label>
+            <div className="flex flex-wrap gap-2 items-center">
+              <select
+                value={selectedRequest.status}
+                onChange={(e) => setSelectedRequest({ ...selectedRequest, status: e.target.value })}
+                className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700"
+              >
+                {STATUS_OPTIONS.map((status) => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+              <Button
+                onClick={() => {
+                  if (selectedRequest.status !== requestStatusBeforeEdit) {
+                    handleUpdateStatus(selectedRequest, selectedRequest.status)
+                    setRequestStatusBeforeEdit(selectedRequest.status)
+                  }
+                }}
+              >
+                Update Status
+              </Button>
+            </div>
+          </div>
+        </div>
+      </Card>
+    )
+  }
+
   return (
     <Card>
       <div className="flex flex-col gap-4">
