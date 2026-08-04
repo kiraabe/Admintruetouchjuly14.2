@@ -40,7 +40,7 @@ export async function getAllCandidates(): Promise<Candidate[]> {
         INNER JOIN standard_requests sr ON sr.request_id = src.request_id
         INNER JOIN partnerships p ON p.partner_id = sr.partnership_id
         WHERE src.candidate_id = c.candidate_id
-          AND c.status = 'employee'
+          AND LOWER(c.status) = 'employee'
       ) AS employed_by
      FROM candidates c
      ORDER BY c.created_at DESC`,
