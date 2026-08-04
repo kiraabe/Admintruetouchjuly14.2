@@ -311,6 +311,9 @@ const Partnership = () => {
                     <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
                       Status
                     </th>
+                    <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                      Created
+                    </th>
                     <th className="text-left py-3 px-4">Actions</th>
                   </tr>
                 </thead>
@@ -361,6 +364,9 @@ const Partnership = () => {
                         <Tag className={`${getStatusColor(partner.status)} text-gray-900`}>
                           {partner.status.charAt(0).toUpperCase() + partner.status.slice(1)}
                         </Tag>
+                      </td>
+                      <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                        {new Date(partner.created_at).toLocaleDateString()}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">

@@ -445,6 +445,9 @@ const Users = () => {
                 <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
                   Status
                 </th>
+                <th className="text-left py-3 px-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800">
+                  Created
+                </th>
                 <th className="text-left py-3 px-4">Actions</th>
               </tr>
             </thead>
@@ -489,6 +492,9 @@ const Users = () => {
                     <Tag className={`${getStatusColor(user.is_active)} text-gray-900 dark:text-gray-900`}>
                       {user.is_active ? 'Active' : 'Inactive'}
                     </Tag>
+                  </td>
+                  <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                    {new Date(user.created_at).toLocaleDateString()}
                   </td>
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-2">

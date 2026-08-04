@@ -514,6 +514,23 @@ const Candidates = () => {
                     </svg>
                   </div>
                 </th>
+                <th
+                  className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
+                  onClick={() => handleSort('created_at')}
+                >
+                  <div className="flex items-center gap-2">
+                    Created
+                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                      {sortColumn === 'created_at' && sortDirection === 'asc' ? (
+                        <path d="M7 14l5-5 5 5z" />
+                      ) : sortColumn === 'created_at' && sortDirection === 'desc' ? (
+                        <path d="M7 10l5 5 5-5z" />
+                      ) : (
+                        <path d="M7 14l5-5 5 5z M7 10l5 5 5-5z" opacity="0.3" />
+                      )}
+                    </svg>
+                  </div>
+                </th>
                 <th className="text-left py-3 px-4">Actions</th>
               </tr>
             </thead>
@@ -578,6 +595,9 @@ const Candidates = () => {
                       }`}>
                         {candidate.status || 'Unknown'}
                       </span>
+                    </td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                      {candidate.created_at ? new Date(candidate.created_at).toLocaleDateString() : '-'}
                     </td>
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-3">

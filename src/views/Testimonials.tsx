@@ -203,7 +203,10 @@ const Testimonials = () => {
                                         </div>
                                     </div>
                                     <p className="mt-3 line-clamp-3 text-sm text-gray-700">{testimonial.testimonial_text}</p>
-                                    <p className="mt-2 text-xs text-gray-500">Display order: {testimonial.display_order}</p>
+                                    <div className="mt-2 flex items-center justify-between text-xs text-gray-500">
+                                        <p>Display order: {testimonial.display_order}</p>
+                                        <p>Created: {new Date(testimonial.created_at).toLocaleDateString()}</p>
+                                    </div>
                                 </div>
                             </div>
                         </Card>
