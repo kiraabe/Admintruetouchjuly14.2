@@ -138,6 +138,79 @@ const StandardRequestsHistory = () => {
   )
   const totalPages = Math.ceil(filteredRequests.length / pageSize)
 
+  if (showDetailModal && selectedRequest) {
+    return (
+      <Card>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-700 pb-4">
+            <div>
+              <h1 className="text-2xl font-bold">Request Details</h1>
+              <p className="text-sm text-gray-500 mt-1">Standard request</p>
+            </div>
+            <Button onClick={() => setShowDetailModal(false)}>Back to Requests</Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {[
+              ['Company', selectedRequest.company_name],
+              ['Contact Person', selectedRequest.contact_person],
+              ['Email', selectedRequest.email],
+              ['Phone', selectedRequest.phone_number || 'N/A'],
+              ['Position', selectedRequest.position],
+              ['Employees', String(selectedRequest.number_of_employees)],
+              ['Location', selectedRequest.location || 'N/A'],
+              ['Requested Date', new Date(selectedRequest.created_at).toLocaleDateString()],
+              ['Start Date', selectedRequest.start_date ? new Date(selectedRequest.start_date).toLocaleDateString() : 'N/A'],
+            ].map(([label, value]) => (
+              <div key={label} className="rounded-lg bg-gray-50 dark:bg-gray-800 p-4">
+                <label className="font-semibold text-gray-600 dark:text-gray-400">{label}</label>
+                <p className="mt-1">{value}</p>
+              </div>
+            ))}
+          </div>
+
+          <div className="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+            <label className="font-semibold text-gray-600 dark:text-gray-400">Status</label>
+            <p className="mt-2">
+              <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClass(selectedRequest.status)}`}>
+                {selectedRequest.status}
+              </span>
+            </p>
+          </div>
+
+          {selectedRequest.candidates && selectedRequest.candidates.length > 0 ? (
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-5">
+              <h2 className="font-semibold mb-3">Candidates ({selectedRequest.candidates.length})</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {selectedRequest.candidates.map((candidate) => (
+                  <div key={candidate.candidate_id} className="rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+                    <p className="font-medium">{candidate.name}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {candidate.job_category || 'No category'}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <p className="border-t border-gray-200 dark:border-gray-700 pt-5 text-gray-500">
+              No candidates have been selected for this request.
+            </p>
+          )}
+
+          {selectedRequest.requirements && (
+            <div>
+              <label className="font-semibold text-gray-600 dark:text-gray-400">Requirements</label>
+              <p className="mt-2 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm whitespace-pre-wrap">
+                {selectedRequest.requirements}
+              </p>
+            </div>
+          )}
+        </div>
+      </Card>
+    )
+  }
+
   return (
     <Card>
       <div className="mb-6">
