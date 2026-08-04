@@ -89,7 +89,7 @@ const PartnershipCandidates = () => {
 
   useEffect(() => {
     fetchCandidates(currentPage)
-  }, [currentPage])
+  }, [currentPage, user.partnershipId])
 
   const handleSort = (column: string) => {
     if (sortColumn === column) {
@@ -163,7 +163,10 @@ const PartnershipCandidates = () => {
   const fetchCandidates = async (page: number) => {
     try {
       setLoading(true)
-      const response = await fetch(`/api/candidates?page=${page}&limit=${pageSize}`, {
+      const partnershipQuery = user.partnershipId
+        ? `&partnership_id=${encodeURIComponent(user.partnershipId)}`
+        : ''
+      const response = await fetch(`/api/candidates?page=${page}&limit=${pageSize}${partnershipQuery}`, {
         headers: getAuthHeaders(),
       })
       if (!response.ok) {

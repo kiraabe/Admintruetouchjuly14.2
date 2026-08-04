@@ -13,6 +13,7 @@ import {
   createCandidate,
   updateCandidate,
   deleteCandidate,
+  getCandidatesForPartnership,
 } from '../../db/queries/candidateQueries'
 
 declare global {
@@ -106,8 +107,11 @@ router.get('/', async (req, res) => {
     const offset = (page - 1) * limit
 
     let candidates
+    const partnershipId = req.query.partnership_id
 
-    if (search && typeof search === 'string') {
+    if (partnershipId && typeof partnershipId === 'string' && !search && Object.keys(filters).length === 0) {
+      candidates = await getCandidatesForPartnership(partnershipId)
+    } else if (search && typeof search === 'string') {
       candidates = await searchCandidates(search)
     } else if (Object.keys(filters).length > 0) {
       candidates = await filterCandidates(filters as any)

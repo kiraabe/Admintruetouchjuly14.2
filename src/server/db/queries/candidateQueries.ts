@@ -35,6 +35,25 @@ export async function getAllCandidates(): Promise<Candidate[]> {
   return result.rows
 }
 
+export async function getCandidatesForPartnership(partnershipId: string): Promise<Candidate[]> {
+  const result = await pool.query(
+    `SELECT c.*
+     FROM candidates c
+     WHERE c.status = 'available'
+        OR EXISTS (
+          SELECT 1
+          FROM standard_request_candidates src
+          INNER JOIN standard_requests sr ON sr.request_id = src.request_id
+          WHERE src.candidate_id = c.candidate_id
+            AND sr.partnership_id = $1
+            AND c.status IN ('processing', 'employee')
+        )
+     ORDER BY c.created_at DESC`,
+    [partnershipId],
+  )
+  return result.rows
+}
+
 export async function getCandidateById(candidateId: string): Promise<Candidate | null> {
   const result = await pool.query('SELECT * FROM candidates WHERE candidate_id = $1', [candidateId])
   return result.rows[0] || null
