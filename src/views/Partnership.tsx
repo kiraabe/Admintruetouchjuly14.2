@@ -90,6 +90,12 @@ const Partnership = () => {
     }
   }
 
+  const getPartnershipLogoUrl = (logo: string | null) => {
+    if (!logo) return ''
+    if (/^https?:\/\//i.test(logo)) return logo
+    return `/uploads/${logo.replace(/^\/?uploads\//, '')}`
+  }
+
   const handleEditPartnership = (partnerId: string) => {
     navigate(`/partnership/edit/${partnerId}`)
   }
@@ -326,7 +332,7 @@ const Partnership = () => {
                         <div className="flex items-center gap-3">
                           {partner.company_logo && (
                             <img
-                              src={partner.company_logo}
+                              src={getPartnershipLogoUrl(partner.company_logo)}
                               alt={partner.company_name}
                               className="w-10 h-10 rounded-full object-cover"
                             />
