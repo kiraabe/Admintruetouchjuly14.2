@@ -857,6 +857,7 @@ const EmployeeRequest = () => {
                       </svg>
                     </div>
                   </th>
+                  <th className="text-left py-3 px-4">Requested Date</th>
                   <th
                     className="text-left py-3 px-4 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 select-none"
                     onClick={() => handleSort('status')}
@@ -900,6 +901,11 @@ const EmployeeRequest = () => {
                     </td>
                     <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
                       {request.number_of_employees}
+                    </td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                      {request.created_at
+                        ? new Date(request.created_at).toLocaleDateString()
+                        : '-'}
                     </td>
                     <td className="py-3 px-4">
                       <span
