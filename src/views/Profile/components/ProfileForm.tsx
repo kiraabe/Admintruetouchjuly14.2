@@ -87,6 +87,7 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
                 userName: response.data.user_name,
                 email: formData.email,
             })
+            notify.success('Success', 'Profile updated successfully')
         } catch (error) {
             notify.error(
                 'Error',
