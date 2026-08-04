@@ -2,6 +2,7 @@ import Avatar from '@/components/ui/Avatar'
 import Dropdown from '@/components/ui/Dropdown'
 import withHeaderItem from '@/utils/hoc/withHeaderItem'
 import { useSessionUser } from '@/store/authStore'
+import ApiService from '@/services/ApiService'
 import { Link } from 'react-router'
 import { PiUserDuotone, PiSignOutDuotone } from 'react-icons/pi'
 import { useAuth } from '@/auth'
@@ -35,8 +36,10 @@ const _UserDropdown = () => {
 
     useEffect(() => {
         if (partnershipId) {
-            fetch(`/api/partnerships/${partnershipId}`)
-                .then((res) => res.json())
+            ApiService.fetchDataWithAxios<any>({
+                method: 'GET',
+                url: `/partnerships/${partnershipId}`,
+            })
                 .then((data) => {
                     if (data.success && data.data?.company_logo) {
                         setPartnershipLogo(data.data.company_logo)
@@ -50,7 +53,7 @@ const _UserDropdown = () => {
         signOut()
     }
 
-    const displayAvatar = partnershipLogo || avatar
+    const displayAvatar = avatar || partnershipLogo
     const avatarProps = {
         ...(displayAvatar ? { src: displayAvatar } : { icon: <PiUserDuotone /> }),
     }
