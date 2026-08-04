@@ -115,8 +115,20 @@ const StandardRequestsHistory = () => {
     }
   }
 
-  const handleViewDetails = (request: StandardRequest) => {
-    setSelectedRequest(request)
+  const handleViewDetails = async (request: StandardRequest) => {
+    try {
+      const data = await ApiService.fetchDataWithAxios<any>({
+        method: 'GET',
+        url: `/standard-requests/${request.request_id}`,
+      })
+      setSelectedRequest({
+        ...request,
+        candidates: data.data?.candidates || [],
+      })
+    } catch (error) {
+      console.error('Error loading request candidates:', error)
+      setSelectedRequest(request)
+    }
     setShowDetailModal(true)
   }
 

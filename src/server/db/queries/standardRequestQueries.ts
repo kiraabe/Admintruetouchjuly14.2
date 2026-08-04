@@ -118,7 +118,16 @@ export async function getStandardRequestById(requestId: string) {
 
 export async function getStandardRequestsByPartnership(partnerId: string) {
   const result = await pool.query(
-    `SELECT * FROM standard_requests WHERE partnership_id = $1 ORDER BY created_at DESC`,
+    `SELECT sr.*,
+      CASE
+        WHEN sr.company_name = 'Partnership Candidates Request' THEN p.company_name
+        ELSE sr.company_name
+      END AS company_name,
+      p.company_logo
+     FROM standard_requests sr
+     LEFT JOIN partnerships p ON sr.partnership_id = p.partner_id
+     WHERE sr.partnership_id = $1
+     ORDER BY sr.created_at DESC`,
     [partnerId]
   )
   return result.rows
@@ -239,7 +248,15 @@ export async function createStandardRequest(data: StandardRequest, candidateIds:
 
 export async function getStandardRequestWithCandidates(requestId: string) {
   const requestResult = await pool.query(
-    `SELECT * FROM standard_requests WHERE request_id = $1`,
+    `SELECT sr.*,
+      CASE
+        WHEN sr.company_name = 'Partnership Candidates Request' THEN p.company_name
+        ELSE sr.company_name
+      END AS company_name,
+      p.company_logo
+     FROM standard_requests sr
+     LEFT JOIN partnerships p ON sr.partnership_id = p.partner_id
+     WHERE sr.request_id = $1`,
     [requestId]
   )
 
