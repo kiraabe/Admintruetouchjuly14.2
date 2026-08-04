@@ -156,7 +156,17 @@ router.post('/own/create', validatePartnershipSession, async (req: Request, res:
     }
 
     const { candidateIds = [], ...data } = req.body
-    const requestData = { ...data, partnership_id: partnershipId }
+    const partnershipResult = await pool.query(
+      'SELECT company_name FROM partnerships WHERE partner_id = $1',
+      [partnershipId],
+    )
+    const partnershipName = partnershipResult.rows[0]?.company_name
+
+    const requestData = {
+      ...data,
+      company_name: partnershipName || data.company_name,
+      partnership_id: partnershipId,
+    }
 
     const request = await createStandardRequest(requestData, candidateIds)
 

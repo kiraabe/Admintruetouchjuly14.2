@@ -87,7 +87,12 @@ export async function ensureStandardRequestTableExists() {
 
 export async function getAllStandardRequests() {
   const result = await pool.query(`
-    SELECT sr.*, p.company_logo
+    SELECT sr.*,
+      CASE
+        WHEN sr.company_name = 'Partnership Candidates Request' THEN p.company_name
+        ELSE sr.company_name
+      END AS company_name,
+      p.company_logo
     FROM standard_requests sr
     LEFT JOIN partnerships p ON sr.partnership_id = p.partner_id
     ORDER BY sr.created_at DESC
@@ -97,7 +102,15 @@ export async function getAllStandardRequests() {
 
 export async function getStandardRequestById(requestId: string) {
   const result = await pool.query(
-    `SELECT * FROM standard_requests WHERE request_id = $1`,
+    `SELECT sr.*,
+      CASE
+        WHEN sr.company_name = 'Partnership Candidates Request' THEN p.company_name
+        ELSE sr.company_name
+      END AS company_name,
+      p.company_logo
+     FROM standard_requests sr
+     LEFT JOIN partnerships p ON sr.partnership_id = p.partner_id
+     WHERE sr.request_id = $1`,
     [requestId]
   )
   return result.rows[0]
