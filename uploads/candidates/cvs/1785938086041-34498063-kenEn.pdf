@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+  <head><script>
+    // Flag to indicate this page is being proxied by Builder
+    if (!window.BUILDER_PROXY_EXISTS) {
+      window.BUILDER_PROXY_EXISTS = true;
+      
+      const isInIframe = window !== window.parent;
+
+      function sendMessage(message) {
+        if (isInIframe) {
+          window.parent.postMessage(message, '*');
+        } else {
+          console.warn('No parent context available for messaging');
+        }
+      }
+
+      const messageHandler = (event) => {
+        const { data } = event;
+        if (!data?.type) {
+          return;
+        }
+
+        switch (data.type) {
+          case 'builder.evaluate':
+          case 'builder.fusion.evaluate': {
+            const isFusionEvaluate = data.type === 'builder.fusion.evaluate';
+            const text = data.data.text;
+            const args = data.data.arguments || [];
+            const id = data.data.id;
+            // tslint:disable-next-line:no-function-constructor-with-string-args
+            const fn = new Function(text);
+            let result;
+            let error = null;
+            try {
+              // eslint-disable-next-line prefer-spread
+              result = fn.apply(null, args);
+            } catch (err) {
+              error = err;
+            }
+
+            if (error) {
+              sendMessage({
+                type: isFusionEvaluate ? 'builder.fusion.evaluateError' : 'builder.evaluateError',
+                data: { id, error: error.message },
+              });
+            } else {
+              if (result && typeof result.then === 'function') {
+                result
+                  .then((finalResult) => {
+                    sendMessage({
+                      type: isFusionEvaluate ? 'builder.fusion.evaluateResult' : 'builder.evaluateResult',
+                      data: { id, result: finalResult },
+                    });
+                  })
+                  .catch(console.error);
+              } else {
+                sendMessage({
+                  type: isFusionEvaluate ? 'builder.fusion.evaluateResult' : 'builder.evaluateResult',
+                  data: { result, id },
+                });
+              }
+            }
+            break;
+          }
+        }
+      };
+
+      window.addEventListener('message', messageHandler);
+
+      window.addEventListener('error', (event) => {
+        sendMessage({
+          type: 'builder.interactiveFrameError',
+          data: { message: event.error?.stack || event.error?.message || event.message },
+        });
+      });
+      
+      setTimeout(() => {
+        const viteError = document.querySelector('vite-error-overlay')?.shadowRoot?.textContent;
+        if (typeof viteError === 'string') {
+          sendMessage({
+            type: 'builder.interactiveFrameError',
+            data: { message: viteError },
+          });
+        }
+      }, 500);
+      if (document.currentScript) {
+        document.currentScript.remove();
+      }
+    }
+    </script>
+    <meta charset="UTF-8" />
+    <link rel="apple-touch-icon" sizes="57x57" href="https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2F4defb5279a6d434a9805a846d93d168a?format=webp&width=800&height=1200" />
+    <link rel="apple-touch-icon" sizes="60x60" href="https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2F3a6f260731974f51a31432a5f60e3d8c?format=webp&width=800&height=1200" />
+    <link rel="apple-touch-icon" sizes="72x72" href="https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2F5a2a6b21715d46e7a1ed09d5fb888679?format=webp&width=800&height=1200" />
+    <link rel="apple-touch-icon" sizes="76x76" href="https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2F2dbbede9529f461b87622fc48cd9ee95?format=webp&width=800&height=1200" />
+    <link rel="apple-touch-icon" sizes="114x114" href="https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2F2d21bf7447aa4340a10c4afe1ccfc925?format=webp&width=800&height=1200" />
+    <link rel="apple-touch-icon" sizes="120x120" href="https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2F3cb26d0f7466400e887379567d1fe4fb?format=webp&width=800&height=1200" />
+    <link rel="apple-touch-icon" sizes="144x144" href="https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2F7972ab60e5a241b5bbd9981159e10fde?format=webp&width=800&height=1200" />
+    <link rel="apple-touch-icon" sizes="152x152" href="https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2F0b8009efda6e4e3ca0ecb809e22ffb58?format=webp&width=800&height=1200" />
+    <link rel="apple-touch-icon" sizes="180x180" href="https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2F91e595cb3dcb47b8820cfe5b48877217?format=webp&width=800&height=1200" />
+    <link rel="icon" type="image/webp" sizes="16x16" href="https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2F7566082e467d4cb8bceecd3e575253fa?format=webp&width=800&height=1200" />
+    <link rel="icon" type="image/webp" sizes="32x32" href="https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2Fbe95c92767db4136b48e6aed82ad532c?format=webp&width=800&height=1200" />
+    <link rel="icon" type="image/webp" sizes="96x96" href="https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2Fb97b9464d009411f8fa28b3ab9e4f32f?format=webp&width=800&height=1200" />
+    <link rel="icon" type="image/webp" sizes="192x192" href="https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2F63d7f67c90a941f59339b2a5db7f3cff?format=webp&width=800&height=1200" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="msapplication-TileImage" content="https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2F4ea853b3cd8541c7942f9713d22cbc4b?format=webp&width=800&height=1200" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="True Touch - Foreign Employment Recruitment Agency">
+    <title>True Touch - Foreign Employment Recruitment Agency</title>
+    <script type="module" crossorigin src="/assets/index-DA4wy3MS.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/vendor-B1ATuZue.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-CIwIf7Sv.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

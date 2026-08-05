@@ -92,7 +92,7 @@ const EditCandidate = () => {
   const [nationalitySuggestions, setNationalitySuggestions] = useState<string[]>([])
   const [showNationalitySuggestions, setShowNationalitySuggestions] = useState(false)
   const locationSearchTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const locationRequestController = useRef<AbortController | null>(null)
+  const locationSearchRequestId = useRef(0)
   const [languageSuggestions, setLanguageSuggestions] = useState<string[]>([])
   const [showLanguageSuggestions, setShowLanguageSuggestions] = useState(false)
   const [selectedSkills, setSelectedSkills] = useState<string[]>([])
@@ -266,8 +266,8 @@ const EditCandidate = () => {
   }
 
   const searchLocations = (query: string) => {
+    const requestId = ++locationSearchRequestId.current
     if (locationSearchTimeout.current) clearTimeout(locationSearchTimeout.current)
-    locationRequestController.current?.abort()
 
     if (query.trim().length < 3) {
       setLocationSuggestions([])
@@ -276,27 +276,25 @@ const EditCandidate = () => {
     }
 
     locationSearchTimeout.current = setTimeout(async () => {
-      const controller = new AbortController()
-      locationRequestController.current = controller
-
       try {
         const response = await fetch(
           `/api/location-search?q=${encodeURIComponent(query.trim())}`,
-          { signal: controller.signal, headers: { Accept: 'application/json' } },
+          { headers: { Accept: 'application/json' } },
         )
+        if (requestId !== locationSearchRequestId.current) return
         if (!response.ok) {
           setLocationSuggestions([])
           setShowLocationSuggestions(false)
           return
         }
         const results = await response.json()
+        if (requestId !== locationSearchRequestId.current) return
         setLocationSuggestions(results)
         setShowLocationSuggestions(results.length > 0)
-      } catch (error) {
-        if ((error as Error).name !== 'AbortError') {
-          setLocationSuggestions([])
-          setShowLocationSuggestions(false)
-        }
+      } catch {
+        if (requestId !== locationSearchRequestId.current) return
+        setLocationSuggestions([])
+        setShowLocationSuggestions(false)
       }
     }, 350)
   }
@@ -304,7 +302,7 @@ const EditCandidate = () => {
   useEffect(() => {
     return () => {
       if (locationSearchTimeout.current) clearTimeout(locationSearchTimeout.current)
-      locationRequestController.current?.abort()
+      locationSearchRequestId.current += 1
     }
   }, [])
 

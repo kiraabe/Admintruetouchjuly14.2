@@ -152,7 +152,11 @@ router.post('/', validatePartnershipSession, async (req: Request, res: Response)
       await pool.query(`
         INSERT INTO notifications (
           target, description, type, status, location, location_label, user_id, related_entity_id, related_entity_type
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        )
+        SELECT $1, $2, $3, $4, $5, $6, user_id, $7, $8
+        FROM users
+        WHERE LOWER(TRIM(authority::text)) LIKE '%admin%'
+          AND is_active = true
       `, [
         'Special Request',
         `New special request from ${partnershipName} for ${data.position || 'position'} (${data.number_of_employees || 0} position(s))`,
@@ -160,7 +164,6 @@ router.post('/', validatePartnershipSession, async (req: Request, res: Response)
         'Pending',
         'admin',
         'Special Request',
-        null, // null user_id makes it visible to all admin users
         request.request_id,
         'special_request'
       ])

@@ -181,7 +181,11 @@ router.post('/own/create', validatePartnershipSession, async (req: Request, res:
       await pool.query(`
         INSERT INTO notifications (
           target, description, type, status, location, location_label, user_id, related_entity_id, related_entity_type
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        )
+        SELECT $1, $2, $3, $4, $5, $6, user_id, $7, $8
+        FROM users
+        WHERE LOWER(TRIM(authority::text)) LIKE '%admin%'
+          AND is_active = true
       `, [
         'Standard Request',
         `New standard request from ${partnershipName} for ${data.position || 'position'} (${candidateIds.length || data.number_of_employees} candidate(s))`,
@@ -189,7 +193,6 @@ router.post('/own/create', validatePartnershipSession, async (req: Request, res:
         'Pending',
         'admin',
         'Standard Request',
-        null, // null user_id makes it visible to all admin users
         request.request_id,
         'standard_request'
       ])

@@ -1376,7 +1376,7 @@ const EmployeeRequest = () => {
             <Button onClick={() => setShowCandidateModal(false)}>Cancel</Button>
             <Button
               onClick={handleConfirmCandidateSelection}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-green-600 hover:bg-green-700 text-white hover:text-white"
             >
               Confirm Selection ({selectedCandidates.length})
             </Button>

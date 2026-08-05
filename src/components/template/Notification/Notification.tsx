@@ -156,12 +156,7 @@ const _Notification = ({ className }: { className?: string }) => {
     const onClearNotifications = async () => {
         notificationLoadId.current += 1
         try {
-            const notificationsToDelete = [...notificationList]
             await apiClearAllNotifications()
-
-            await Promise.allSettled(
-                notificationsToDelete.map((item) => apiDeleteNotification(item.id)),
-            )
 
             setNotificationList([])
             setUnreadNotification(false)
