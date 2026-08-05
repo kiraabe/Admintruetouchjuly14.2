@@ -43,8 +43,39 @@ const VerticalMenuContent = (props: VerticalMenuContentProps) => {
     const { t } = useTranslation(!translationSetup)
 
     const [defaulExpandKey, setDefaulExpandKey] = useState<string[]>([])
+    const [newMessageCount, setNewMessageCount] = useState(0)
 
     const { activedRoute } = useMenuActive(navigationTree, routeKey)
+
+    useEffect(() => {
+        let isMounted = true
+
+        const refreshMessageCount = async () => {
+            try {
+                const response = await fetch('/api/contact-us')
+                if (!response.ok) return
+                const result = await response.json()
+                if (isMounted) {
+                    setNewMessageCount(
+                        (result.data || []).filter(
+                            (message: { status: string }) =>
+                                message.status === 'new',
+                        ).length,
+                    )
+                }
+            } catch {
+                if (isMounted) setNewMessageCount(0)
+            }
+        }
+
+        refreshMessageCount()
+        const interval = window.setInterval(refreshMessageCount, 5000)
+
+        return () => {
+            isMounted = false
+            window.clearInterval(interval)
+        }
+    }, [])
 
     useEffect(() => {
         if (activedRoute?.parentKey) {
@@ -85,6 +116,7 @@ const VerticalMenuContent = (props: VerticalMenuContentProps) => {
                                         : cascade <= MAX_CASCADE_LEVEL
                                 }
                                 t={t as TraslationFn}
+                                newMessageCount={newMessageCount}
                                 onLinkClick={handleLinkClick}
                             />
                         )}

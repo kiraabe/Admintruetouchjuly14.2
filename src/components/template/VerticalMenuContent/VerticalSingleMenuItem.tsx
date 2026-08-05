@@ -7,6 +7,7 @@ import Dropdown from '@/components/ui/Dropdown'
 import type { CommonProps } from '@/@types/common'
 import type { Direction } from '@/@types/theme'
 import type { NavigationTree } from '@/@types/navigation'
+import Badge from '@/components/ui/Badge'
 
 const { MenuItem } = Menu
 
@@ -22,6 +23,7 @@ interface CollapsedItemProps extends CommonProps {
     userAuthority: string[]
     currentKey?: string
     parentKeys?: string[]
+    newMessageCount?: number
 }
 
 interface DefaultItemProps {
@@ -36,6 +38,7 @@ interface DefaultItemProps {
     userAuthority: string[]
     showIcon?: boolean
     showTitle?: boolean
+    newMessageCount?: number
 }
 
 interface VerticalMenuItemProps extends CollapsedItemProps, DefaultItemProps {}
@@ -94,7 +97,10 @@ const DefaultItem = (props: DefaultItemProps) => {
         showIcon = true,
         userAuthority,
         t,
+        newMessageCount = 0,
     } = props
+    const isContactUs = nav.key === 'contactUs'
+    const hasMessageBadge = isContactUs && newMessageCount > 0
 
     return (
         <AuthorityCheck userAuthority={userAuthority} authority={nav.authority}>
@@ -111,8 +117,21 @@ const DefaultItem = (props: DefaultItemProps) => {
                         })
                     }
                 >
-                    {showIcon && <VerticalMenuIcon icon={nav.icon} />}
-                    {showTitle && <span>{t(nav.translateKey, nav.title)}</span>}
+                    {showIcon && (
+                        hasMessageBadge && !showTitle ? (
+                            <Badge content={newMessageCount}>
+                                <VerticalMenuIcon icon={nav.icon} />
+                            </Badge>
+                        ) : (
+                            <VerticalMenuIcon icon={nav.icon} />
+                        )
+                    )}
+                    {showTitle && (
+                        <>
+                            <span className="flex-1">{t(nav.translateKey, nav.title)}</span>
+                            {hasMessageBadge && <Badge content={newMessageCount} />}
+                        </>
+                    )}
                 </Link>
             </MenuItem>
         </AuthorityCheck>
@@ -132,6 +151,7 @@ const VerticalSingleMenuItem = ({
     t,
     currentKey,
     parentKeys,
+    newMessageCount,
 }: Omit<VerticalMenuItemProps, 'title' | 'translateKey'>) => {
     return (
         <>
@@ -144,6 +164,7 @@ const VerticalSingleMenuItem = ({
                     renderAsIcon={renderAsIcon}
                     userAuthority={userAuthority}
                     t={t}
+                    newMessageCount={newMessageCount}
                     onLinkClick={onLinkClick}
                 >
                     <DefaultItem
@@ -153,6 +174,7 @@ const VerticalSingleMenuItem = ({
                         showIcon={showIcon}
                         showTitle={showTitle}
                         t={t}
+                        newMessageCount={newMessageCount}
                         onLinkClick={onLinkClick}
                     />
                 </CollapsedItem>
@@ -165,6 +187,7 @@ const VerticalSingleMenuItem = ({
                     showTitle={showTitle}
                     indent={indent}
                     t={t}
+                    newMessageCount={newMessageCount}
                     onLinkClick={onLinkClick}
                 />
             )}
