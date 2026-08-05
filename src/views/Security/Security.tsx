@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import Tabs from '@/components/ui/Tabs'
+import { useSessionUser } from '@/store/authStore'
 import PasswordSecurity from './components/PasswordSecurity'
 
 type SecurityTab = 'password' | 'activity' | 'login' | 'roles' | 'sessions'
@@ -17,6 +18,8 @@ const ComingSoon = () => (
 
 const Security = () => {
     const [activeTab, setActiveTab] = useState<SecurityTab>('password')
+    const userRole = useSessionUser((state) => state.user.authority?.[0])
+    const isPartnershipUser = userRole === 'partnership' || userRole === 'partner'
 
     const tabs = [
         {
@@ -44,7 +47,7 @@ const Security = () => {
             label: 'Active Sessions',
             component: <ComingSoon />,
         },
-    ]
+    ].filter((tab) => !isPartnershipUser || tab.value === 'password')
 
     return (
         <div>
