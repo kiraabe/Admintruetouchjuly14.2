@@ -10,6 +10,7 @@ const Profile = () => {
     const { avatar, userName, email, authority, partnershipId } = useSessionUser(
         (state) => state.user,
     )
+    const isAdmin = authority?.some((role) => role.toLowerCase() === 'admin')
     const [showPasswordModal, setShowPasswordModal] = useState(false)
     const [newPassword, setNewPassword] = useState('')
     const [confirmPassword, setConfirmPassword] = useState('')
@@ -96,6 +97,12 @@ const Profile = () => {
                 <div className="lg:col-span-2">
                     <div className="card">
                         <div className="card-body">
+                            <div className="mb-6">
+                                <h5 className="font-semibold">Profile Picture</h5>
+                                <p className="mt-1 text-sm text-gray-500">
+                                    Upload a professional image for your account.
+                                </p>
+                            </div>
                             <ProfileForm
                                 data={{
                                     avatar: avatar || '',
@@ -109,7 +116,7 @@ const Profile = () => {
                 <div>
                     <div className="card">
                         <div className="card-body">
-                            <h6 className="mb-4">Profile Summary</h6>
+                            <h6 className="mb-4">Account Summary</h6>
                             <div className="space-y-4">
                                 <div className="flex flex-col items-center text-center">
                                     <div
@@ -145,15 +152,19 @@ const Profile = () => {
                                             : 'User'}
                                     </p>
                                 </div>
-                                <hr className="my-4" />
-                                <div>
-                                    <p className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2">
-                                        Partnership
-                                    </p>
-                                    <p className="text-sm font-semibold">
-                                        {partnershipName || (partnershipId ? 'Loading...' : 'Not assigned')}
-                                    </p>
-                                </div>
+                                {!isAdmin && (
+                                    <>
+                                        <hr className="my-4" />
+                                        <div>
+                                            <p className="text-xs font-bold text-gray-600 dark:text-gray-400 mb-2">
+                                                Partnership
+                                            </p>
+                                            <p className="text-sm font-semibold">
+                                                {partnershipName || (partnershipId ? 'Loading...' : 'Not assigned')}
+                                            </p>
+                                        </div>
+                                    </>
+                                )}
                             </div>
                         </div>
                     </div>
