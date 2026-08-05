@@ -118,7 +118,7 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
                         </div>
                         <div>
                             <label className="form-label" htmlFor="businessEmail">Business Email</label>
-                            <Input id="businessEmail" type="email" value={partnershipData.business_email} onChange={(e) => setPartnershipData({ ...partnershipData, business_email: e.target.value })} required />
+                            <Input id="businessEmail" type="email" value={partnershipData.business_email} disabled required />
                         </div>
                         <div>
                             <label className="form-label" htmlFor="businessCategory">Business Category</label>
@@ -134,7 +134,7 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
                         </div>
                         <div>
                             <label className="form-label" htmlFor="phoneNumber">Phone Number *</label>
-                            <Input id="phoneNumber" value={partnershipData.phone_number} onChange={(e) => setPartnershipData({ ...partnershipData, phone_number: e.target.value })} required />
+                            <Input id="phoneNumber" value={partnershipData.phone_number} disabled required />
                         </div>
                         <div>
                             <label className="form-label" htmlFor="serviceCity">Service City *</label>
