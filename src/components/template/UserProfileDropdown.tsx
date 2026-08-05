@@ -76,10 +76,10 @@ const _UserDropdown = () => {
                 <div className="py-2 px-3 flex items-center gap-3">
                     <Avatar {...avatarProps} />
                     <div>
-                        <div className="font-bold text-gray-900 dark:text-gray-100">
+                        <div className="font-bold text-gray-900 dark:text-gray-100 truncate max-w-xs" title={isPartnershipUser ? partnershipName || userName || 'Anonymous' : userName || 'Anonymous'}>
                             {isPartnershipUser ? partnershipName || userName || 'Anonymous' : userName || 'Anonymous'}
                         </div>
-                        <div className="text-xs">
+                        <div className="text-xs truncate max-w-xs" title={email || 'No email available'}>
                             {email || 'No email available'}
                         </div>
                     </div>
