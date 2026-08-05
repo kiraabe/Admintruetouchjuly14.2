@@ -155,13 +155,16 @@ router.post('/:id/read', async (req: Request, res: Response) => {
       SET status = 'read',
           first_read_at = COALESCE(first_read_at, CURRENT_TIMESTAMP),
           updated_at = CURRENT_TIMESTAMP
-      WHERE id = $1 AND status = 'new'
+      WHERE (id::text = $1 OR contact_id::text = $1) AND status = 'new'
       RETURNING *`,
       [id],
     )
 
     const message = transition.rows[0] || (
-      await dbPool.query('SELECT * FROM contact_us WHERE id = $1', [id])
+      await dbPool.query(
+        'SELECT * FROM contact_us WHERE id::text = $1 OR contact_id::text = $1',
+        [id],
+      )
     ).rows[0]
 
     if (!message) {
