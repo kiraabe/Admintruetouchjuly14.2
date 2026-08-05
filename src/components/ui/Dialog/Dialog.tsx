@@ -16,6 +16,7 @@ export interface DialogProps extends ReactModal.Props {
     confirmText?: string
     onConfirm?: () => void
     width?: number
+    scrollable?: boolean
 }
 
 const Dialog = (props: DialogProps) => {
@@ -38,6 +39,7 @@ const Dialog = (props: DialogProps) => {
         confirmText,
         onConfirm,
         width = 720,
+        scrollable = true,
         ...rest
     } = props
 
@@ -114,9 +116,13 @@ const Dialog = (props: DialogProps) => {
             >
                 {closable && renderCloseButton}
                 {title && <h2 className="text-lg font-bold mb-4">{title}</h2>}
-                <ScrollBar className="dialog-body" style={{ maxHeight: 'calc(80vh - 200px)' }}>
-                    {children}
-                </ScrollBar>
+                {scrollable ? (
+                    <ScrollBar className="dialog-body" style={{ maxHeight: 'calc(80vh - 200px)' }}>
+                        {children}
+                    </ScrollBar>
+                ) : (
+                    <div className="dialog-body">{children}</div>
+                )}
                 {(confirmText || onConfirm) && (
                     <div className="mt-6 flex gap-3 justify-end">
                         <button
