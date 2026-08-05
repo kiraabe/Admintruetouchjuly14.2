@@ -85,31 +85,26 @@ router.post('/', async (req: Request, res: Response) => {
     )
     const newContact = result.rows[0]
 
-    const adminUsers = await client.query(
-      'SELECT user_id FROM users WHERE authority = $1 AND is_active = true',
-      ['admin']
-    )
-
-    for (const admin of adminUsers.rows) {
-      await client.query(
-        `INSERT INTO notifications (
-          user_id, target, description, type, status, location, location_label, image_url,
-          related_entity_id, related_entity_type
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-        [
-          admin.user_id,
-          name,
-          `New message from ${name}: "${subject}"`,
-          1,
-          'new',
-          'Contact Messages',
-          'Contact Us',
-          '/img/icons/contact.png',
-          newContact.contact_id,
-          'contact_message',
-        ],
+    await client.query(
+      `INSERT INTO notifications (
+        user_id, target, description, type, status, location, location_label, image_url,
+        related_entity_id, related_entity_type
       )
-    }
+      SELECT user_id, $1, $2, $3, $4, $5, $6, $7, $8, $9
+      FROM users
+      WHERE LOWER(TRIM(authority)) = 'admin' AND is_active = true`,
+      [
+        name,
+        `New message from ${name}: "${subject}"`,
+        1,
+        'new',
+        'Contact Messages',
+        'Contact Us',
+        '/img/icons/contact.png',
+        newContact.contact_id,
+        'contact_message',
+      ],
+    )
 
     await client.query('COMMIT')
     res.status(201).json({ success: true, data: newContact })
