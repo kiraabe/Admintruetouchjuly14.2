@@ -111,33 +111,35 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
             {isPartnershipUser && partnershipData && (
                 <div className="space-y-4 border-t pt-4">
                     <h6 className="font-semibold">Partnership Information</h6>
-                    <div>
-                        <label className="form-label" htmlFor="companyName">Company Name</label>
-                        <Input id="companyName" value={partnershipData.company_name} onChange={(e) => setPartnershipData({ ...partnershipData, company_name: e.target.value })} required />
-                    </div>
-                    <div>
-                        <label className="form-label" htmlFor="businessEmail">Business Email</label>
-                        <Input id="businessEmail" type="email" value={partnershipData.business_email} onChange={(e) => setPartnershipData({ ...partnershipData, business_email: e.target.value })} required />
-                    </div>
-                    <div>
-                        <label className="form-label" htmlFor="businessCategory">Business Category</label>
-                        <Input id="businessCategory" value={partnershipData.business_category} onChange={(e) => setPartnershipData({ ...partnershipData, business_category: e.target.value })} required />
-                    </div>
-                    <div>
-                        <label className="form-label" htmlFor="licenseNumber">License Number</label>
-                        <Input id="licenseNumber" value={partnershipData.license_number} onChange={(e) => setPartnershipData({ ...partnershipData, license_number: e.target.value })} required />
-                    </div>
-                    <div>
-                        <label className="form-label" htmlFor="contactPerson">Contact Person</label>
-                        <Input id="contactPerson" value={partnershipData.contact_person_name} onChange={(e) => setPartnershipData({ ...partnershipData, contact_person_name: e.target.value })} required />
-                    </div>
-                    <div>
-                        <label className="form-label" htmlFor="phoneNumber">Phone Number *</label>
-                        <Input id="phoneNumber" value={partnershipData.phone_number} onChange={(e) => setPartnershipData({ ...partnershipData, phone_number: e.target.value })} required />
-                    </div>
-                    <div>
-                        <label className="form-label" htmlFor="serviceCity">Service City *</label>
-                        <Input id="serviceCity" value={partnershipData.service_city} onChange={(e) => setPartnershipData({ ...partnershipData, service_city: e.target.value })} required />
+                    <div className="grid gap-4 md:grid-cols-2">
+                        <div>
+                            <label className="form-label" htmlFor="companyName">Company Name</label>
+                            <Input id="companyName" value={partnershipData.company_name} onChange={(e) => setPartnershipData({ ...partnershipData, company_name: e.target.value })} required />
+                        </div>
+                        <div>
+                            <label className="form-label" htmlFor="businessEmail">Business Email</label>
+                            <Input id="businessEmail" type="email" value={partnershipData.business_email} onChange={(e) => setPartnershipData({ ...partnershipData, business_email: e.target.value })} required />
+                        </div>
+                        <div>
+                            <label className="form-label" htmlFor="businessCategory">Business Category</label>
+                            <Input id="businessCategory" value={partnershipData.business_category} onChange={(e) => setPartnershipData({ ...partnershipData, business_category: e.target.value })} required />
+                        </div>
+                        <div>
+                            <label className="form-label" htmlFor="licenseNumber">License Number</label>
+                            <Input id="licenseNumber" value={partnershipData.license_number} onChange={(e) => setPartnershipData({ ...partnershipData, license_number: e.target.value })} required />
+                        </div>
+                        <div>
+                            <label className="form-label" htmlFor="contactPerson">Contact Person</label>
+                            <Input id="contactPerson" value={partnershipData.contact_person_name} onChange={(e) => setPartnershipData({ ...partnershipData, contact_person_name: e.target.value })} required />
+                        </div>
+                        <div>
+                            <label className="form-label" htmlFor="phoneNumber">Phone Number *</label>
+                            <Input id="phoneNumber" value={partnershipData.phone_number} onChange={(e) => setPartnershipData({ ...partnershipData, phone_number: e.target.value })} required />
+                        </div>
+                        <div>
+                            <label className="form-label" htmlFor="serviceCity">Service City *</label>
+                            <Input id="serviceCity" value={partnershipData.service_city} onChange={(e) => setPartnershipData({ ...partnershipData, service_city: e.target.value })} required />
+                        </div>
                     </div>
                 </div>
             )}
