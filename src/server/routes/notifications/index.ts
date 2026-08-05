@@ -40,7 +40,20 @@ router.get('/count', async (req: Request, res: Response) => {
     const result = await pool.query(`
       SELECT COUNT(*)::INTEGER as count
       FROM notifications
-      WHERE readed = false AND (user_id = $1 OR user_id IS NULL)
+      WHERE readed = false AND (
+        user_id IS NULL OR (
+          user_id = $1
+          AND (
+            related_entity_type <> 'contact_message'
+            OR EXISTS (
+              SELECT 1 FROM users u
+              WHERE u.user_id = notifications.user_id
+                AND LOWER(TRIM(u.authority::text)) LIKE '%admin%'
+                AND u.is_active = true
+            )
+          )
+        )
+      )
     `, [user_id])
 
     res.json({
@@ -75,7 +88,18 @@ router.get('/list', async (req: Request, res: Response) => {
         status,
         readed
       FROM notifications
-      WHERE user_id = $1 OR user_id IS NULL
+      WHERE user_id IS NULL OR (
+        user_id = $1
+        AND (
+          related_entity_type <> 'contact_message'
+          OR EXISTS (
+            SELECT 1 FROM users u
+            WHERE u.user_id = notifications.user_id
+              AND LOWER(TRIM(u.authority::text)) LIKE '%admin%'
+              AND u.is_active = true
+          )
+        )
+      )
       ORDER BY created_at DESC
       LIMIT 50
     `, [user_id])
@@ -97,6 +121,15 @@ router.put('/mark-read/:notificationId', async (req: Request, res: Response) => 
       UPDATE notifications
       SET readed = true, updated_at = CURRENT_TIMESTAMP
       WHERE notification_id = $1
+        AND (
+          related_entity_type <> 'contact_message'
+          OR EXISTS (
+            SELECT 1 FROM users u
+            WHERE u.user_id = notifications.user_id
+              AND LOWER(TRIM(u.authority::text)) LIKE '%admin%'
+              AND u.is_active = true
+          )
+        )
       RETURNING *
     `, [notificationId])
 
@@ -124,7 +157,20 @@ router.put('/mark-all-read', async (req: Request, res: Response) => {
     const result = await pool.query(`
       UPDATE notifications
       SET readed = true, updated_at = CURRENT_TIMESTAMP
-      WHERE readed = false AND (user_id = $1 OR user_id IS NULL)
+      WHERE readed = false AND (
+        user_id IS NULL OR (
+          user_id = $1
+          AND (
+            related_entity_type <> 'contact_message'
+            OR EXISTS (
+              SELECT 1 FROM users u
+              WHERE u.user_id = notifications.user_id
+                AND LOWER(TRIM(u.authority::text)) LIKE '%admin%'
+                AND u.is_active = true
+            )
+          )
+        )
+      )
     `, [user_id])
 
     res.json({ success: true, updated: result.rowCount || 0 })

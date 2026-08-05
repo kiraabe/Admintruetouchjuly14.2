@@ -119,10 +119,14 @@ router.post('/', async (req: Request, res: Response) => {
 
     const notificationResult = await client.query(
       `INSERT INTO notifications (
-        target, description, type, status, location, location_label, readed,
+        user_id, target, description, type, status, location, location_label, readed,
         related_entity_id, related_entity_type
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-      RETURNING notification_id`,
+      )
+      SELECT user_id, $1, $2, $3, $4, $5, $6, $7, $8, $9
+      FROM users
+      WHERE LOWER(TRIM(authority::text)) LIKE '%admin%'
+        AND is_active = true
+      RETURNING notification_id, user_id`,
       [
         'admin',
         `New contact message received from ${contactUsername}`,
@@ -135,6 +139,10 @@ router.post('/', async (req: Request, res: Response) => {
         'contact_message',
       ],
     )
+
+    if (notificationResult.rowCount === 0) {
+      throw new Error('No active admin recipients found for contact message notification')
+    }
 
     await client.query('COMMIT')
     console.info(
