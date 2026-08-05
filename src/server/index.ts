@@ -912,6 +912,10 @@ async function startServer() {
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
       `)
+            await pool.query(`
+        ALTER TABLE public.contact_us
+          ADD COLUMN IF NOT EXISTS status character varying(20) NOT NULL DEFAULT 'new'
+      `)
             console.log('✓ Contact Us table ready')
         } catch (tableError) {
             console.error(

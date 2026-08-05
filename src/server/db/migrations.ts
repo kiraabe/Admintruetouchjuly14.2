@@ -182,6 +182,11 @@ async function runMigrations() {
       )
     `)
 
+        await pool.query(`
+      ALTER TABLE public.contact_us
+        ADD COLUMN IF NOT EXISTS status character varying(20) NOT NULL DEFAULT 'new'
+    `)
+
         console.log('✓ Contact Us table created')
 
         await pool.query(`
