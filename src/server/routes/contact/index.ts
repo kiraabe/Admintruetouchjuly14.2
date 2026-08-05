@@ -36,11 +36,11 @@ router.get('/', async (req: Request, res: Response) => {
 })
 
 // GET single contact message
-router.get('/:contactId', async (req: Request, res: Response) => {
+router.get('/:id', async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
-    const { contactId } = req.params
-    const result = await dbPool.query('SELECT * FROM contact_us WHERE contact_id = $1', [contactId])
+    const { id } = req.params
+    const result = await dbPool.query('SELECT * FROM contact_us WHERE id = $1', [id])
 
     if (!result.rows[0]) {
       return res.status(404).json({
@@ -63,24 +63,26 @@ router.get('/:contactId', async (req: Request, res: Response) => {
 })
 
 // POST create contact message
-// NOTE: notification creation is intentionally decoupled from the contact_us
-// insert. Previously both ran inside a single transaction, so if the
-// notification INSERT ... SELECT failed for any reason (schema mismatch,
-// no matching admin rows, etc.) the whole transaction rolled back and the
-// contact message silently disappeared too, with no visible error on the
-// frontend. Now the contact message is committed on its own, and the
-// admin-notification step runs afterward as a best-effort operation that
-// only logs on failure — it can never take your contact submission down
-// with it.
+// NOTE: this previously inserted into columns that don't exist on the real
+// table (`name`, `status`, `contact_id`) — the actual schema uses `id` and
+// `username`, and has no `status` column until the accompanying migration
+// (add_status_to_contact_us.sql) is run. That mismatch is why the insert
+// was failing outright, which is also why no notification was ever created:
+// execution never got past the broken INSERT.
+//
+// The notification step also stays decoupled from the contact_us insert:
+// if notifying admins fails for any reason, it's logged but never rolls
+// back or fails the contact submission that already succeeded.
 router.post('/', async (req: Request, res: Response) => {
   const dbPool = await initPool()
 
-  const { name, email, phone, subject, message } = req.body
+  const { name, username, email, phone, subject, message } = req.body
+  const contactUsername = username || name // accept either field name from the frontend
 
-  if (!name || !email || !subject || !message) {
+  if (!contactUsername || !email || !phone || !subject || !message) {
     return res.status(400).json({
       success: false,
-      error: 'Missing required fields: name, email, subject, message',
+      error: 'Missing required fields: username, email, phone, subject, message',
     })
   }
 
@@ -88,8 +90,8 @@ router.post('/', async (req: Request, res: Response) => {
 
   try {
     const result = await dbPool.query(
-      'INSERT INTO contact_us (name, email, phone, subject, message, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [name, email, phone || null, subject, message, 'new']
+      'INSERT INTO contact_us (username, email, phone, subject, message, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [contactUsername, email, phone, subject, message, 'new']
     )
     newContact = result.rows[0]
   } catch (error) {
@@ -113,30 +115,26 @@ router.post('/', async (req: Request, res: Response) => {
       WHERE LOWER(TRIM(authority)) = 'admin' AND is_active = true
       RETURNING notification_id, user_id`,
       [
-        name,
-        `New message from ${name}: "${subject}"`,
+        contactUsername,
+        `New message from ${contactUsername}: "${subject}"`,
         1,
         'new',
         'Contact Messages',
         'Contact Us',
         '/img/icons/contact.png',
-        newContact.contact_id,
+        newContact.id,
         'contact_message',
       ],
     )
 
     if (notifyResult.rowCount === 0) {
-      // This is the most common reason "no notification shows up": no row
-      // in `users` matched authority = 'admin' AND is_active = true.
-      // Check the actual values in your users table, e.g.:
-      //   SELECT user_id, authority, is_active FROM users;
       console.warn(
         'Contact message created but no admin notifications were inserted — ' +
         'no user matched authority = \'admin\' AND is_active = true.'
       )
     } else {
       console.log(
-        `Created ${notifyResult.rowCount} admin notification(s) for contact #${newContact.contact_id}:`,
+        `Created ${notifyResult.rowCount} admin notification(s) for contact #${newContact.id}:`,
         notifyResult.rows.map((r: any) => r.user_id),
       )
     }
@@ -148,10 +146,11 @@ router.post('/', async (req: Request, res: Response) => {
 })
 
 // PATCH update contact message status
-router.patch('/:contactId', async (req: Request, res: Response) => {
+// Requires the `status` column added by add_status_to_contact_us.sql
+router.patch('/:id', async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
-    const { contactId } = req.params
+    const { id } = req.params
     const { status } = req.body
 
     if (!status) {
@@ -162,8 +161,8 @@ router.patch('/:contactId', async (req: Request, res: Response) => {
     }
 
     const result = await dbPool.query(
-      'UPDATE contact_us SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE contact_id = $2 RETURNING *',
-      [status, contactId]
+      'UPDATE contact_us SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
+      [status, id]
     )
 
     if (!result.rows[0]) {
@@ -187,12 +186,12 @@ router.patch('/:contactId', async (req: Request, res: Response) => {
 })
 
 // DELETE contact message
-router.delete('/:contactId', async (req: Request, res: Response) => {
+router.delete('/:id', async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
-    const { contactId } = req.params
+    const { id } = req.params
 
-    const result = await dbPool.query('DELETE FROM contact_us WHERE contact_id = $1 RETURNING *', [contactId])
+    const result = await dbPool.query('DELETE FROM contact_us WHERE id = $1 RETURNING *', [id])
 
     if (!result.rows[0]) {
       return res.status(404).json({
@@ -215,10 +214,11 @@ router.delete('/:contactId', async (req: Request, res: Response) => {
 })
 
 // POST send reply to contact message
-router.post('/:contactId/reply', async (req: Request, res: Response) => {
+// Requires the `status` column added by add_status_to_contact_us.sql
+router.post('/:id/reply', async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
-    const { contactId } = req.params
+    const { id } = req.params
     const { reply } = req.body
 
     if (!reply) {
@@ -229,8 +229,8 @@ router.post('/:contactId/reply', async (req: Request, res: Response) => {
     }
 
     const result = await dbPool.query(
-      'UPDATE contact_us SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE contact_id = $2 RETURNING *',
-      ['replied', contactId]
+      'UPDATE contact_us SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *',
+      ['replied', id]
     )
 
     if (!result.rows[0]) {
