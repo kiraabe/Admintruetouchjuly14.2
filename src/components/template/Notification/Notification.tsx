@@ -69,12 +69,14 @@ const _Notification = ({ className }: { className?: string }) => {
     useEffect(() => {
         getNotificationCount()
 
-        // Poll notification count every 5 seconds
-        const interval = setInterval(() => {
-            getNotificationCount()
-        }, 5000)
+        const events = new EventSource('/api/contact-us/events')
+        events.addEventListener('contact-message-created', getNotificationCount)
+        events.onerror = () => events.close()
 
-        return () => clearInterval(interval)
+        return () => {
+            events.removeEventListener('contact-message-created', getNotificationCount)
+            events.close()
+        }
     }, [getNotificationCount])
 
     const onNotificationOpen = async () => {

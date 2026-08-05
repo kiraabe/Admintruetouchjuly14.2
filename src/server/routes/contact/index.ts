@@ -1,6 +1,9 @@
 import { Router, type Request, type Response } from 'express'
+import jwt from 'jsonwebtoken'
+import { publishContactMessageCreated, subscribeToContactMessages } from '../../contactEvents'
 
 const router = Router()
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key'
 
 let pool: any = null
 
@@ -16,6 +19,33 @@ async function initPool() {
   }
   return pool
 }
+
+// Stream contact message creation events to authenticated admins.
+router.get('/events', (req: Request, res: Response) => {
+  const authorizationToken = req.headers.authorization?.split(' ')[1]
+  const cookieToken = req.headers.cookie
+    ?.split(';')
+    .map((cookie) => cookie.trim())
+    .find((cookie) => cookie.startsWith('token='))
+    ?.slice('token='.length)
+  const token = authorizationToken || cookieToken
+
+  try {
+    const user = jwt.verify(token || '', JWT_SECRET) as { role?: string }
+    if (user.role !== 'admin') {
+      return res.status(403).json({ success: false, error: 'Forbidden' })
+    }
+  } catch {
+    return res.status(401).json({ success: false, error: 'Unauthorized' })
+  }
+
+  res.setHeader('Content-Type', 'text/event-stream')
+  res.setHeader('Cache-Control', 'no-cache')
+  res.setHeader('Connection', 'keep-alive')
+  res.flushHeaders()
+  res.write(': connected\\n\\n')
+  subscribeToContactMessages(res)
+})
 
 // GET all contact messages
 router.get('/', async (req: Request, res: Response) => {
@@ -142,6 +172,7 @@ router.post('/', async (req: Request, res: Response) => {
     console.error('Error creating admin notification for contact message:', notifyError)
   }
 
+  publishContactMessageCreated()
   res.status(201).json({ success: true, data: newContact })
 })
 

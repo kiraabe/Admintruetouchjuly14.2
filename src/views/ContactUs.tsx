@@ -32,6 +32,15 @@ const ContactUs = () => {
 
   useEffect(() => {
     fetchMessages()
+
+    const events = new EventSource('/api/contact-us/events')
+    events.addEventListener('contact-message-created', fetchMessages)
+    events.onerror = () => events.close()
+
+    return () => {
+      events.removeEventListener('contact-message-created', fetchMessages)
+      events.close()
+    }
   }, [])
 
   useEffect(() => {
