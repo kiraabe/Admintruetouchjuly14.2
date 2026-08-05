@@ -47,6 +47,7 @@ const _Notification = ({ className }: { className?: string }) => {
     const [noResult, setNoResult] = useState(false)
     const [loading, setLoading] = useState(false)
     const [unreadCount, setUnreadCount] = useState(0)
+    const notificationLoadId = useRef(0)
 
     const { larger } = useResponsive()
 
@@ -78,12 +79,15 @@ const _Notification = ({ className }: { className?: string }) => {
 
     const onNotificationOpen = async () => {
         if (notificationList.length === 0) {
+            const loadId = ++notificationLoadId.current
             setLoading(true)
             try {
                 const resp = await apiGetNotificationList()
+                if (loadId !== notificationLoadId.current) return
                 setLoading(false)
                 setNotificationList(resp)
             } catch (error) {
+                if (loadId !== notificationLoadId.current) return
                 console.error('Error fetching notifications:', error)
                 setLoading(false)
                 setNotificationList([])
@@ -134,8 +138,15 @@ const _Notification = ({ className }: { className?: string }) => {
     }
 
     const onClearNotifications = async () => {
+        notificationLoadId.current += 1
         try {
+            const notificationsToDelete = [...notificationList]
             await apiClearAllNotifications()
+
+            await Promise.allSettled(
+                notificationsToDelete.map((item) => apiDeleteNotification(item.id)),
+            )
+
             setNotificationList([])
             setUnreadNotification(false)
             setUnreadCount(0)
@@ -216,7 +227,10 @@ const _Notification = ({ className }: { className?: string }) => {
                             size="sm"
                             icon={<HiOutlineTrash className="text-xl" />}
                             title="Clear all"
-                            onClick={onClearNotifications}
+                            onClick={(e) => {
+                                e.stopPropagation()
+                                onClearNotifications()
+                            }}
                         />
                     </div>
                 </div>
