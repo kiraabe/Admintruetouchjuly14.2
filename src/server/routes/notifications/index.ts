@@ -146,7 +146,7 @@ router.delete('/clear', async (req: Request, res: Response) => {
 
     const result = await pool.query(`
       DELETE FROM notifications
-      WHERE user_id = $1
+      WHERE user_id = $1 OR user_id IS NULL
     `, [user_id])
 
     res.json({ success: true, deleted: result.rowCount || 0 })
