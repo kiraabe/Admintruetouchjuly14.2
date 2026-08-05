@@ -42,7 +42,20 @@ router.get('/count', async (req: Request, res: Response) => {
     const result = await pool.query(`
       SELECT COUNT(*)::INTEGER as count
       FROM notifications
-      WHERE readed = false AND user_id = $1
+      WHERE readed = false
+        AND (
+          user_id = $1
+          OR (
+            (location = 'admin' OR related_entity_type IN ('standard_request', 'special_request'))
+            AND EXISTS (
+              SELECT 1
+              FROM users
+              WHERE users.user_id = $1
+                AND users.is_active = true
+                AND LOWER(TRIM(users.authority::text)) LIKE '%admin%'
+            )
+          )
+        )
     `, [user_id])
 
     const count = result.rows[0]?.count || 0
@@ -83,6 +96,16 @@ router.get('/list', async (req: Request, res: Response) => {
         readed
       FROM notifications
       WHERE user_id = $1
+        OR (
+          (location = 'admin' OR related_entity_type IN ('standard_request', 'special_request'))
+          AND EXISTS (
+            SELECT 1
+            FROM users
+            WHERE users.user_id = $1
+              AND users.is_active = true
+              AND LOWER(TRIM(users.authority::text)) LIKE '%admin%'
+          )
+        )
       ORDER BY created_at DESC
       LIMIT 50
     `, [user_id])
@@ -137,7 +160,20 @@ router.put('/mark-all-read', async (req: Request, res: Response) => {
     const result = await pool.query(`
       UPDATE notifications
       SET readed = true, updated_at = CURRENT_TIMESTAMP
-      WHERE readed = false AND user_id = $1
+      WHERE readed = false
+        AND (
+          user_id = $1
+          OR (
+            (location = 'admin' OR related_entity_type IN ('standard_request', 'special_request'))
+            AND EXISTS (
+              SELECT 1
+              FROM users
+              WHERE users.user_id = $1
+                AND users.is_active = true
+                AND LOWER(TRIM(users.authority::text)) LIKE '%admin%'
+            )
+          )
+        )
     `, [user_id])
 
     console.info(`[NOTIFICATION] Marked ${result.rowCount} notifications as read for user ${user_id}`)
@@ -165,7 +201,17 @@ router.delete('/clear', async (req: Request, res: Response) => {
     // by /list and /count.
     const result = await pool.query(`
       DELETE FROM notifications
-      WHERE user_id = $1 OR user_id IS NULL
+      WHERE user_id = $1
+        OR (
+          (location = 'admin' OR related_entity_type IN ('standard_request', 'special_request'))
+          AND EXISTS (
+            SELECT 1
+            FROM users
+            WHERE users.user_id = $1
+              AND users.is_active = true
+              AND LOWER(TRIM(users.authority::text)) LIKE '%admin%'
+          )
+        )
       RETURNING notification_id
     `, [user_id])
 
