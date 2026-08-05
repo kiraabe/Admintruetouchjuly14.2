@@ -144,9 +144,16 @@ router.delete('/clear', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'user_id query parameter is required' })
     }
 
+    // FIX: previously this deleted every row in the table for every user
+    // because the WHERE clause was missing and user_id was never bound.
+    // Now it only clears rows belonging to this user (or global/broadcast
+    // notifications with a NULL user_id), matching the same scoping used
+    // by /list and /count.
     const result = await pool.query(`
       DELETE FROM notifications
-    `)
+      WHERE user_id = $1 OR user_id IS NULL
+      RETURNING notification_id
+    `, [user_id])
 
     res.json({ success: true, deleted: result.rowCount || 0 })
   } catch (error) {
