@@ -32,8 +32,6 @@ const ContactUs = () => {
 
   useEffect(() => {
     fetchMessages()
-    const interval = setInterval(fetchMessages, 10000)
-    return () => clearInterval(interval)
   }, [])
 
   useEffect(() => {
