@@ -2,6 +2,7 @@ import { Router, type Request, type Response } from 'express'
 import bcrypt from 'bcryptjs'
 import pool from '../../db/config'
 import { validatePartnershipSession } from '../../middleware/partnershipAuth'
+import { updatePartnership } from '../../db/queries/partnershipQueries'
 
 const router = Router()
 
@@ -117,8 +118,9 @@ router.get('/:id', async (req: Request, res: Response) => {
 
 router.put('/me', validatePartnershipSession, async (req: Request, res: Response) => {
   try {
-    const userId = (req as Request & { user: { user_id: string } }).user.user_id
-    const { avatar, user_name } = req.body
+    const authUser = (req as Request & { user: { user_id: string; role: string } }).user
+    const userId = authUser.user_id
+    const { avatar, user_name, partnership } = req.body
 
     const result = await pool.query(
       'UPDATE users SET avatar = $1, user_name = COALESCE($2, user_name), updated_at = CURRENT_TIMESTAMP WHERE user_id = $3 RETURNING user_id, email, user_name, authority, avatar, partnership_id',
@@ -130,6 +132,24 @@ router.put('/me', validatePartnershipSession, async (req: Request, res: Response
     }
 
     const partnershipId = result.rows[0].partnership_id
+    if (authUser.role === 'partnership' && partnershipId && partnership) {
+      const allowedFields = [
+        'company_name',
+        'business_email',
+        'business_category',
+        'license_number',
+        'contact_person_name',
+        'phone_number',
+        'service_city',
+      ] as const
+      const partnershipUpdates = Object.fromEntries(
+        allowedFields
+          .filter((field) => typeof partnership[field] === 'string')
+          .map((field) => [field, partnership[field].trim()]),
+      )
+      await updatePartnership(partnershipId, partnershipUpdates)
+    }
+
     if (partnershipId && typeof avatar === 'string' && avatar.startsWith('/uploads/partnerships/')) {
       await pool.query(
         'UPDATE partnerships SET company_logo = $1, updated_at = CURRENT_TIMESTAMP WHERE partner_id = $2',
