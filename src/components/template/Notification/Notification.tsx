@@ -49,12 +49,16 @@ const _Notification = ({ className }: { className?: string }) => {
     const [unreadCount, setUnreadCount] = useState(0)
     const notificationLoadId = useRef(0)
     const isDropdownOpen = useRef(false)
+    const notificationCountInFlight = useRef(false)
 
     const { larger } = useResponsive()
 
     const navigate = useNavigate()
 
     const getNotificationCount = useCallback(async () => {
+        if (notificationCountInFlight.current) return
+
+        notificationCountInFlight.current = true
         try {
             const resp = await apiGetNotificationCount()
             setUnreadCount(resp.count)
@@ -63,7 +67,10 @@ const _Notification = ({ className }: { className?: string }) => {
                 setNoResult(false)
             }
         } catch (error) {
+            if (error instanceof Error && error.name === 'CanceledError') return
             console.error('Error fetching notification count:', error)
+        } finally {
+            notificationCountInFlight.current = false
         }
     }, [])
 

@@ -162,6 +162,12 @@ async function runMigrations() {
             await pool.query(
                 `CREATE INDEX IF NOT EXISTS idx_notifications_created_at ON notifications(created_at DESC)`,
             )
+            await pool.query(
+                `CREATE INDEX IF NOT EXISTS idx_notifications_unread_user ON notifications(user_id) WHERE readed = false`,
+            )
+            await pool.query(
+                `CREATE INDEX IF NOT EXISTS idx_notifications_unread_scope ON notifications(location, related_entity_type) WHERE readed = false`,
+            )
             console.log('✓ Notification indexes created')
         } catch (indexError) {
             console.log('Note: Notification indexes may already exist')
