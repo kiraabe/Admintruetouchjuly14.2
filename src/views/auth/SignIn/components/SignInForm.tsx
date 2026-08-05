@@ -87,6 +87,7 @@ const SignInForm = (props: SignInFormProps) => {
                         render={({ field }) => (
                             <Input
                                 type="email"
+                                placeholder="Enter your email"
                                 autoComplete="off"
                                 {...field}
                             />
@@ -109,6 +110,7 @@ const SignInForm = (props: SignInFormProps) => {
                         render={({ field }) => (
                             <PasswordInput
                                 type="text"
+                                placeholder="Enter your password"
                                 autoComplete="off"
                                 {...field}
                             />
