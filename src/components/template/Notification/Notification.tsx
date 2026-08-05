@@ -48,66 +48,81 @@ const _Notification = ({ className }: { className?: string }) => {
     const [loading, setLoading] = useState(false)
     const [unreadCount, setUnreadCount] = useState(0)
     const notificationLoadId = useRef(0)
+    const isDropdownOpen = useRef(false)
 
     const { larger } = useResponsive()
 
     const navigate = useNavigate()
 
     const getNotificationCount = useCallback(async () => {
-        const resp = await apiGetNotificationCount()
-        if (resp.count > 0) {
-            setNoResult(false)
-            setUnreadNotification(true)
+        try {
+            const resp = await apiGetNotificationCount()
             setUnreadCount(resp.count)
-        } else {
+            setUnreadNotification(resp.count > 0)
+            if (resp.count > 0) {
+                setNoResult(false)
+            }
+        } catch (error) {
+            console.error('Error fetching notification count:', error)
+        }
+    }, [])
+
+    const loadNotifications = useCallback(async () => {
+        const loadId = ++notificationLoadId.current
+        setLoading(true)
+        try {
+            const resp = await apiGetNotificationList()
+            if (loadId !== notificationLoadId.current) return
+            setNotificationList(resp)
+            setNoResult(resp.length === 0)
+        } catch (error) {
+            if (loadId !== notificationLoadId.current) return
+            console.error('Error fetching notifications:', error)
+            setNotificationList([])
             setNoResult(true)
-            setUnreadCount(0)
-            setUnreadNotification(false)
+        } finally {
+            if (loadId === notificationLoadId.current) {
+                setLoading(false)
+            }
         }
     }, [])
 
     useEffect(() => {
-        getNotificationCount()
+        const refreshNotifications = () => {
+            getNotificationCount()
+            if (isDropdownOpen.current) {
+                loadNotifications()
+            }
+        }
 
+        refreshNotifications()
         const events = new EventSource('/api/contact-us/events')
-        const interval = window.setInterval(getNotificationCount, 5000)
-        events.addEventListener('contact-message-created', getNotificationCount)
+        const interval = window.setInterval(refreshNotifications, 5000)
+        events.addEventListener('contact-message-created', refreshNotifications)
         events.onerror = () => events.close()
 
         return () => {
             window.clearInterval(interval)
-            events.removeEventListener('contact-message-created', getNotificationCount)
+            events.removeEventListener('contact-message-created', refreshNotifications)
             events.close()
         }
-    }, [getNotificationCount])
+    }, [getNotificationCount, loadNotifications])
 
-    const onNotificationOpen = async () => {
-        if (notificationList.length === 0) {
-            const loadId = ++notificationLoadId.current
-            setLoading(true)
-            try {
-                const resp = await apiGetNotificationList()
-                if (loadId !== notificationLoadId.current) return
-                setLoading(false)
-                setNotificationList(resp)
-            } catch (error) {
-                if (loadId !== notificationLoadId.current) return
-                console.error('Error fetching notifications:', error)
-                setLoading(false)
-                setNotificationList([])
-            }
+    const onNotificationOpen = (open: boolean) => {
+        isDropdownOpen.current = open
+        if (open) {
+            getNotificationCount()
+            loadNotifications()
         }
     }
 
     const onMarkAllAsRead = async () => {
         try {
             await apiMarkAllNotificationsAsRead()
-            const list = notificationList.map((item: NotificationList) => {
-                if (!item.readed) {
-                    item.readed = true
-                }
-                return item
-            })
+            const list = notificationList.map((item: NotificationList) => ({
+                ...item,
+                readed: true,
+            }))
             setNotificationList(list)
             setUnreadNotification(false)
             setUnreadCount(0)
@@ -121,12 +136,9 @@ const _Notification = ({ className }: { className?: string }) => {
     const onMarkAsRead = async (id: string) => {
         try {
             await apiMarkNotificationAsRead(id)
-            const list = notificationList.map((item) => {
-                if (item.id === id) {
-                    item.readed = true
-                }
-                return item
-            })
+            const list = notificationList.map((item) =>
+                item.id === id ? { ...item, readed: true } : item,
+            )
             setNotificationList(list)
             const unread = list.filter((item) => !item.readed).length
             setUnreadCount(unread)
@@ -246,7 +258,7 @@ const _Notification = ({ className }: { className?: string }) => {
                     notificationList.map((item, index) => (
                         <div key={item.id}>
                             <div
-                                className={`relative rounded-xl flex px-4 py-3 cursor-pointer hover:bg-gray-100 active:bg-gray-100 dark:hover:bg-gray-700 group`}
+                                className={`relative rounded-xl flex px-4 py-3 cursor-pointer hover:bg-gray-100 active:bg-gray-100 dark:hover:bg-gray-700 group ${!item.readed ? 'bg-primary/5 dark:bg-primary/10' : ''}`}
                                 onClick={() => onMarkAsRead(item.id)}
                             >
                                 <div>

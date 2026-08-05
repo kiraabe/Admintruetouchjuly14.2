@@ -93,21 +93,9 @@ router.get('/:id', async (req: Request, res: Response) => {
 })
 
 // POST create contact message
-// NOTE: this previously inserted into columns that don't exist on the real
-// table (`name`, `status`, `contact_id`) — the actual schema uses `id` and
-// `username`, and has no `status` column until the accompanying migration
-// (add_status_to_contact_us.sql) is run. That mismatch is why the insert
-// was failing outright, which is also why no notification was ever created:
-// execution never got past the broken INSERT.
-//
-// The notification step also stays decoupled from the contact_us insert:
-// if notifying admins fails for any reason, it's logged but never rolls
-// back or fails the contact submission that already succeeded.
 router.post('/', async (req: Request, res: Response) => {
-  const dbPool = await initPool()
-
   const { name, username, email, phone, subject, message } = req.body
-  const contactUsername = username || name // accept either field name from the frontend
+  const contactUsername = username || name
 
   if (!contactUsername || !email || !phone || !subject || !message) {
     return res.status(400).json({
@@ -116,64 +104,60 @@ router.post('/', async (req: Request, res: Response) => {
     })
   }
 
-  let newContact
+  let client: any
 
   try {
-    const result = await dbPool.query(
+    const dbPool = await initPool()
+    client = await dbPool.connect()
+    await client.query('BEGIN')
+
+    const contactResult = await client.query(
       'INSERT INTO contact_us (username, email, phone, subject, message, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [contactUsername, email, phone, subject, message, 'new']
+      [contactUsername, email, phone, subject, message, 'new'],
     )
-    newContact = result.rows[0]
-  } catch (error) {
-    console.error('Error creating contact message:', error)
-    return res.status(500).json({
-      success: false,
-      error: 'Failed to create contact message',
-    })
-  }
+    const newContact = contactResult.rows[0]
 
-  // Best-effort: notify admins only. Failures here are logged but never
-  // affect the response — the contact message above is already saved.
-  try {
-    const notifyResult = await dbPool.query(
+    const notificationResult = await client.query(
       `INSERT INTO notifications (
-        user_id, target, description, type, status, location, location_label, image_url,
+        target, description, type, status, location, location_label, readed,
         related_entity_id, related_entity_type
-      )
-      SELECT user_id, $1, $2, $3, $4, $5, $6, $7, $8, $9
-      FROM users
-      WHERE LOWER(TRIM(authority::text)) LIKE '%admin%' AND is_active = true
-      RETURNING notification_id, user_id`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING notification_id`,
       [
-        contactUsername,
-        `New message from ${contactUsername}: "${subject}"`,
+        'admin',
+        `New contact message received from ${contactUsername}`,
         1,
-        'new',
+        'Pending',
+        '/contact-us',
         'Contact Messages',
-        'Contact Us',
-        '/img/icons/contact.png',
+        false,
         newContact.id,
         'contact_message',
       ],
     )
 
-    if (notifyResult.rowCount === 0) {
-      console.warn(
-        'Contact message created but no admin notifications were inserted — ' +
-        'no user matched authority = \'admin\' AND is_active = true.'
-      )
-    } else {
-      console.log(
-        `Created ${notifyResult.rowCount} admin notification(s) for contact #${newContact.id}:`,
-        notifyResult.rows.map((r: any) => r.user_id),
-      )
+    await client.query('COMMIT')
+    console.info(
+      `Created contact message ${newContact.id} and notification ${notificationResult.rows[0].notification_id}`,
+    )
+    publishContactMessageCreated()
+    res.status(201).json({ success: true, data: newContact })
+  } catch (error) {
+    if (client) {
+      try {
+        await client.query('ROLLBACK')
+      } catch (rollbackError) {
+        console.error('Error rolling back contact message transaction:', rollbackError)
+      }
     }
-  } catch (notifyError) {
-    console.error('Error creating admin notification for contact message:', notifyError)
+    console.error('Error creating contact message notification:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Failed to create contact message',
+    })
+  } finally {
+    client?.release()
   }
-
-  publishContactMessageCreated()
-  res.status(201).json({ success: true, data: newContact })
 })
 
 // POST mark a contact message as read on its first view
@@ -201,6 +185,15 @@ router.post('/:id/read', async (req: Request, res: Response) => {
         error: 'Contact message not found',
       })
     }
+
+    await dbPool.query(
+      `UPDATE notifications
+      SET readed = true, updated_at = CURRENT_TIMESTAMP
+      WHERE related_entity_id = $1::uuid
+        AND related_entity_type = 'contact_message'
+        AND readed = false`,
+      [message.id],
+    )
 
     res.json({
       success: true,
