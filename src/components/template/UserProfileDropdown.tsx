@@ -30,9 +30,11 @@ const dropdownItemList: DropdownList[] = [
 ]
 
 const _UserDropdown = () => {
-    const { avatar, userName, email, partnershipId } = useSessionUser((state) => state.user)
+    const { avatar, userName, email, partnershipId, authority } = useSessionUser((state) => state.user)
     const { signOut } = useAuth()
     const [partnershipLogo, setPartnershipLogo] = useState<string | null>(null)
+    const [partnershipName, setPartnershipName] = useState<string>('')
+    const isPartnershipUser = authority?.[0] === 'partnership' || authority?.[0] === 'partner'
 
     useEffect(() => {
         if (partnershipId) {
@@ -41,8 +43,9 @@ const _UserDropdown = () => {
                 url: `/partnerships/${partnershipId}`,
             })
                 .then((data) => {
-                    if (data.success && data.data?.company_logo) {
-                        setPartnershipLogo(data.data.company_logo)
+                    if (data.success && data.data) {
+                        setPartnershipLogo(data.data.company_logo || null)
+                        setPartnershipName(data.data.company_name || '')
                     }
                 })
                 .catch((err) => console.error('Failed to fetch partnership:', err))
@@ -74,7 +77,7 @@ const _UserDropdown = () => {
                     <Avatar {...avatarProps} />
                     <div>
                         <div className="font-bold text-gray-900 dark:text-gray-100">
-                            {userName || 'Anonymous'}
+                            {isPartnershipUser ? partnershipName || userName || 'Anonymous' : userName || 'Anonymous'}
                         </div>
                         <div className="text-xs">
                             {email || 'No email available'}

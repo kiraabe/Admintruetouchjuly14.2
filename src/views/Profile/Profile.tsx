@@ -128,7 +128,7 @@ const Profile = () => {
                                                 .toUpperCase()}
                                     </div>
                                     <h5 className="font-bold mb-1">
-                                        {userName || 'Anonymous'}
+                                        {partnershipName || userName || 'Anonymous'}
                                     </h5>
                                     <p className="text-sm text-gray-500">
                                         {email || 'No email'}
