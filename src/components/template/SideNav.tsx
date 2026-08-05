@@ -73,6 +73,7 @@ const SideNav = ({
                     logoWidth={sideNavCollapse ? 56 : 260}
                     mode={mode || defaultMode}
                     type={sideNavCollapse ? 'streamline' : 'full'}
+                    isCollapsed={sideNavCollapse}
                     className={classNames(
                         sideNavCollapse && 'ltr:ml-[11.5px] ltr:mr-[11.5px]',
                         sideNavCollapse
