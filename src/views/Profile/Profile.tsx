@@ -96,7 +96,6 @@ const Profile = () => {
                 <div className="lg:col-span-2">
                     <div className="card">
                         <div className="card-body">
-                            <h6 className="mb-4">Personal Information</h6>
                             <ProfileForm
                                 data={{
                                     avatar: avatar || '',

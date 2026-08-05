@@ -51,14 +51,6 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
         }
     }, [partnershipId])
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }))
-    }
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
@@ -116,39 +108,6 @@ const ProfileForm = ({ data }: ProfileFormProps) => {
 
     return (
         <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-                <label className="form-label" htmlFor="userName">
-                    Full Name
-                </label>
-                <Input
-                    id="userName"
-                    name="userName"
-                    placeholder="Enter your full name"
-                    value={formData.userName}
-                    onChange={handleChange}
-                    required
-                />
-            </div>
-
-            <div>
-                <label className="form-label" htmlFor="email">
-                    Email Address
-                </label>
-                <Input
-                    id="email"
-                    name="email"
-                    type="email"
-                    placeholder="Enter your email address"
-                    value={formData.email}
-                    onChange={handleChange}
-                    required
-                    disabled
-                />
-                <p className="text-xs text-gray-500 mt-1">
-                    Email cannot be changed
-                </p>
-            </div>
-
             {isPartnershipUser && partnershipData && (
                 <div className="space-y-4 border-t pt-4">
                     <h6 className="font-semibold">Partnership Information</h6>
