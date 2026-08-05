@@ -142,7 +142,7 @@ router.post('/', async (req: Request, res: Response) => {
       )
       SELECT user_id, $1, $2, $3, $4, $5, $6, $7, $8, $9
       FROM users
-      WHERE LOWER(TRIM(authority)) = 'admin' AND is_active = true
+      WHERE LOWER(TRIM(authority::text)) LIKE '%admin%' AND is_active = true
       RETURNING notification_id, user_id`,
       [
         contactUsername,

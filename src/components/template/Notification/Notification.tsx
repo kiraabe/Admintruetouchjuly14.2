@@ -70,10 +70,12 @@ const _Notification = ({ className }: { className?: string }) => {
         getNotificationCount()
 
         const events = new EventSource('/api/contact-us/events')
+        const interval = window.setInterval(getNotificationCount, 5000)
         events.addEventListener('contact-message-created', getNotificationCount)
         events.onerror = () => events.close()
 
         return () => {
+            window.clearInterval(interval)
             events.removeEventListener('contact-message-created', getNotificationCount)
             events.close()
         }
