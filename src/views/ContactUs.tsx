@@ -237,33 +237,33 @@ const ContactUs = () => {
         width={600}
       >
         {selectedMessage && (
-          <div>
-            <h2 className="text-lg font-bold mb-4">{selectedMessage.subject}</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="font-semibold text-gray-600 dark:text-gray-400">From</label>
-                <p>{selectedMessage.username} ({selectedMessage.email})</p>
-              </div>
-              {selectedMessage.phone && (
-                <div>
-                  <label className="font-semibold text-gray-600 dark:text-gray-400">Phone</label>
-                  <p>{selectedMessage.phone}</p>
+          <div className="-m-2">
+            <div className="border-b border-gray-200 dark:border-gray-700 px-2 pb-4">
+              <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Contact message</p>
+              <h2 className="text-xl font-bold heading-text">{selectedMessage.subject}</h2>
+              <div className="flex items-center gap-3 mt-4">
+                <div className="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-semibold">
+                  {selectedMessage.username.charAt(0).toUpperCase()}
                 </div>
-              )}
-              <div>
-                <label className="font-semibold text-gray-600 dark:text-gray-400">Message</label>
-                <p className="mt-2 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg whitespace-pre-wrap">
-                  {selectedMessage.message}
-                </p>
-              </div>
-              <div>
-                <label className="font-semibold text-gray-600 dark:text-gray-400">Received</label>
-                <p>{new Date(selectedMessage.created_at).toLocaleString()}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="font-semibold heading-text">{selectedMessage.username}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400 truncate">{selectedMessage.email}</p>
+                </div>
+                <div className="text-right text-xs text-gray-500 dark:text-gray-400">
+                  <p>{new Date(selectedMessage.created_at).toLocaleDateString()}</p>
+                  <p>{new Date(selectedMessage.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                </div>
               </div>
             </div>
-            <div className="flex gap-2 mt-6">
-              <Button onClick={() => setShowDetailModal(false)}>Close</Button>
-              <Button onClick={() => {
+            <div className="px-2 py-6">
+              {selectedMessage.phone && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Phone: {selectedMessage.phone}</p>
+              )}
+              <p className="whitespace-pre-wrap leading-7 text-gray-700 dark:text-gray-200">{selectedMessage.message}</p>
+            </div>
+            <div className="border-t border-gray-200 dark:border-gray-700 px-2 pt-4 flex justify-end gap-2">
+              <Button variant="default" onClick={() => setShowDetailModal(false)}>Close</Button>
+              <Button variant="solid" onClick={() => {
                 setShowDetailModal(false)
                 handleReply(selectedMessage)
               }}>
@@ -281,29 +281,29 @@ const ContactUs = () => {
         width={600}
       >
         {selectedMessage && (
-          <div>
-            <h2 className="text-lg font-bold mb-4">Reply to: {selectedMessage.username}</h2>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">Original message:</p>
-                <p className="p-3 bg-gray-100 dark:bg-gray-700 rounded-lg text-sm">
-                  {selectedMessage.message}
-                </p>
-              </div>
-              <div>
-                <label className="form-label">Your Reply</label>
-                <textarea
-                  placeholder="Type your reply..."
-                  value={replyMessage}
-                  onChange={(e) => setReplyMessage(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  rows={5}
-                />
-              </div>
+          <div className="-m-2">
+            <div className="border-b border-gray-200 dark:border-gray-700 px-2 pb-4">
+              <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">New reply</p>
+              <h2 className="text-xl font-bold heading-text">{selectedMessage.subject}</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">To: {selectedMessage.username} &lt;{selectedMessage.email}&gt;</p>
             </div>
-            <div className="flex gap-2 mt-6">
-              <Button onClick={() => setShowReplyModal(false)}>Cancel</Button>
-              <Button onClick={handleSendReply}>Send Reply</Button>
+            <div className="px-2 py-5">
+              <div className="rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 mb-5">
+                <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Original message</p>
+                <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap line-clamp-4">{selectedMessage.message}</p>
+              </div>
+              <label className="form-label">Your Reply</label>
+              <textarea
+                placeholder="Write your reply..."
+                value={replyMessage}
+                onChange={(e) => setReplyMessage(e.target.value)}
+                className="w-full mt-2 px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
+                rows={6}
+              />
+            </div>
+            <div className="border-t border-gray-200 dark:border-gray-700 px-2 pt-4 flex justify-end gap-2">
+              <Button variant="default" onClick={() => setShowReplyModal(false)}>Cancel</Button>
+              <Button variant="solid" onClick={handleSendReply}>Send Reply</Button>
             </div>
           </div>
         )}
