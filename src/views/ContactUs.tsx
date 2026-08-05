@@ -13,7 +13,8 @@ interface ContactMessage {
   phone?: string
   subject: string
   message: string
-  status: 'new' | 'replied' | 'resolved'
+  status: 'new' | 'read' | 'replied' | 'resolved'
+  first_read_at?: string
   created_at: string
   updated_at: string
 }
@@ -79,9 +80,34 @@ const ContactUs = () => {
     setCurrentPage(1)
   }
 
-  const handleViewDetail = (message: ContactMessage) => {
-    setSelectedMessage(message)
-    setShowDetailModal(true)
+  const handleViewDetail = async (message: ContactMessage) => {
+    if (!message.id) {
+      toast.error('Unable to open this message')
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/contact-us/${message.id}/read`, {
+        method: 'POST',
+      })
+      const data = await response.json()
+
+      if (!response.ok || !data.success) {
+        throw new Error(data.error || 'Failed to open message')
+      }
+
+      const openedMessage = data.data as ContactMessage
+      setMessages((currentMessages) =>
+        currentMessages.map((currentMessage) =>
+          currentMessage.id === openedMessage.id ? { ...currentMessage, ...openedMessage } : currentMessage,
+        ),
+      )
+      setSelectedMessage(openedMessage)
+      setShowDetailModal(true)
+    } catch (error) {
+      console.error('Error opening contact message:', error)
+      toast.error('Failed to open message')
+    }
   }
 
   const handleReply = (message: ContactMessage) => {
@@ -98,7 +124,9 @@ const ContactUs = () => {
   const getStatusBadgeClass = (status: ContactMessage['status']) => {
     switch (status) {
       case 'new':
-        return 'bg-blue-100 text-blue-800'
+        return 'bg-blue-600 text-white'
+      case 'read':
+        return 'bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200'
       case 'replied':
         return 'bg-yellow-100 text-yellow-800'
       case 'resolved':
@@ -150,7 +178,7 @@ const ContactUs = () => {
                     <td className="px-4 py-3">{msg.subject}</td>
                     <td className="px-4 py-3">
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusBadgeClass(msg.status)}`}>
-                        {msg.status}
+                        {msg.status.charAt(0).toUpperCase() + msg.status.slice(1)}
                       </span>
                     </td>
                     <td className="px-4 py-3">{new Date(msg.created_at).toLocaleDateString()}</td>

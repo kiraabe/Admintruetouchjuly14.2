@@ -145,6 +145,45 @@ router.post('/', async (req: Request, res: Response) => {
   res.status(201).json({ success: true, data: newContact })
 })
 
+// POST mark a contact message as read on its first view
+router.post('/:id/read', async (req: Request, res: Response) => {
+  try {
+    const dbPool = await initPool()
+    const { id } = req.params
+    const transition = await dbPool.query(
+      `UPDATE contact_us
+      SET status = 'read',
+          first_read_at = COALESCE(first_read_at, CURRENT_TIMESTAMP),
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = $1 AND status = 'new'
+      RETURNING *`,
+      [id],
+    )
+
+    const message = transition.rows[0] || (
+      await dbPool.query('SELECT * FROM contact_us WHERE id = $1', [id])
+    ).rows[0]
+
+    if (!message) {
+      return res.status(404).json({
+        success: false,
+        error: 'Contact message not found',
+      })
+    }
+
+    res.json({
+      success: true,
+      data: message,
+    })
+  } catch (error) {
+    console.error('Error marking contact message as read:', error)
+    res.status(500).json({
+      success: false,
+      error: 'Failed to mark contact message as read',
+    })
+  }
+})
+
 // PATCH update contact message status
 // Requires the `status` column added by add_status_to_contact_us.sql
 router.patch('/:id', async (req: Request, res: Response) => {

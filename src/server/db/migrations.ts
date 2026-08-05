@@ -177,6 +177,7 @@ async function runMigrations() {
         subject VARCHAR(255) NOT NULL,
         message TEXT NOT NULL,
         status VARCHAR(50) DEFAULT 'new',
+        first_read_at TIMESTAMP,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
@@ -184,7 +185,8 @@ async function runMigrations() {
 
         await pool.query(`
       ALTER TABLE public.contact_us
-        ADD COLUMN IF NOT EXISTS status character varying(20) NOT NULL DEFAULT 'new'
+        ADD COLUMN IF NOT EXISTS status character varying(20) NOT NULL DEFAULT 'new',
+        ADD COLUMN IF NOT EXISTS first_read_at TIMESTAMP
     `)
 
         console.log('✓ Contact Us table created')
