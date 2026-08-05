@@ -119,27 +119,6 @@ const ContactUs = () => {
     }
   }
 
-  const handleChangeStatus = async (contactId: string, newStatus: ContactMessage['status']) => {
-    try {
-      const response = await fetch(`/api/contact-us/${contactId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus }),
-      })
-
-      const data = await response.json()
-      if (data.success) {
-        toast.success('Status updated')
-        fetchMessages()
-      } else {
-        toast.error(data.error || 'Failed to update status')
-      }
-    } catch (error) {
-      console.error('Error updating status:', error)
-      toast.error('Failed to update status')
-    }
-  }
-
   const paginatedMessages = filteredMessages.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
@@ -271,21 +250,6 @@ const ContactUs = () => {
                   <p>{selectedMessage.phone}</p>
                 </div>
               )}
-              <div>
-                <label className="font-semibold text-gray-600 dark:text-gray-400">Status</label>
-                <div className="flex gap-2 mt-2">
-                  {(['new', 'replied', 'resolved'] as const).map((status) => (
-                    <Button
-                      key={status}
-                      size="sm"
-                      onClick={() => handleChangeStatus(selectedMessage.contact_id, status)}
-                      className={selectedMessage.status === status ? 'bg-blue-600' : ''}
-                    >
-                      {status}
-                    </Button>
-                  ))}
-                </div>
-              </div>
               <div>
                 <label className="font-semibold text-gray-600 dark:text-gray-400">Message</label>
                 <p className="mt-2 p-3 bg-gray-100 dark:bg-gray-700 rounded-lg whitespace-pre-wrap">
