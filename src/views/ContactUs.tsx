@@ -26,7 +26,6 @@ const ContactUs = () => {
   const [showDetailModal, setShowDetailModal] = useState(false)
   const [showReplyModal, setShowReplyModal] = useState(false)
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null)
-  const [replyMessage, setReplyMessage] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
@@ -87,36 +86,7 @@ const ContactUs = () => {
 
   const handleReply = (message: ContactMessage) => {
     setSelectedMessage(message)
-    setReplyMessage('')
     setShowReplyModal(true)
-  }
-
-  const handleSendReply = async () => {
-    if (!selectedMessage || !replyMessage.trim()) {
-      toast.error('Please enter a reply message')
-      return
-    }
-
-    try {
-      const response = await fetch(`/api/contact-us/${selectedMessage.id}/reply`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ reply: replyMessage }),
-      })
-
-      const data = await response.json()
-      if (data.success) {
-        toast.success('Reply sent successfully')
-        setShowReplyModal(false)
-        setReplyMessage('')
-        fetchMessages()
-      } else {
-        toast.error(data.error || 'Failed to send reply')
-      }
-    } catch (error) {
-      console.error('Error sending reply:', error)
-      toast.error('Failed to send reply')
-    }
   }
 
   const paginatedMessages = filteredMessages.slice(
@@ -282,33 +252,15 @@ const ContactUs = () => {
         width={900}
         scrollable={false}
       >
-        {selectedMessage && (
-          <div className="-m-2">
-            <div className="border-b border-gray-200 dark:border-gray-700 px-2 pb-4">
-              <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">New reply</p>
-              <h2 className="text-xl font-bold heading-text">{selectedMessage.subject}</h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">To: {selectedMessage.username} &lt;{selectedMessage.email}&gt;</p>
-            </div>
-            <div className="px-2 py-5">
-              <div className="rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 p-4 mb-5">
-                <p className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2">Original message</p>
-                <p className="text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap line-clamp-4">{selectedMessage.message}</p>
-              </div>
-              <label className="form-label">Your Reply</label>
-              <textarea
-                placeholder="Write your reply..."
-                value={replyMessage}
-                onChange={(e) => setReplyMessage(e.target.value)}
-                className="w-full mt-2 px-3 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary/30 focus:border-primary outline-none"
-                rows={6}
-              />
-            </div>
-            <div className="border-t border-gray-200 dark:border-gray-700 px-2 pt-4 flex justify-end gap-2">
-              <Button variant="default" onClick={() => setShowReplyModal(false)}>Cancel</Button>
-              <Button variant="solid" onClick={handleSendReply}>Send Reply</Button>
-            </div>
-          </div>
-        )}
+        <div className="text-center py-8 px-6">
+          <h2 className="text-xl font-bold heading-text">Reply coming soon</h2>
+          <p className="mt-2 text-gray-500 dark:text-gray-400">
+            Replying to contact messages will be available soon.
+          </p>
+          <Button className="mt-6" variant="solid" onClick={() => setShowReplyModal(false)}>
+            Close
+          </Button>
+        </div>
       </Dialog>
     </Card>
   )
