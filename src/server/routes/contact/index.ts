@@ -63,36 +63,55 @@ router.get('/:contactId', async (req: Request, res: Response) => {
 })
 
 // POST create contact message
+// NOTE: notification creation is intentionally decoupled from the contact_us
+// insert. Previously both ran inside a single transaction, so if the
+// notification INSERT ... SELECT failed for any reason (schema mismatch,
+// no matching admin rows, etc.) the whole transaction rolled back and the
+// contact message silently disappeared too, with no visible error on the
+// frontend. Now the contact message is committed on its own, and the
+// admin-notification step runs afterward as a best-effort operation that
+// only logs on failure — it can never take your contact submission down
+// with it.
 router.post('/', async (req: Request, res: Response) => {
   const dbPool = await initPool()
-  const client = await dbPool.connect()
+
+  const { name, email, phone, subject, message } = req.body
+
+  if (!name || !email || !subject || !message) {
+    return res.status(400).json({
+      success: false,
+      error: 'Missing required fields: name, email, subject, message',
+    })
+  }
+
+  let newContact
 
   try {
-    const { name, email, phone, subject, message } = req.body
-
-    if (!name || !email || !subject || !message) {
-      return res.status(400).json({
-        success: false,
-        error: 'Missing required fields: name, email, subject, message',
-      })
-    }
-
-    await client.query('BEGIN')
-
-    const result = await client.query(
+    const result = await dbPool.query(
       'INSERT INTO contact_us (name, email, phone, subject, message, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
       [name, email, phone || null, subject, message, 'new']
     )
-    const newContact = result.rows[0]
+    newContact = result.rows[0]
+  } catch (error) {
+    console.error('Error creating contact message:', error)
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to create contact message',
+    })
+  }
 
-    await client.query(
+  // Best-effort: notify admins only. Failures here are logged but never
+  // affect the response — the contact message above is already saved.
+  try {
+    const notifyResult = await dbPool.query(
       `INSERT INTO notifications (
         user_id, target, description, type, status, location, location_label, image_url,
         related_entity_id, related_entity_type
       )
       SELECT user_id, $1, $2, $3, $4, $5, $6, $7, $8, $9
       FROM users
-      WHERE LOWER(TRIM(authority)) = 'admin' AND is_active = true`,
+      WHERE LOWER(TRIM(authority)) = 'admin' AND is_active = true
+      RETURNING notification_id, user_id`,
       [
         name,
         `New message from ${name}: "${subject}"`,
@@ -106,18 +125,26 @@ router.post('/', async (req: Request, res: Response) => {
       ],
     )
 
-    await client.query('COMMIT')
-    res.status(201).json({ success: true, data: newContact })
-  } catch (error) {
-    await client.query('ROLLBACK')
-    console.error('Error creating contact message and notification:', error)
-    res.status(500).json({
-      success: false,
-      error: 'Failed to create contact message',
-    })
-  } finally {
-    client.release()
+    if (notifyResult.rowCount === 0) {
+      // This is the most common reason "no notification shows up": no row
+      // in `users` matched authority = 'admin' AND is_active = true.
+      // Check the actual values in your users table, e.g.:
+      //   SELECT user_id, authority, is_active FROM users;
+      console.warn(
+        'Contact message created but no admin notifications were inserted — ' +
+        'no user matched authority = \'admin\' AND is_active = true.'
+      )
+    } else {
+      console.log(
+        `Created ${notifyResult.rowCount} admin notification(s) for contact #${newContact.contact_id}:`,
+        notifyResult.rows.map((r: any) => r.user_id),
+      )
+    }
+  } catch (notifyError) {
+    console.error('Error creating admin notification for contact message:', notifyError)
   }
+
+  res.status(201).json({ success: true, data: newContact })
 })
 
 // PATCH update contact message status
