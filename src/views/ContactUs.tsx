@@ -234,7 +234,8 @@ const ContactUs = () => {
       <Dialog
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
-        width={600}
+        width={900}
+        height="80vh"
       >
         {selectedMessage && (
           <div className="-m-2">
@@ -278,7 +279,8 @@ const ContactUs = () => {
       <Dialog
         isOpen={showReplyModal}
         onClose={() => setShowReplyModal(false)}
-        width={600}
+        width={900}
+        height="80vh"
       >
         {selectedMessage && (
           <div className="-m-2">
