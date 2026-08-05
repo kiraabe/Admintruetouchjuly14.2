@@ -37,31 +37,23 @@ router.get('/count', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'user_id query parameter is required' })
     }
 
+    console.info(`[NOTIFICATION] Fetching unread count for user: ${user_id}`)
+
     const result = await pool.query(`
       SELECT COUNT(*)::INTEGER as count
       FROM notifications
-      WHERE readed = false AND (
-        user_id IS NULL OR (
-          user_id = $1
-          AND (
-            related_entity_type <> 'contact_message'
-            OR EXISTS (
-              SELECT 1 FROM users u
-              WHERE u.user_id = notifications.user_id
-                AND LOWER(TRIM(u.authority::text)) LIKE '%admin%'
-                AND u.is_active = true
-            )
-          )
-        )
-      )
+      WHERE readed = false AND user_id = $1
     `, [user_id])
 
+    const count = result.rows[0]?.count || 0
+    console.info(`[NOTIFICATION] Unread count for user ${user_id}: ${count}`)
+
     res.json({
-      count: result.rows[0]?.count || 0
+      count
     })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
-    console.error('Error getting notification count:', errorMsg)
+    console.error('[NOTIFICATION] Error getting notification count:', errorMsg)
     res.status(500).json({ error: errorMsg })
   }
 })
@@ -74,6 +66,8 @@ router.get('/list', async (req: Request, res: Response) => {
     if (!user_id) {
       return res.status(400).json({ error: 'user_id query parameter is required' })
     }
+
+    console.info(`[NOTIFICATION] Fetching notification list for user: ${user_id}`)
 
     const result = await pool.query(`
       SELECT
@@ -88,26 +82,16 @@ router.get('/list', async (req: Request, res: Response) => {
         status,
         readed
       FROM notifications
-      WHERE user_id IS NULL OR (
-        user_id = $1
-        AND (
-          related_entity_type <> 'contact_message'
-          OR EXISTS (
-            SELECT 1 FROM users u
-            WHERE u.user_id = notifications.user_id
-              AND LOWER(TRIM(u.authority::text)) LIKE '%admin%'
-              AND u.is_active = true
-          )
-        )
-      )
+      WHERE user_id = $1
       ORDER BY created_at DESC
       LIMIT 50
     `, [user_id])
 
+    console.info(`[NOTIFICATION] Retrieved ${result.rowCount} notifications for user ${user_id}`)
     res.json(result.rows)
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
-    console.error('Error getting notification list:', errorMsg)
+    console.error('[NOTIFICATION] Error getting notification list:', errorMsg)
     res.status(500).json({ error: errorMsg })
   }
 })
@@ -116,31 +100,25 @@ router.get('/list', async (req: Request, res: Response) => {
 router.put('/mark-read/:notificationId', async (req: Request, res: Response) => {
   try {
     const { notificationId } = req.params
+    console.info(`[NOTIFICATION] Marking notification as read: ${notificationId}`)
 
     const result = await pool.query(`
       UPDATE notifications
       SET readed = true, updated_at = CURRENT_TIMESTAMP
       WHERE notification_id = $1
-        AND (
-          related_entity_type <> 'contact_message'
-          OR EXISTS (
-            SELECT 1 FROM users u
-            WHERE u.user_id = notifications.user_id
-              AND LOWER(TRIM(u.authority::text)) LIKE '%admin%'
-              AND u.is_active = true
-          )
-        )
       RETURNING *
     `, [notificationId])
 
     if (result.rows.length === 0) {
+      console.warn(`[NOTIFICATION] Notification not found: ${notificationId}`)
       return res.status(404).json({ error: 'Notification not found' })
     }
 
+    console.info(`[NOTIFICATION] Successfully marked notification ${notificationId} as read`)
     res.json({ success: true, notification: result.rows[0] })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
-    console.error('Error marking notification as read:', errorMsg)
+    console.error('[NOTIFICATION] Error marking notification as read:', errorMsg)
     res.status(500).json({ error: errorMsg })
   }
 })
@@ -154,29 +132,19 @@ router.put('/mark-all-read', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'user_id query parameter is required' })
     }
 
+    console.info(`[NOTIFICATION] Marking all notifications as read for user: ${user_id}`)
+
     const result = await pool.query(`
       UPDATE notifications
       SET readed = true, updated_at = CURRENT_TIMESTAMP
-      WHERE readed = false AND (
-        user_id IS NULL OR (
-          user_id = $1
-          AND (
-            related_entity_type <> 'contact_message'
-            OR EXISTS (
-              SELECT 1 FROM users u
-              WHERE u.user_id = notifications.user_id
-                AND LOWER(TRIM(u.authority::text)) LIKE '%admin%'
-                AND u.is_active = true
-            )
-          )
-        )
-      )
+      WHERE readed = false AND user_id = $1
     `, [user_id])
 
+    console.info(`[NOTIFICATION] Marked ${result.rowCount} notifications as read for user ${user_id}`)
     res.json({ success: true, updated: result.rowCount || 0 })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
-    console.error('Error marking all as read:', errorMsg)
+    console.error('[NOTIFICATION] Error marking all as read:', errorMsg)
     res.status(500).json({ error: errorMsg })
   }
 })
@@ -213,6 +181,7 @@ router.delete('/clear', async (req: Request, res: Response) => {
 router.delete('/delete/:notificationId', async (req: Request, res: Response) => {
   try {
     const { notificationId } = req.params
+    console.info(`[NOTIFICATION] Deleting notification: ${notificationId}`)
 
     const result = await pool.query(`
       DELETE FROM notifications
@@ -221,13 +190,15 @@ router.delete('/delete/:notificationId', async (req: Request, res: Response) => 
     `, [notificationId])
 
     if (result.rows.length === 0) {
+      console.warn(`[NOTIFICATION] Notification not found for deletion: ${notificationId}`)
       return res.status(404).json({ error: 'Notification not found' })
     }
 
+    console.info(`[NOTIFICATION] Successfully deleted notification ${notificationId}`)
     res.json({ success: true, deleted: result.rows[0] })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
-    console.error('Error deleting notification:', errorMsg)
+    console.error('[NOTIFICATION] Error deleting notification:', errorMsg)
     res.status(500).json({ error: errorMsg })
   }
 })
@@ -241,6 +212,8 @@ router.post('/create', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'target and description are required' })
     }
 
+    console.info(`[NOTIFICATION] Creating notification: target=${target}, user_id=${user_id}`)
+
     const result = await pool.query(`
       INSERT INTO notifications (
         target, description, type, status, location, location_label, image_url, user_id, related_entity_id, related_entity_type
@@ -248,10 +221,11 @@ router.post('/create', async (req: Request, res: Response) => {
       RETURNING *
     `, [target, description, type, status, location, location_label, image_url, user_id, related_entity_id, related_entity_type])
 
+    console.info(`[NOTIFICATION] Successfully created notification: ${result.rows[0].notification_id}`)
     res.status(201).json({ success: true, notification: result.rows[0] })
   } catch (error) {
     const errorMsg = error instanceof Error ? error.message : String(error)
-    console.error('Error creating notification:', errorMsg)
+    console.error('[NOTIFICATION] Error creating notification:', errorMsg)
     res.status(500).json({ error: errorMsg })
   }
 })

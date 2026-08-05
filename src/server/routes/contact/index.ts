@@ -32,10 +32,13 @@ router.get('/events', (req: Request, res: Response) => {
 
   try {
     const user = jwt.verify(token || '', JWT_SECRET) as { role?: string }
+    console.info(`[SSE] Client connected, role: ${user.role}`)
     if (user.role !== 'admin') {
+      console.warn(`[SSE] Non-admin user tried to connect: ${user.role}`)
       return res.status(403).json({ success: false, error: 'Forbidden' })
     }
-  } catch {
+  } catch (err) {
+    console.warn(`[SSE] Authentication failed:`, err instanceof Error ? err.message : err)
     return res.status(401).json({ success: false, error: 'Unauthorized' })
   }
 
@@ -43,8 +46,13 @@ router.get('/events', (req: Request, res: Response) => {
   res.setHeader('Cache-Control', 'no-cache')
   res.setHeader('Connection', 'keep-alive')
   res.flushHeaders()
-  res.write(': connected\\n\\n')
+  res.write(': connected\n\n')
+  console.info('[SSE] Client subscribed to contact message events')
   subscribeToContactMessages(res)
+
+  res.on('close', () => {
+    console.info('[SSE] Client disconnected')
+  })
 })
 
 // GET all contact messages
@@ -112,10 +120,11 @@ router.post('/', async (req: Request, res: Response) => {
     await client.query('BEGIN')
 
     const contactResult = await client.query(
-      'INSERT INTO contact_us (username, email, phone, subject, message, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      'INSERT INTO contact_us (name, email, phone, subject, message, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
       [contactUsername, email, phone, subject, message, 'new'],
     )
     const newContact = contactResult.rows[0]
+    console.info(`[CONTACT] Created contact message ID: ${newContact.id}`)
 
     const notificationResult = await client.query(
       `INSERT INTO notifications (
@@ -135,18 +144,20 @@ router.post('/', async (req: Request, res: Response) => {
         '/contact-us',
         'Contact Messages',
         false,
-        newContact.id,
+        newContact.contact_id || newContact.id,
         'contact_message',
       ],
     )
 
+    console.info(`[NOTIFICATION] Created ${notificationResult.rowCount} notification(s) for contact message ${newContact.id}`)
+
     if (notificationResult.rowCount === 0) {
-      throw new Error('No active admin recipients found for contact message notification')
+      console.warn('[NOTIFICATION] No active admin users found to send notifications')
     }
 
     await client.query('COMMIT')
     console.info(
-      `Created contact message ${newContact.id} and notification ${notificationResult.rows[0].notification_id}`,
+      `[CONTACT] Transaction complete: contact ${newContact.id}, notifications: ${notificationResult.rowCount}`,
     )
     publishContactMessageCreated()
     res.status(201).json({ success: true, data: newContact })
@@ -154,14 +165,17 @@ router.post('/', async (req: Request, res: Response) => {
     if (client) {
       try {
         await client.query('ROLLBACK')
+        console.error('[CONTACT] Transaction rolled back due to error')
       } catch (rollbackError) {
-        console.error('Error rolling back contact message transaction:', rollbackError)
+        console.error('[CONTACT] Error rolling back contact message transaction:', rollbackError)
       }
     }
-    console.error('Error creating contact message notification:', error)
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error('[CONTACT] Error creating contact message:', errorMsg, error)
     res.status(500).json({
       success: false,
       error: 'Failed to create contact message',
+      details: errorMsg,
     })
   } finally {
     client?.release()
@@ -173,45 +187,52 @@ router.post('/:id/read', async (req: Request, res: Response) => {
   try {
     const dbPool = await initPool()
     const { id } = req.params
+    console.info(`[CONTACT] Marking contact message ${id} as read`)
+
     const transition = await dbPool.query(
       `UPDATE contact_us
       SET status = 'read',
           first_read_at = COALESCE(first_read_at, CURRENT_TIMESTAMP),
           updated_at = CURRENT_TIMESTAMP
-      WHERE id::text = $1 AND status = 'new'
+      WHERE id = $1 AND status = 'new'
       RETURNING *`,
       [id],
     )
 
     const message = transition.rows[0] || (
-      await dbPool.query('SELECT * FROM contact_us WHERE id::text = $1', [id])
+      await dbPool.query('SELECT * FROM contact_us WHERE id = $1', [id])
     ).rows[0]
 
     if (!message) {
+      console.warn(`[CONTACT] Message not found: ${id}`)
       return res.status(404).json({
         success: false,
         error: 'Contact message not found',
       })
     }
 
-    await dbPool.query(
+    const notificationResult = await dbPool.query(
       `UPDATE notifications
       SET readed = true, updated_at = CURRENT_TIMESTAMP
-      WHERE related_entity_id = $1::uuid
+      WHERE related_entity_id = $1
         AND related_entity_type = 'contact_message'
-        AND readed = false`,
-      [message.id],
+        AND readed = false
+      RETURNING notification_id`,
+      [message.contact_id || message.id],
     )
 
+    console.info(`[CONTACT] Marked ${notificationResult.rowCount} notifications as read for contact message ${id}`)
     res.json({
       success: true,
       data: message,
     })
   } catch (error) {
-    console.error('Error marking contact message as read:', error)
+    const errorMsg = error instanceof Error ? error.message : String(error)
+    console.error('[CONTACT] Error marking contact message as read:', errorMsg, error)
     res.status(500).json({
       success: false,
       error: 'Failed to mark contact message as read',
+      details: errorMsg,
     })
   }
 })
