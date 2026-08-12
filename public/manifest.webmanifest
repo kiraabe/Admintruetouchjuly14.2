@@ -7,33 +7,28 @@
   "background_color": "#ffffff",
   "icons": [
     {
-      "src": "https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2Fadba0dfc6e9246588345600ea15688ee?format=webp&width=800&height=1200",
-      "sizes": "36x36",
+      "src": "https://cdn.builder.io/api/v1/image/assets%2F73c5edd2b02a4e9bb7ac88215d3893e1%2Fcdd151d27d8f491b82854ccb1a3fd422?format=webp&width=800&height=1200",
+      "sizes": "16x16",
       "type": "image/webp"
     },
     {
-      "src": "https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2Fa19f6eb06a9e495fb445a3441efd2a29?format=webp&width=800&height=1200",
+      "src": "https://cdn.builder.io/api/v1/image/assets%2F73c5edd2b02a4e9bb7ac88215d3893e1%2F1cb53d9697b940928f6daf0740a09268?format=webp&width=800&height=1200",
+      "sizes": "32x32",
+      "type": "image/webp"
+    },
+    {
+      "src": "https://cdn.builder.io/api/v1/image/assets%2F73c5edd2b02a4e9bb7ac88215d3893e1%2Ff602e9e485f04c0f92157aa8f24ee9c1?format=webp&width=800&height=1200",
       "sizes": "48x48",
       "type": "image/webp"
     },
     {
-      "src": "https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2F2618690c5af546bfb61acfaffdd69846?format=webp&width=800&height=1200",
-      "sizes": "72x72",
-      "type": "image/webp"
-    },
-    {
-      "src": "https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2F3965d231f1e743d3a965f392893766d2?format=webp&width=800&height=1200",
-      "sizes": "96x96",
-      "type": "image/webp"
-    },
-    {
-      "src": "https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2Fcadab819fd514ef2aafa7c171467990c?format=webp&width=800&height=1200",
-      "sizes": "144x144",
-      "type": "image/webp"
-    },
-    {
-      "src": "https://cdn.builder.io/api/v1/image/assets%2F569b6ba4839746df919404d096e773f5%2F63d7f67c90a941f59339b2a5db7f3cff?format=webp&width=800&height=1200",
+      "src": "https://cdn.builder.io/api/v1/image/assets%2F73c5edd2b02a4e9bb7ac88215d3893e1%2Fbc0c612489a14b9da8c4be5b089aaad0?format=webp&width=800&height=1200",
       "sizes": "192x192",
+      "type": "image/webp"
+    },
+    {
+      "src": "https://cdn.builder.io/api/v1/image/assets%2F73c5edd2b02a4e9bb7ac88215d3893e1%2F93cd2e1113e84b5497cb63e712214eec?format=webp&width=800&height=1200",
+      "sizes": "512x512",
       "type": "image/webp"
     }
   ]
